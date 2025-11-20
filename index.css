@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #e6e6e6;
+  --color-text: #0a0a0a;
+  --color-accent: #39ff14;
+  --color-panel: #ffffff;
+  --color-border: #0a0a0a;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+  /* Ensure anchor links don't land under header */
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Utility for safe layout */
+.layout-safe-padding {
+  padding-left: 5rem;
+  /* 80px - clears 64px sidebar */
+  padding-right: 5rem;
+  /* 80px - clears right nav area */
+}
+
+@media (min-width: 768px) {
+  .layout-safe-padding {
+    padding-left: 7rem;
+    /* 112px - clears 96px sidebar */
+    padding-right: 7rem;
+  }
+}
+
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .mask-linear-fade {
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
+}

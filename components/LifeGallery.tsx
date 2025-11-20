@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Film } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue, useMotionTemplate } from 'framer-motion';
+import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles, Maximize2 } from 'lucide-react';
 import { GlitchText } from './GlitchText';
 
+// --- Types ---
 interface LifeMoment {
   id: string;
   type: 'image' | 'video';
-  url: string; // Cover image
-  mediaUrls?: string[]; // For multiple images
-  videoUrl?: string; // For video
+  url: string;
+  mediaUrls?: string[];
+  videoUrl?: string;
   videoPlatform?: 'youtube' | 'direct' | 'googledrive';
   category: 'study' | 'travel' | 'sports' | 'social' | 'hobby';
   caption: string;
@@ -19,6 +20,7 @@ interface LifeMoment {
   zIndex: number;
 }
 
+// --- Data ---
 const LIFE_MOMENTS: LifeMoment[] = [
   {
     id: '1',
@@ -130,38 +132,135 @@ const LIFE_MOMENTS: LifeMoment[] = [
   }
 ];
 
-const PhotoCard: React.FC<{
+// --- Components ---
+
+const ControlDeck: React.FC<{
+  filter: string;
+  setFilter: (f: string) => void;
+  layout: 'scatter' | 'grid';
+  setLayout: (l: 'scatter' | 'grid') => void;
+  categories: string[];
+  totalCount: number;
+}> = ({ filter, setFilter, layout, setLayout, categories, totalCount }) => {
+  return (
+    <motion.div
+      initial={{ y: -50, opacity: 0 }}
+      whileInView={{ y: 0, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="sticky top-8 z-40 mx-auto max-w-4xl px-4 mb-16"
+    >
+      <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] overflow-hidden">
+        {/* Decorative Glow */}
+        <div className="absolute top-0 left-1/4 w-1/2 h-1 bg-gradient-to-r from-transparent via-theme-accent to-transparent opacity-50" />
+
+        <div className="flex flex-col md:flex-row items-center justify-between p-2 md:p-4 gap-4">
+
+          {/* Left: Stats & Search */}
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
+              <Sparkles size={14} className="text-theme-accent" />
+              <span className="text-[10px] font-mono text-white/60">MEMORIES: {totalCount.toString().padStart(2, '0')}</span>
+            </div>
+            <div className="relative flex-1 md:w-48">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+              <input
+                type="text"
+                placeholder="Search archives..."
+                className="w-full bg-black/20 border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-xs text-white focus:outline-none focus:border-theme-accent/50 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Center: Categories */}
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0 mask-linear-fade">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`relative px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${filter === cat
+                    ? 'text-black bg-theme-accent shadow-[0_0_15px_rgba(var(--color-accent-rgb),0.4)]'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                {filter === cat && (
+                  <motion.div
+                    layoutId="activeFilter"
+                    className="absolute inset-0 bg-theme-accent rounded-full -z-10"
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Layout Toggles */}
+          <div className="flex items-center gap-1 bg-black/20 p-1 rounded-lg border border-white/5">
+            <button
+              onClick={() => setLayout('scatter')}
+              className={`p-1.5 rounded-md transition-all ${layout === 'scatter' ? 'bg-white/10 text-theme-accent shadow-inner' : 'text-white/40 hover:text-white'}`}
+              title="3D Scatter"
+            >
+              <Shuffle size={16} />
+            </button>
+            <button
+              onClick={() => setLayout('grid')}
+              className={`p-1.5 rounded-md transition-all ${layout === 'grid' ? 'bg-white/10 text-theme-accent shadow-inner' : 'text-white/40 hover:text-white'}`}
+              title="Grid View"
+            >
+              <Grid size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const PhotoCard3D: React.FC<{
   photo: LifeMoment;
   index: number;
   layout: 'scatter' | 'grid';
   onSelect: (photo: LifeMoment) => void;
 }> = ({ photo, index, layout, onSelect }) => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Mouse tilt effect
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useTransform(y, [-100, 100], [10, -10]);
+  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set(e.clientX - centerX);
+    y.set(e.clientY - centerY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  // Scroll Parallax for Scatter Mode
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"]
   });
 
-  // Parallax for scatter mode
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [photo.rotation - 5, photo.rotation + 5]);
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
-  // Random positioning for scatter mode (deterministic based on index)
-  const randomX = useMemo(() => (index % 3 - 1) * 30 + (Math.random() * 20 - 10), [index]);
-  const randomY = useMemo(() => (Math.random() * 100 - 50), [index]);
-
-  const motionStyle = layout === 'scatter' ? {
-    left: `${(index % 3) * 33 + 5}%`,
-    top: `${Math.floor(index / 3) * 300 + 50 + randomY}px`,
-    y: y,
-    rotate: rotate,
-    zIndex: photo.zIndex,
-    x: `${randomX}%`
-  } : {
-    rotate: 0,
-    y: 0,
-    zIndex: 1
-  };
+  // Random positioning for scatter
+  const randomOffset = useMemo(() => ({
+    x: (index % 2 === 0 ? -1 : 1) * (Math.random() * 20 + 10),
+    y: Math.random() * 50,
+    z: Math.random() * 20 // slight depth variance
+  }), []);
 
   return (
     <motion.div
@@ -169,54 +268,96 @@ const PhotoCard: React.FC<{
       layout
       initial={{ opacity: 0, scale: 0.8 }}
       whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, margin: "-10%" }}
       transition={{ duration: 0.6, delay: index * 0.05 }}
-      className={`relative group cursor-pointer ${layout === 'scatter'
-        ? 'w-full md:w-[300px] md:absolute'
-        : 'w-full aspect-[3/4]'
+      className={`relative group perspective-1000 ${layout === 'scatter'
+          ? 'w-full md:w-[45%] mb-24 md:mb-0'
+          : 'w-full aspect-[4/5]'
         }`}
-      style={motionStyle}
+      style={{
+        marginLeft: layout === 'scatter' ? (index % 2 === 0 ? '5%' : '50%') : 0,
+        y: layout === 'scatter' ? parallaxY : 0,
+        zIndex: photo.zIndex
+      }}
       onClick={() => onSelect(photo)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
-      {/* Brutalist Frame */}
-      <div className="relative bg-theme-panel p-2 border-2 border-theme-text shadow-[4px_4px_0px_0px_var(--color-text)] transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[8px_8px_0px_0px_var(--color-accent)] group-hover:border-theme-accent">
+      <motion.div
+        style={{
+          rotateX: layout === 'scatter' ? rotateX : 0,
+          rotateY: layout === 'scatter' ? rotateY : 0,
+          transformStyle: "preserve-3d",
+        }}
+        className="relative w-full h-full cursor-pointer"
+      >
+        {/* Glass Card Container */}
+        <div className="relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-theme-accent/50 group-hover:shadow-[0_0_30px_rgba(var(--color-accent-rgb),0.2)]">
 
-        {/* Image Container */}
-        <div className="relative overflow-hidden aspect-[3/4] bg-gray-900 grayscale group-hover:grayscale-0 transition-all duration-500">
-          <img
-            src={photo.url}
-            alt={photo.caption}
-            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-theme-accent/20 opacity-0 group-hover:opacity-100 mix-blend-overlay transition-opacity duration-300" />
+          {/* Image */}
+          <div className="relative aspect-[4/5] overflow-hidden">
+            <img
+              src={photo.url}
+              alt={photo.caption}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
 
-          {/* Glitch Overlay on Hover */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-20 pointer-events-none bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,#000_2px,#000_4px)]" />
+            {/* Cinematic Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
-          {/* Type Indicator */}
-          <div className="absolute bottom-3 right-3 text-white opacity-80 drop-shadow-md">
-            {photo.type === 'video' && <Play size={20} fill="currentColor" />}
-            {photo.type === 'image' && photo.mediaUrls && photo.mediaUrls.length > 1 && <Layers size={20} />}
+            {/* Scanline Effect */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
+
+            {/* Floating Icons */}
+            <div className="absolute top-4 right-4 flex gap-2">
+              {photo.type === 'video' && (
+                <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center border border-white/20">
+                  <Play size={14} className="text-white ml-0.5" />
+                </div>
+              )}
+              {photo.mediaUrls && photo.mediaUrls.length > 1 && (
+                <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center border border-white/20">
+                  <Layers size={14} className="text-white" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Info Panel (Slide Up) */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded border border-theme-accent/20">
+                {photo.category}
+              </span>
+              <span className="text-[10px] font-mono text-white/60 flex items-center gap-1">
+                <Calendar size={10} /> {photo.date}
+              </span>
+            </div>
+            <h3 className="text-sm font-bold text-white leading-tight line-clamp-2 group-hover:text-theme-accent transition-colors">
+              {photo.caption}
+            </h3>
+
+            {/* Hidden Details that appear on hover */}
+            <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100">
+              <div className="pt-3 mt-3 border-t border-white/10 flex items-center gap-2 text-[10px] text-white/50 font-mono">
+                <MapPin size={10} />
+                {photo.location}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Label */}
-        <div className="absolute -top-3 -right-3 bg-theme-text text-theme-bg px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity delay-100">
-          {photo.category}
-        </div>
-
-        {/* Caption visible only on hover/focus */}
-        <div className="mt-2 border-t border-theme-text/10 pt-2">
-          <div className="flex justify-between items-center font-mono text-[10px] opacity-60">
-            <span className="flex items-center gap-1"><Calendar size={10} /> {photo.date}</span>
-            <span>IMG_00{photo.id}</span>
-          </div>
-          <p className="font-bold text-xs mt-1 line-clamp-1 group-hover:text-theme-accent transition-colors">{photo.caption}</p>
-        </div>
-      </div>
+        {/* 3D Depth Layers (Decorative) */}
+        <div
+          className="absolute -inset-1 bg-theme-accent/20 rounded-xl blur-xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{ transform: "translateZ(-20px)" }}
+        />
+      </motion.div>
     </motion.div>
   );
 };
+
+// --- Main Component ---
 
 export const LifeGallery: React.FC = () => {
   const [layout, setLayout] = useState<'scatter' | 'grid'>('scatter');
@@ -226,27 +367,23 @@ export const LifeGallery: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // Reset media index when selecting a new photo
-  useEffect(() => {
-    if (selectedPhoto) {
-      setCurrentMediaIndex(0);
-    }
-  }, [selectedPhoto]);
-
   // Force grid on mobile
   useEffect(() => {
     if (isMobile) setLayout('grid');
   }, [isMobile]);
 
-  const getEmbedUrl = (url: string, platform: string) => {
-    if (platform === 'youtube') {
-      const videoId = url.split('v=')[1]?.split('&')[0];
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=1&rel=0`;
-    }
-    // Add other platforms if needed
-    return url;
-  };
+  // Reset media index
+  useEffect(() => {
+    if (selectedPhoto) setCurrentMediaIndex(0);
+  }, [selectedPhoto]);
 
+  const filteredPhotos = useMemo(() => {
+    return filter === 'all' ? LIFE_MOMENTS : LIFE_MOMENTS.filter(p => p.category === filter);
+  }, [filter]);
+
+  const categories = ['all', ...Array.from(new Set(LIFE_MOMENTS.map(p => p.category)))];
+
+  // Lightbox handlers
   const handleNextMedia = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (selectedPhoto?.mediaUrls) {
@@ -261,139 +398,119 @@ export const LifeGallery: React.FC = () => {
     }
   };
 
-  const filteredPhotos = filter === 'all'
-    ? LIFE_MOMENTS
-    : LIFE_MOMENTS.filter(p => p.category === filter);
-
-  const categories = ['all', ...Array.from(new Set(LIFE_MOMENTS.map(p => p.category)))];
-
-  // Calculate container height for scatter mode
-  const scatterHeight = Math.ceil(filteredPhotos.length / 3) * 350 + 200;
+  const getEmbedUrl = (url: string, platform: string) => {
+    if (platform === 'youtube') {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=1&rel=0`;
+    }
+    return url;
+  };
 
   return (
-    <div className="relative py-32 bg-theme-bg text-theme-text overflow-hidden">
-      <div className="container mx-auto px-8 md:px-32">
+    <section className="relative py-32 bg-theme-bg text-theme-text overflow-hidden min-h-screen">
 
-        {/* Header Section */}
-        <div className="mb-24 flex flex-col md:flex-row justify-between items-end gap-8">
-          <div>
-            <div className="flex items-center gap-2 text-theme-accent opacity-60 mb-4">
-              <Aperture size={14} className="animate-spin-slow" />
-              <span className="font-mono text-xs uppercase tracking-widest">Visual Archives</span>
-            </div>
-            <GlitchText
-              text="Beyond The Code."
-              className="text-[8vw] md:text-[6vw] leading-[0.85] font-black tracking-tighter"
-              highlightWord="Beyond"
-            />
-          </div>
+      {/* Ambient Background Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-theme-accent/5 rounded-full blur-[100px] animate-pulse-slow" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
+      </div>
 
-          <div className="flex flex-col items-end gap-4">
-            <div className="flex gap-2 bg-theme-panel border border-theme-border p-1 rounded-lg">
-              <button
-                onClick={() => setLayout('scatter')}
-                disabled={isMobile}
-                className={`p-2 rounded transition-colors ${layout === 'scatter' ? 'bg-theme-text text-theme-bg' : 'hover:bg-theme-border/10 opacity-50 hover:opacity-100'} disabled:opacity-20 disabled:cursor-not-allowed`}
-                title="Scatter View"
-              >
-                <Shuffle size={16} />
-              </button>
-              <button
-                onClick={() => setLayout('grid')}
-                className={`p-2 rounded transition-colors ${layout === 'grid' ? 'bg-theme-text text-theme-bg' : 'hover:bg-theme-border/10 opacity-50 hover:opacity-100'}`}
-                title="Grid View"
-              >
-                <Grid size={16} />
-              </button>
-            </div>
+      <div className="container mx-auto px-4 md:px-8 relative z-10">
 
-            <div className="flex flex-wrap gap-2 justify-end">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setFilter(cat)}
-                  className={`px-3 py-1 font-mono text-[10px] uppercase tracking-widest border transition-all ${filter === cat
-                    ? 'bg-theme-accent text-black border-theme-accent font-bold'
-                    : 'border-theme-border text-theme-text/60 hover:border-theme-text hover:text-theme-text'
-                    }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Header */}
+        <div className="mb-24 text-center md:text-left">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex items-center justify-center md:justify-start gap-2 text-theme-accent opacity-80 mb-4"
+          >
+            <Aperture size={16} className="animate-spin-slow" />
+            <span className="font-mono text-xs uppercase tracking-[0.2em]">Chronosphere // Archive</span>
+          </motion.div>
+
+          <GlitchText
+            text="Visual Memories."
+            className="text-[12vw] md:text-[7vw] leading-[0.8] font-black tracking-tighter text-center md:text-left"
+            highlightWord="Memories"
+          />
         </div>
 
-        {/* Gallery Container */}
+        {/* Control Deck */}
+        <ControlDeck
+          filter={filter}
+          setFilter={setFilter}
+          layout={layout}
+          setLayout={setLayout}
+          categories={categories}
+          totalCount={filteredPhotos.length}
+        />
+
+        {/* Gallery Grid / Scatter */}
         <div
           ref={containerRef}
-          className={`relative transition-all duration-500 ease-in-out ${layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8' : ''}`}
-          style={{ height: layout === 'scatter' && !isMobile ? scatterHeight : 'auto' }}
+          className={`relative min-h-[80vh] transition-all duration-700 ${layout === 'grid'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
+              : 'flex flex-wrap justify-center'
+            }`}
         >
           <AnimatePresence mode="popLayout">
             {filteredPhotos.map((photo, index) => (
-              <PhotoCard
+              <PhotoCard3D
                 key={photo.id}
                 photo={photo}
                 index={index}
-                layout={isMobile ? 'grid' : layout}
+                layout={layout}
                 onSelect={setSelectedPhoto}
               />
             ))}
           </AnimatePresence>
 
-          {layout === 'scatter' && !isMobile && filteredPhotos.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center font-mono text-sm opacity-50">
-              NO_DATA_FOUND_IN_SECTOR
+          {filteredPhotos.length === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-50">
+              <Globe size={48} className="mb-4 text-theme-accent animate-pulse" />
+              <p className="font-mono text-sm">NO_DATA_FOUND_IN_SECTOR</p>
             </div>
           )}
         </div>
+
       </div>
 
-      {/* Immersive Lightbox */}
+      {/* Immersive Lightbox Overlay */}
       <AnimatePresence>
         {selectedPhoto && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-12"
+            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-0 md:p-8"
             onClick={() => setSelectedPhoto(null)}
           >
             {/* Close Button */}
             <button
-              className="absolute top-8 right-8 text-white hover:text-theme-accent transition-colors z-20"
+              className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-theme-accent hover:text-black transition-all"
               onClick={() => setSelectedPhoto(null)}
             >
-              <X size={32} />
+              <X size={24} />
             </button>
 
             <motion.div
-              layoutId={`photo-${selectedPhoto.id}`} // Shared layout ID could be used for seamless transition if structured correctly
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              layoutId={`photo-${selectedPhoto.id}`}
+              className="relative w-full h-full md:max-w-7xl md:h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-none md:rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl"
               onClick={(e) => e.stopPropagation()}
-              className="relative max-w-6xl w-full h-full md:h-auto md:aspect-video bg-black border border-white/20 shadow-2xl flex flex-col md:flex-row overflow-hidden"
             >
-              {/* Main Image / Video */}
-              <div className="w-full md:w-2/3 h-2/3 md:h-full relative bg-neutral-900 group flex items-center justify-center">
+              {/* Media Area */}
+              <div className="relative w-full md:w-3/4 h-[50vh] md:h-full bg-black flex items-center justify-center group">
                 {selectedPhoto.type === 'video' && selectedPhoto.videoUrl ? (
                   selectedPhoto.videoPlatform === 'direct' ? (
-                    <video
-                      src={selectedPhoto.videoUrl}
-                      className="w-full h-full object-contain"
-                      controls
-                      autoPlay
-                      loop
-                    />
+                    <video src={selectedPhoto.videoUrl} className="w-full h-full object-contain" controls autoPlay loop />
                   ) : (
                     <iframe
                       src={getEmbedUrl(selectedPhoto.videoUrl, selectedPhoto.videoPlatform || 'direct')}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      title={selectedPhoto.caption}
                     />
                   )
                 ) : (
@@ -401,88 +518,66 @@ export const LifeGallery: React.FC = () => {
                     <img
                       src={selectedPhoto.mediaUrls ? selectedPhoto.mediaUrls[currentMediaIndex] : selectedPhoto.url}
                       alt={selectedPhoto.caption}
-                      className="w-full h-full object-contain md:object-cover"
+                      className="w-full h-full object-contain"
                     />
-
-                    {/* Navigation for multiple images */}
                     {selectedPhoto.mediaUrls && selectedPhoto.mediaUrls.length > 1 && (
                       <>
-                        <button
-                          onClick={handlePrevMedia}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100"
-                        >
+                        <button onClick={handlePrevMedia} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                           <ChevronLeft size={24} />
                         </button>
-                        <button
-                          onClick={handleNextMedia}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100"
-                        >
+                        <button onClick={handleNextMedia} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                           <ChevronRight size={24} />
                         </button>
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                          {selectedPhoto.mediaUrls.map((_, idx) => (
-                            <div
-                              key={idx}
-                              className={`w-2 h-2 rounded-full transition-colors ${idx === currentMediaIndex ? 'bg-theme-accent' : 'bg-white/50'}`}
-                            />
-                          ))}
-                        </div>
                       </>
                     )}
                   </>
                 )}
 
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
-
-                {/* HUD Overlay */}
-                <div className="absolute top-4 left-4 font-mono text-[10px] text-white/50 flex flex-col gap-1 pointer-events-none">
-                  <span>TYPE: {selectedPhoto.type.toUpperCase()}</span>
-                  {selectedPhoto.type === 'image' && selectedPhoto.mediaUrls && (
-                    <span>IMG: {currentMediaIndex + 1}/{selectedPhoto.mediaUrls.length}</span>
-                  )}
-                </div>
+                {/* Media Counter HUD */}
+                {selectedPhoto.mediaUrls && (
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
+                    {currentMediaIndex + 1} / {selectedPhoto.mediaUrls.length}
+                  </div>
+                )}
               </div>
 
               {/* Info Sidebar */}
-              <div className="w-full md:w-1/3 h-1/3 md:h-full bg-theme-panel p-8 flex flex-col border-l border-white/10">
-                <div className="mb-auto">
-                  <span className="inline-block px-2 py-1 bg-theme-accent text-black font-mono text-[10px] font-bold uppercase tracking-widest mb-4">
-                    {selectedPhoto.category}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-6 leading-tight">
-                    {selectedPhoto.caption}
-                  </h2>
-                  <div className="space-y-4 font-mono text-xs opacity-70">
-                    <div className="flex items-center gap-3 border-b border-theme-text/10 pb-2">
-                      <Calendar size={14} />
-                      <span>{selectedPhoto.date}</span>
-                    </div>
-                    <div className="flex items-center gap-3 border-b border-theme-text/10 pb-2">
-                      <MapPin size={14} />
-                      <span>{selectedPhoto.location}</span>
-                    </div>
-                    <div className="flex items-center gap-3 border-b border-theme-text/10 pb-2">
-                      <Globe size={14} />
-                      <span>Coordinates: Unknown</span>
-                    </div>
+              <div className="w-full md:w-1/4 h-full bg-[#111] border-l border-white/5 p-8 flex flex-col overflow-y-auto">
+                <div className="flex items-center gap-2 mb-6 opacity-50">
+                  <Globe size={14} />
+                  <span className="text-[10px] font-mono uppercase tracking-widest">Data Log #{selectedPhoto.id}</span>
+                </div>
+
+                <h2 className="text-2xl font-bold text-white mb-4 leading-tight">{selectedPhoto.caption}</h2>
+
+                <div className="space-y-6 mt-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-mono text-white/40 uppercase">Date</span>
+                    <span className="text-sm text-white/80 flex items-center gap-2"><Calendar size={14} /> {selectedPhoto.date}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-mono text-white/40 uppercase">Location</span>
+                    <span className="text-sm text-white/80 flex items-center gap-2"><MapPin size={14} /> {selectedPhoto.location}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-mono text-white/40 uppercase">Category</span>
+                    <span className="inline-flex self-start items-center px-2 py-1 rounded bg-theme-accent/10 text-theme-accent text-xs font-bold border border-theme-accent/20">
+                      {selectedPhoto.category}
+                    </span>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-theme-text/10">
-                  <div className="flex justify-between items-center">
-                    <div className="font-mono text-[10px] uppercase tracking-widest opacity-50">
-                      Memory_ID: #{selectedPhoto.id.padStart(4, '0')}
-                    </div>
-                    <button className="text-theme-accent hover:text-theme-text transition-colors">
-                      <Heart size={20} />
-                    </button>
-                  </div>
+                <div className="mt-auto pt-8">
+                  <button className="w-full py-3 rounded border border-white/10 hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest transition-all group">
+                    <Heart size={16} className="group-hover:text-red-500 transition-colors" />
+                    Add to Favorites
+                  </button>
                 </div>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 };
