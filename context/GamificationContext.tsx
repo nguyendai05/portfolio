@@ -6,6 +6,7 @@ interface Achievement {
   description: string;
   icon: string;
   unlocked: boolean;
+  hint?: string; // Hint for locked achievements
 }
 
 interface GamificationContextType {
@@ -15,6 +16,7 @@ interface GamificationContextType {
   debugMode: boolean;
   isTrophyCaseOpen: boolean;
   toggleTrophyCase: () => void;
+  showToast: (achievement: Achievement) => void;
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
@@ -28,13 +30,62 @@ export const useGamification = () => {
 };
 
 const ACHIEVEMENTS_DATA: Achievement[] = [
-  { id: 'konami', title: 'Cheat Code', description: 'Entered the Konami Code.', icon: '🎮', unlocked: false },
-  { id: 'hacker', title: 'Hack The Planet', description: 'Accessed the mainframe.', icon: '💻', unlocked: false },
-  { id: 'debug', title: 'Bug Hunter', description: 'Activated debug mode.', icon: '🐛', unlocked: false },
-  { id: 'secret_lab', title: 'Secret Lab', description: 'Found the hidden entrance.', icon: '🧪', unlocked: false },
-  { id: 'night_owl', title: 'Night Owl', description: 'Visited during the witching hour.', icon: '🦉', unlocked: false },
-  { id: 'connoisseur', title: 'Art Connoisseur', description: 'Viewed all generative art pieces.', icon: '🎨', unlocked: false },
-  { id: 'talkative', title: 'Conversationalist', description: 'Had a long chat with AI.', icon: '💬', unlocked: false },
+  {
+    id: 'konami',
+    title: 'Cheat Code',
+    description: 'Entered the Konami Code.',
+    icon: '🎮',
+    unlocked: false,
+    hint: 'Try a classic game cheat sequence...'
+  },
+  {
+    id: 'hacker',
+    title: 'Hack The Planet',
+    description: 'Accessed the mainframe.',
+    icon: '💻',
+    unlocked: false,
+    hint: 'Type a certain hacker phrase...'
+  },
+  {
+    id: 'debug',
+    title: 'Bug Hunter',
+    description: 'Activated debug mode.',
+    icon: '🐛',
+    unlocked: false,
+    hint: 'Developers need a special mode...'
+  },
+  {
+    id: 'secret_lab',
+    title: 'Secret Lab',
+    description: 'Found the hidden entrance.',
+    icon: '🧪',
+    unlocked: false,
+    hint: 'Click the logo multiple times quickly...'
+  },
+  {
+    id: 'night_owl',
+    title: 'Night Owl',
+    description: 'Visited during the witching hour.',
+    icon: '🦉',
+    unlocked: false,
+    hint: 'Visit late at night (11 PM - 4 AM)...'
+  },
+  {
+    id: 'connoisseur',
+    title: 'Art Connoisseur',
+    description: 'Viewed all generative art pieces.',
+    icon: '🎨',
+    unlocked: false,
+    hint: 'Explore the Gallery section thoroughly...'
+  },
+  {
+    id: 'talkative',
+    title: 'Conversationalist',
+    description: 'Had a long chat with AI.',
+    icon: '💬',
+    unlocked: false,
+    hint: 'Have a conversation with the chatbot...'
+  },
 ];
 
 export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -43,6 +94,7 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [debugMode, setDebugMode] = useState(false);
   const [isTrophyCaseOpen, setIsTrophyCaseOpen] = useState(false);
   const [inputBuffer, setInputBuffer] = useState('');
+  const [toastQueue, setToastQueue] = useState<Achievement[]>([]);
 
   // Load from local storage
   useEffect(() => {
@@ -67,11 +119,19 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     localStorage.setItem('xuni_achievements', JSON.stringify(achievements));
   }, [achievements]);
 
+  const showToast = (achievement: Achievement) => {
+    setToastQueue(prev => [...prev, achievement]);
+    setTimeout(() => {
+      setToastQueue(prev => prev.filter(a => a.id !== achievement.id));
+    }, 3500); // Toast displays for 3.5 seconds
+  };
+
   const unlockAchievement = (id: string) => {
     setAchievements(prev => {
       const exists = prev.find(a => a.id === id);
       if (exists && !exists.unlocked) {
-        // In a real app, we would trigger a toast here
+        // Trigger toast notification
+        showToast(exists);
         return prev.map(a => a.id === id ? { ...a, unlocked: true } : a);
       }
       return prev;
@@ -90,7 +150,7 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   // Code detection logic
   useEffect(() => {
     const buffer = inputBuffer.toLowerCase();
-    
+
     // Konami Code: ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba
     if (buffer.includes('arrowuparrowuparrowdownarrowdownarrowleftarrowrightarrowleftarrowrightarrowba')) {
       unlockAchievement('konami');
@@ -112,15 +172,32 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const toggleTrophyCase = () => setIsTrophyCaseOpen(prev => !prev);
 
   return (
-    <GamificationContext.Provider value={{ 
-      achievements, 
-      unlockAchievement, 
-      neoMode, 
-      debugMode, 
-      isTrophyCaseOpen, 
-      toggleTrophyCase 
+    <GamificationContext.Provider value={{
+      achievements,
+      unlockAchievement,
+      neoMode,
+      debugMode,
+      isTrophyCaseOpen,
+      toggleTrophyCase,
+      showToast
     }}>
       {children}
+
+      {/* Achievement Toast Notifications */}
+      <div className="fixed top-20 right-8 z-[200] flex flex-col gap-3">
+        {toastQueue.map((achievement) => (
+          <div
+            key={achievement.id}
+            className="bg-gradient-to-br from-mantis-green/95 to-mantis-green/80 backdrop-blur-xl text-black p-4 rounded-lg shadow-[0_0_30px_rgba(57,255,20,0.4)] border border-mantis-green flex items-center gap-4 min-w-[300px] animate-[slideInRight_0.3s_ease-out]"
+          >
+            <div className="text-3xl">{achievement.icon}</div>
+            <div className="flex-1">
+              <div className="font-bold text-sm uppercase tracking-wider">Achievement Unlocked!</div>
+              <div className="text-xs opacity-90 mt-0.5">{achievement.title}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </GamificationContext.Provider>
   );
 };

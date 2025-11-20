@@ -9,7 +9,8 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 export const Navigation: React.FC = () => {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const location = useLocation();
-  const { unlockAchievement, toggleTrophyCase } = useGamification();
+  const { achievements, unlockAchievement, toggleTrophyCase } = useGamification();
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,20 +58,33 @@ export const Navigation: React.FC = () => {
           </div>
           <div>32° HUMID</div>
         </div>
-        
+
         <div className="flex flex-col items-end gap-6 pointer-events-auto">
           <div className="flex items-center gap-4">
-             <ThemeSwitcher />
-             <button onClick={toggleTrophyCase} className="hover:text-theme-accent transition-colors">
-                <Trophy size={20} />
-             </button>
+            <ThemeSwitcher />
+            <button
+              onClick={toggleTrophyCase}
+              className="relative group hover:text-theme-accent transition-all duration-300 p-2 rounded-lg hover:bg-theme-accent/10"
+              title="View Achievements"
+            >
+              <Trophy size={20} className="group-hover:scale-110 transition-transform duration-300" strokeWidth={1.8} />
+
+              {/* Achievement count badge */}
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-theme-accent text-theme-bg rounded-full text-[10px] font-bold font-mono flex items-center justify-center shadow-lg">
+                {unlockedCount}
+              </span>
+
+              {/* Pulse indicator */}
+              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-theme-accent rounded-full animate-pulse opacity-75"></span>
+              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-theme-accent rounded-full opacity-50 animate-ping"></span>
+            </button>
           </div>
 
           <nav className="flex flex-col items-end gap-4">
             {navLinks.map((link) => (
-              <Link 
+              <Link
                 key={link.path}
-                to={link.path} 
+                to={link.path}
                 className={`group flex items-center justify-end gap-3 transition-all duration-300 ${isActive(link.path) ? 'text-theme-accent' : 'hover:text-theme-accent text-theme-text'}`}
               >
                 <span className={`font-mono text-[10px] font-bold transition-all duration-300 ${isActive(link.path) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'}`}>
@@ -88,25 +102,25 @@ export const Navigation: React.FC = () => {
       {/* Left Sidebar */}
       <aside className="fixed top-0 left-0 h-screen w-16 md:w-24 z-50 border-r border-theme-border/10 flex flex-col justify-between py-10 items-center pointer-events-none bg-transparent text-theme-text">
         <div className="flex-none pointer-events-auto">
-           {/* Logo Area */}
-           <Link to="/" onClick={handleLogoClick} className="relative group block">
-             <div className="w-12 h-12 bg-theme-text text-theme-bg flex items-center justify-center font-mono text-sm font-bold relative z-10 transition-all duration-300 group-hover:bg-theme-accent group-hover:text-theme-text">XD</div>
-             <div className="absolute top-1 left-1 w-12 h-12 border border-theme-text bg-transparent z-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1"></div>
-           </Link>
+          {/* Logo Area */}
+          <Link to="/" onClick={handleLogoClick} className="relative group block">
+            <div className="w-12 h-12 bg-theme-text text-theme-bg flex items-center justify-center font-mono text-sm font-bold relative z-10 transition-all duration-300 group-hover:bg-theme-accent group-hover:text-theme-text">XD</div>
+            <div className="absolute top-1 left-1 w-12 h-12 border border-theme-text bg-transparent z-0 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1"></div>
+          </Link>
         </div>
 
         <div className="flex-1 flex items-center justify-center pointer-events-auto">
-           <div className="writing-mode-vertical text-[10px] md:text-xs font-mono tracking-[0.25em] opacity-60 flex gap-12 hover:text-theme-accent transition-colors duration-500 select-none cursor-default">
-              <span>STUDENT</span>
-              <span>DEVELOPER</span>
-              <span>XUNI-DIZAN</span>
-           </div>
+          <div className="writing-mode-vertical text-[10px] md:text-xs font-mono tracking-[0.25em] opacity-60 flex gap-12 hover:text-theme-accent transition-colors duration-500 select-none cursor-default">
+            <span>STUDENT</span>
+            <span>DEVELOPER</span>
+            <span>XUNI-DIZAN</span>
+          </div>
         </div>
 
         <div className="flex-none flex items-end">
-           <div className="writing-mode-vertical text-[10px] font-mono opacity-40 hover:opacity-100 transition-opacity">
-             MADE WITH CODE <span className="text-xs text-theme-accent animate-pulse">♥</span>
-           </div>
+          <div className="writing-mode-vertical text-[10px] font-mono opacity-40 hover:opacity-100 transition-opacity">
+            MADE WITH CODE <span className="text-xs text-theme-accent animate-pulse">♥</span>
+          </div>
         </div>
       </aside>
 

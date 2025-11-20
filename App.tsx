@@ -69,7 +69,7 @@ const ThemeEffects = () => {
     resize();
 
     if (theme === 'rainy_day') {
-      for(let i=0; i<100; i++) {
+      for (let i = 0; i < 100; i++) {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
@@ -78,21 +78,21 @@ const ThemeEffects = () => {
         });
       }
     } else if (theme === 'celebration') {
-      for(let i=0; i<50; i++) {
-         particles.push({
-           x: Math.random() * canvas.width,
-           y: Math.random() * canvas.height,
-           color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-           size: Math.random() * 5 + 2,
-           speedY: Math.random() * 2 + 1,
-           speedX: Math.random() * 2 - 1
-         });
+      for (let i = 0; i < 50; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          size: Math.random() * 5 + 2,
+          speedY: Math.random() * 2 + 1,
+          speedX: Math.random() * 2 - 1
+        });
       }
     }
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       if (theme === 'rainy_day') {
         ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
         ctx.lineWidth = 1;
@@ -109,25 +109,25 @@ const ThemeEffects = () => {
         ctx.stroke();
       } else if (theme === 'celebration') {
         particles.forEach(p => {
-           ctx.fillStyle = p.color;
-           ctx.beginPath();
-           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-           ctx.fill();
-           p.y += p.speedY;
-           p.x += p.speedX;
-           if (p.y > canvas.height) p.y = -10;
-           if (p.x > canvas.width) p.x = 0;
-           if (p.x < 0) p.x = canvas.width;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.speedY;
+          p.x += p.speedX;
+          if (p.y > canvas.height) p.y = -10;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.x < 0) p.x = canvas.width;
         });
       } else if (theme === 'cyberpunk') {
-         // Simple Matrix-lite effect for background
-         ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
-         ctx.font = '12px monospace';
-         if (Math.random() > 0.9) {
-            const x = Math.floor(Math.random() * canvas.width / 12) * 12;
-            const y = Math.floor(Math.random() * canvas.height / 12) * 12;
-            ctx.fillText(Math.random() > 0.5 ? '1' : '0', x, y);
-         }
+        // Simple Matrix-lite effect for background
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+        ctx.font = '12px monospace';
+        if (Math.random() > 0.9) {
+          const x = Math.floor(Math.random() * canvas.width / 12) * 12;
+          const y = Math.floor(Math.random() * canvas.height / 12) * 12;
+          ctx.fillText(Math.random() > 0.5 ? '1' : '0', x, y);
+        }
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -144,10 +144,10 @@ const ThemeEffects = () => {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[0]">
-       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-       {theme === 'retro' && (
-         <div className="absolute inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
-       )}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      {theme === 'retro' && (
+        <div className="absolute inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
+      )}
     </div>
   );
 };
