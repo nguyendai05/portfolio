@@ -82,9 +82,8 @@ const LIFE_MOMENTS: LifeMoment[] = [
     id: '5',
     type: 'video',
     url: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=1964&auto=format&fit=crop',
-    
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Example video
-    videoPlatform: 'youtube',
+    videoUrl: 'https://nguyendai05.github.io/access_file/videos/video_2025-11-21_00-56-19.mp4',
+    videoPlatform: 'direct',
     category: 'social',
     caption: 'Post-exam celebration (Video Log).',
     date: '2023.12.24',
@@ -173,8 +172,8 @@ const PhotoCard: React.FC<{
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6, delay: index * 0.05 }}
       className={`relative group cursor-pointer ${layout === 'scatter'
-          ? 'w-full md:w-[300px] md:absolute'
-          : 'w-full aspect-[3/4]'
+        ? 'w-full md:w-[300px] md:absolute'
+        : 'w-full aspect-[3/4]'
         }`}
       style={motionStyle}
       onClick={() => onSelect(photo)}
@@ -314,8 +313,8 @@ export const LifeGallery: React.FC = () => {
                   key={cat}
                   onClick={() => setFilter(cat)}
                   className={`px-3 py-1 font-mono text-[10px] uppercase tracking-widest border transition-all ${filter === cat
-                      ? 'bg-theme-accent text-black border-theme-accent font-bold'
-                      : 'border-theme-border text-theme-text/60 hover:border-theme-text hover:text-theme-text'
+                    ? 'bg-theme-accent text-black border-theme-accent font-bold'
+                    : 'border-theme-border text-theme-text/60 hover:border-theme-text hover:text-theme-text'
                     }`}
                 >
                   {cat}
@@ -380,13 +379,23 @@ export const LifeGallery: React.FC = () => {
               {/* Main Image / Video */}
               <div className="w-full md:w-2/3 h-2/3 md:h-full relative bg-neutral-900 group flex items-center justify-center">
                 {selectedPhoto.type === 'video' && selectedPhoto.videoUrl ? (
-                  <iframe
-                    src={getEmbedUrl(selectedPhoto.videoUrl, selectedPhoto.videoPlatform || 'direct')}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={selectedPhoto.caption}
-                  />
+                  selectedPhoto.videoPlatform === 'direct' ? (
+                    <video
+                      src={selectedPhoto.videoUrl}
+                      className="w-full h-full object-contain"
+                      controls
+                      autoPlay
+                      loop
+                    />
+                  ) : (
+                    <iframe
+                      src={getEmbedUrl(selectedPhoto.videoUrl, selectedPhoto.videoPlatform || 'direct')}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={selectedPhoto.caption}
+                    />
+                  )
                 ) : (
                   <>
                     <img
