@@ -26,4 +26,6 @@ export interface Project {
   description: string;
   technologies: string[];
   link?: string;
+  featured?: boolean;
+  phases?: string[];
 }

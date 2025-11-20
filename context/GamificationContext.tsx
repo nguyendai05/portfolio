@@ -86,6 +86,14 @@ const ACHIEVEMENTS_DATA: Achievement[] = [
     unlocked: false,
     hint: 'Have a conversation with the chatbot...'
   },
+  {
+    id: 'deep_lab_explorer',
+    title: 'Lab Explorer',
+    description: 'Scrolled to the depths of the Work archives.',
+    icon: '🔬',
+    unlocked: false,
+    hint: 'Scroll to the bottom of the Work page...'
+  },
 ];
 
 export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
