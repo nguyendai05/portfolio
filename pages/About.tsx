@@ -4,6 +4,7 @@ import { GenerativeArt } from '../components/GenerativeArt';
 import { GlitchText } from '../components/GlitchText';
 import { Terminal, GitBranch, Code2, Cpu } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
+import { LifeGallery } from '../components/LifeGallery';
 
 const TimelineItem: React.FC<{ 
   year: string; 
@@ -159,7 +160,7 @@ export const About: React.FC = () => {
          </div>
 
          {/* Scroll Storytelling Section */}
-         <div className="relative py-12">
+         <div className="relative py-12 mb-32">
             <h3 className="text-center text-4xl font-black tracking-tighter mb-24">Execution Log</h3>
             
             {/* Vertical Line */}
@@ -183,7 +184,12 @@ export const About: React.FC = () => {
                </div>
             </div>
          </div>
+      </div>
+      
+      {/* FULL WIDTH GALLERY SECTION */}
+      <LifeGallery />
 
+      <div className="container mx-auto px-8 md:px-32 relative z-10">
          {/* Team / Me */}
          <div className="border-t border-theme-border pt-24 mt-32">
             <h3 className="text-4xl font-black tracking-tighter mb-16">The Human.</h3>

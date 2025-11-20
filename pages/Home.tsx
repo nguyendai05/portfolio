@@ -60,36 +60,272 @@ export const Home: React.FC = () => {
         >
           <div className="absolute -top-24 w-[1px] h-24 bg-theme-text/10 hidden md:block"></div>
           
-          {/* Beautiful Stylized Hi Variation */}
-          <div className="relative group cursor-pointer select-none z-20">
-             {/* Background Glow */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-theme-accent/20 blur-[120px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
+          {/* 3D Parallax Hi with Advanced Effects */}
+          <div
+            className="relative select-none z-20 perspective-[1000px]"
+            style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
+          >
+             {/* Animated Background Particles */}
+             <div className="absolute inset-0 pointer-events-none">
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-theme-accent rounded-full"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                    }}
+                    animate={{
+                      scale: [0, 1.5, 0],
+                      opacity: [0, 0.8, 0],
+                      x: [0, (Math.random() - 0.5) * 100],
+                      y: [0, (Math.random() - 0.5) * 100],
+                    }}
+                    transition={{
+                      duration: 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      delay: Math.random() * 2,
+                      ease: "easeInOut"
+                    }}
+                  />
+                ))}
+             </div>
 
-             {/* Layer 3: Deep Shadow/Stroke */}
-             <h1 className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-transparent stroke-text opacity-10 transform transition-transform duration-700 group-hover:translate-x-12 group-hover:translate-y-12 pointer-events-none">
-                Hi.
-             </h1>
-
-             {/* Layer 2: Color Accent Offset */}
-             <h1 className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-accent/80 mix-blend-screen opacity-0 transform transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-6 group-hover:translate-y-6 pointer-events-none blur-[2px]">
-                Hi.
-             </h1>
-
-             {/* Layer 1: Main Text */}
-             <h1 className="relative text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-text transition-all duration-500 group-hover:-translate-x-2 group-hover:-translate-y-2 group-hover:scale-[1.02]">
-                Hi
-                <span className="inline-block text-theme-accent animate-bounce">.</span>
-             </h1>
-             
-             {/* Decoration */}
-             <motion.div 
-               className="absolute -right-8 top-[25%] opacity-0 group-hover:opacity-100 transition-all duration-500"
-               initial={{ x: -20 }}
-               whileHover={{ x: 20 }}
+             {/* Dynamic Glow Effect */}
+             <motion.div
+               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+               animate={{
+                 scale: [1, 1.2, 1],
+                 opacity: [0.3, 0.6, 0.3],
+               }}
+               transition={{
+                 duration: 4,
+                 repeat: Infinity,
+                 ease: "easeInOut"
+               }}
              >
-                <div className="bg-theme-text text-theme-bg px-3 py-1 font-mono text-xs font-bold rotate-12 border-2 border-theme-bg shadow-xl">
-                   INITIALIZING...
-                </div>
+               <div className="w-[500px] h-[500px] bg-theme-accent/30 blur-[100px] rounded-full"></div>
+             </motion.div>
+
+             {/* 3D Layer Stack - Deep Background */}
+             {[6, 5, 4, 3, 2, 1].map((depth) => (
+               <motion.h1
+                 key={`depth-${depth}`}
+                 className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-text/5 pointer-events-none"
+                 style={{
+                   transform: `translateZ(-${depth * 20}px)`,
+                   transformStyle: 'preserve-3d',
+                 }}
+                 animate={{
+                   rotateY: [0, 2, 0, -2, 0],
+                   rotateX: [0, -1, 0, 1, 0],
+                 }}
+                 transition={{
+                   duration: 10 + depth,
+                   repeat: Infinity,
+                   ease: "easeInOut",
+                   delay: depth * 0.1
+                 }}
+               >
+                 Hi.
+               </motion.h1>
+             ))}
+
+             {/* Chromatic Aberration Layers */}
+             <motion.h1
+               className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-red-500/20 pointer-events-none mix-blend-screen"
+               animate={{
+                 x: [-2, 2, -2],
+                 y: [1, -1, 1],
+               }}
+               transition={{
+                 duration: 3,
+                 repeat: Infinity,
+                 ease: "easeInOut"
+               }}
+             >
+               Hi.
+             </motion.h1>
+
+             <motion.h1
+               className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-cyan-500/20 pointer-events-none mix-blend-screen"
+               animate={{
+                 x: [2, -2, 2],
+                 y: [-1, 1, -1],
+               }}
+               transition={{
+                 duration: 3,
+                 repeat: Infinity,
+                 ease: "easeInOut"
+               }}
+             >
+               Hi.
+             </motion.h1>
+
+             {/* Accent Stroke Layer */}
+             <motion.h1
+               className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-transparent stroke-accent-thick pointer-events-none"
+               style={{
+                 WebkitTextStroke: '3px var(--color-accent)',
+                 transform: 'translateZ(30px)',
+                 transformStyle: 'preserve-3d',
+               }}
+               animate={{
+                 rotateY: [0, 5, 0, -5, 0],
+                 scale: [1, 1.02, 1],
+               }}
+               transition={{
+                 duration: 8,
+                 repeat: Infinity,
+                 ease: "easeInOut"
+               }}
+             >
+               Hi.
+             </motion.h1>
+
+             {/* Main 3D Text with Hover Interaction */}
+             <motion.div
+               className="relative cursor-pointer"
+               style={{ transformStyle: 'preserve-3d' }}
+               whileHover={{ scale: 1.05 }}
+               animate={{
+                 rotateY: [0, 3, 0, -3, 0],
+                 rotateX: [0, -2, 0, 2, 0],
+               }}
+               transition={{
+                 duration: 12,
+                 repeat: Infinity,
+                 ease: "easeInOut"
+               }}
+             >
+               <h1
+                 className="relative text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-text"
+                 style={{
+                   textShadow: `
+                     2px 2px 0 var(--color-accent),
+                     4px 4px 0 rgba(0,0,0,0.1),
+                     6px 6px 20px rgba(0,0,0,0.2),
+                     0 0 40px var(--color-accent-rgb, 0.3)
+                   `,
+                   transform: 'translateZ(50px)',
+                   transformStyle: 'preserve-3d',
+                 }}
+               >
+                 Hi
+                 <motion.span
+                   className="inline-block text-theme-accent"
+                   animate={{
+                     rotateZ: [0, 10, 0, -10, 0],
+                     y: [0, -10, 0, -5, 0],
+                     scale: [1, 1.2, 1, 1.1, 1],
+                   }}
+                   transition={{
+                     duration: 2,
+                     repeat: Infinity,
+                     ease: "easeInOut"
+                   }}
+                 >
+                   .
+                 </motion.span>
+               </h1>
+
+               {/* Inner Glow Effect */}
+               <h1
+                 className="absolute top-0 left-0 w-full text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-accent/30 blur-sm pointer-events-none"
+                 style={{
+                   transform: 'translateZ(45px)',
+                 }}
+               >
+                 Hi.
+               </h1>
+             </motion.div>
+
+             {/* Floating 3D Decorative Elements */}
+             <motion.div
+               className="absolute -right-16 top-[20%] pointer-events-none"
+               style={{ transformStyle: 'preserve-3d' }}
+               animate={{
+                 rotateY: [0, 360],
+                 rotateX: [0, 180],
+                 z: [0, 50, 0],
+               }}
+               transition={{
+                 duration: 20,
+                 repeat: Infinity,
+                 ease: "linear"
+               }}
+             >
+               <div
+                 className="w-16 h-16 border-4 border-theme-accent/50"
+                 style={{
+                   transform: 'translateZ(100px)',
+                   transformStyle: 'preserve-3d',
+                 }}
+               />
+             </motion.div>
+
+             <motion.div
+               className="absolute -left-16 bottom-[20%] pointer-events-none"
+               style={{ transformStyle: 'preserve-3d' }}
+               animate={{
+                 rotateZ: [0, 360],
+                 rotateY: [0, -360],
+                 scale: [1, 1.5, 1],
+               }}
+               transition={{
+                 duration: 15,
+                 repeat: Infinity,
+                 ease: "linear"
+               }}
+             >
+               <div
+                 className="w-12 h-12 rounded-full border-4 border-theme-text/30"
+                 style={{
+                   transform: 'translateZ(80px)',
+                   transformStyle: 'preserve-3d',
+                 }}
+               />
+             </motion.div>
+
+             {/* Animated Text Badge */}
+             <motion.div
+               className="absolute -right-8 top-[25%]"
+               initial={{ opacity: 0, x: -30, rotateZ: 0 }}
+               animate={{
+                 opacity: [0, 1, 1, 0],
+                 x: [-30, 10, 10, 40],
+                 rotateZ: [0, 12, 12, 20],
+                 scale: [0.8, 1, 1, 0.8],
+               }}
+               transition={{
+                 duration: 4,
+                 repeat: Infinity,
+                 ease: "easeInOut",
+                 times: [0, 0.3, 0.7, 1]
+               }}
+               style={{ transformStyle: 'preserve-3d' }}
+             >
+               <div
+                 className="bg-theme-text text-theme-bg px-4 py-2 font-mono text-xs font-bold border-2 border-theme-accent shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+                 style={{
+                   transform: 'translateZ(100px)',
+                 }}
+               >
+                 INITIALIZING...
+               </div>
+             </motion.div>
+
+             {/* Scanline Effect */}
+             <motion.div
+               className="absolute inset-0 pointer-events-none overflow-hidden"
+               animate={{ opacity: [0.1, 0.3, 0.1] }}
+               transition={{ duration: 2, repeat: Infinity }}
+             >
+               <motion.div
+                 className="w-full h-1 bg-theme-accent/50 blur-sm"
+                 animate={{ y: ['-100%', '200%'] }}
+                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+               />
              </motion.div>
           </div>
 
