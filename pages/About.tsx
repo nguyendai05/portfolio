@@ -126,7 +126,7 @@ export const About: React.FC = () => {
               <h4 className="text-xl font-bold mb-2">Nguyễn Xuân Đại</h4>
               <div className="font-mono text-xs uppercase opacity-50 mb-4">Xuni-Dizan</div>
               <p className="text-sm opacity-80 group-hover:text-inherit mb-4">
-                "Cười người hôm trước – Hôm sau debug." <br />
+                "Ngày ta đại thành Java kinh phổ - ắt sẽ danh chấn thiên hạ!" <br />
                 Student, Developer, and Explorer.
               </p>
               <div className="flex gap-2 text-xs font-mono">

@@ -359,7 +359,7 @@ export const Home: React.FC = () => {
         <div className="absolute bottom-8 left-8 md:left-32 z-20">
           <h2 className="text-2xl font-black tracking-tighter text-theme-text relative z-10">Xuni-Dizan</h2>
           <p className="text-[10px] font-mono uppercase tracking-widest opacity-60 mb-2 relative z-10">IT Student <br /> Developer</p>
-          <p className="text-xs font-bold text-theme-accent max-w-[200px] mt-1 relative z-10">"Cười người hôm trước, hôm sau debug"</p>
+          <p className="text-xs font-bold text-theme-accent max-w-[200px] mt-1 relative z-10">“Ngày ta đại thành Java kinh phổ, ắt sẽ danh chấn thiên hạ!”</p>
           <div className="w-12 h-12 bg-theme-accent absolute -left-4 -top-4 z-0 opacity-80"></div>
         </div>
       </section>
