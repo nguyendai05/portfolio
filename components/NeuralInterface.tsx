@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Send, Sparkles, X, Trash2 } from 'lucide-react';
+import { Terminal, Send, Sparkles, X, Trash2, Cpu, Minimize2, Maximize2 } from 'lucide-react';
 import { sendMessageToMantis } from '../services/geminiService';
 
 interface Message {
@@ -9,7 +9,9 @@ interface Message {
   text: string;
 }
 
-const Typewriter: React.FC<{ text: string; speed?: number }> = ({ text, speed = 20 }) => {
+// --- Components ---
+
+const Typewriter: React.FC<{ text: string; speed?: number }> = ({ text, speed = 15 }) => {
   const [displayedText, setDisplayedText] = useState('');
 
   useEffect(() => {
@@ -29,65 +31,99 @@ const Typewriter: React.FC<{ text: string; speed?: number }> = ({ text, speed = 
   return (
     <span>
       {displayedText}
-      {displayedText.length < text.length && <span className="inline-block w-2 h-4 bg-mantis-green animate-pulse ml-1 align-middle"></span>}
+      {displayedText.length < text.length && (
+        <span className="inline-block w-1.5 h-3 bg-theme-accent animate-pulse ml-0.5 align-middle" />
+      )}
     </span>
   );
 };
 
 const MessageItem: React.FC<{ msg: Message }> = ({ msg }) => {
+  const isUser = msg.role === 'user';
+
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20, filter: 'blur(4px)' }}
-      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-      exit={{
-        opacity: 0,
-        x: -20,
-        skewX: -20,
-        filter: 'blur(10px)',
-        transition: { duration: 0.3 }
-      }}
-      transition={{ duration: 0.3, ease: "circOut" }}
-      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
     >
       <div
-        className={`max-w-[85%] p-4 border relative overflow-hidden group ${msg.role === 'user'
-          ? 'bg-black text-white border-black'
-          : 'bg-white text-black border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-          }`}
+        className={`
+          relative max-w-[85%] p-3 text-sm font-mono leading-relaxed shadow-sm
+          ${isUser
+            ? 'bg-theme-text text-theme-bg rounded-l-lg rounded-tr-lg'
+            : 'bg-theme-panel text-theme-text border border-theme-border rounded-r-lg rounded-tl-lg'
+          }
+        `}
       >
-        {/* Glitch decoration line */}
-        <div className={`absolute top-0 left-0 h-full w-1 ${msg.role === 'model' ? 'bg-mantis-green' : 'bg-white/20'}`} />
+        {/* Accent Bar for Model */}
+        {!isUser && (
+          <div className="absolute top-0 left-0 bottom-0 w-1 bg-theme-accent rounded-l-lg" />
+        )}
 
-        <span className="block text-[10px] opacity-50 mb-1 uppercase font-bold tracking-widest">
-          {msg.role === 'model' ? 'XUNI_CORE' : 'USER_INPUT'}
-        </span>
+        {/* Label */}
+        <div className={`text-[9px] uppercase tracking-wider mb-1 font-bold opacity-50 ${isUser ? 'text-right' : 'text-left pl-2'}`}>
+          {isUser ? 'YOU' : 'XUNI_CORE'}
+        </div>
 
-        <div className="whitespace-pre-wrap leading-relaxed">
-          {msg.role === 'model' ? <Typewriter text={msg.text} /> : msg.text}
+        <div className={!isUser ? 'pl-2' : ''}>
+          {!isUser ? <Typewriter text={msg.text} /> : msg.text}
         </div>
       </div>
     </motion.div>
   );
 };
 
+const LoadingIndicator = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="flex items-center gap-2 text-[10px] font-mono text-theme-text/50 p-2"
+  >
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+    >
+      <Cpu size={12} />
+    </motion.div>
+    <span className="animate-pulse">PROCESSING_NEURAL_PATHWAYS...</span>
+  </motion.div>
+);
+
 export const NeuralInterface: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { id: 'init', role: 'model', text: 'System initialized. Hello, I am the digital assistant of Nguyen Xuan Dai.' }
+    { id: 'init', role: 'model', text: 'Neural link established. Ready for input.' }
   ]);
   const [isThinking, setIsThinking] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll when messages change
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       setTimeout(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-      }, 100); // Slight delay to allow layout to adjust
+      }, 100);
     }
-  }, [messages, isThinking]);
+  }, [messages, isThinking, isOpen]);
+
+  // Focus input on open
+  useEffect(() => {
+    if (isOpen && !isMobile) {
+      setTimeout(() => inputRef.current?.focus(), 300);
+    }
+  }, [isOpen, isMobile]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -97,135 +133,165 @@ export const NeuralInterface: React.FC = () => {
     setInput('');
     setIsThinking(true);
 
-    // Format history for API
     const history = messages.map((m) => ({
       role: m.role,
       parts: [{ text: m.text }],
     }));
 
-    const responseText = await sendMessageToMantis(history, userMsg.text);
-
-    setMessages((prev) => [
-      ...prev,
-      { id: (Date.now() + 1).toString(), role: 'model', text: responseText },
-    ]);
-    setIsThinking(false);
+    try {
+      const responseText = await sendMessageToMantis(history, userMsg.text);
+      setMessages((prev) => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), role: 'model', text: responseText },
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), role: 'model', text: 'Error: Neural connection unstable.' },
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const handleClear = () => {
     setMessages([]);
     setTimeout(() => {
-      setMessages([{ id: Date.now().toString(), role: 'model', text: 'Memory purged. Ready for new sequence.' }]);
-    }, 800);
+      setMessages([{ id: Date.now().toString(), role: 'model', text: 'Memory purged. Systems normal.' }]);
+    }, 500);
   };
 
   return (
     <>
-      <motion.button
-        className="fixed bottom-24 right-8 md:right-12 z-50 bg-gradient-to-br from-black/20 to-black/10 backdrop-blur-md text-mantis-green p-3.5 rounded-2xl hover:from-mantis-green/20 hover:to-mantis-green/10 hover:shadow-[0_0_40px_rgba(0,255,100,0.4)] transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(0,255,100,0.2)] border-2 border-mantis-green/30 hover:border-mantis-green/60 group overflow-hidden"
-        onClick={() => setIsOpen(true)}
-        whileHover={{ scale: 1.08, rotate: 5 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, scale: 0, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ delay: 1.2, type: "spring", stiffness: 200, damping: 15 }}
-      >
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-mantis-green/0 via-mantis-green/5 to-mantis-green/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      {/* --- TRIGGER BUTTON --- */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            key="neural-trigger"
+            className={`
+              fixed z-50 flex items-center justify-center group
+              ${isMobile ? 'bottom-20 right-4' : 'bottom-8 right-8'}
+            `}
+            onClick={() => setIsOpen(true)}
+            initial={{ scale: 0, rotate: 90 }}
+            animate={{ scale: 1, rotate: 0 }}
+            exit={{ scale: 0, rotate: 90, transition: { duration: 0.2 } }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            {/* Pulse Effect */}
+            <div className="absolute inset-0 bg-theme-accent/20 rounded-full animate-ping opacity-75" />
 
-        <div className="relative">
-          <Sparkles size={22} className="group-hover:rotate-12 transition-transform duration-500" strokeWidth={1.5} />
+            {/* Main Button */}
+            <div className="relative bg-theme-panel border-2 border-theme-border text-theme-text p-3 rounded-full shadow-[4px_4px_0px_0px_var(--color-border)] group-hover:shadow-[2px_2px_0px_0px_var(--color-border)] group-hover:translate-x-[2px] group-hover:translate-y-[2px] transition-all">
+              <Sparkles size={20} className="text-theme-accent fill-theme-accent/20" />
+            </div>
 
-          {/* Refined pulse indicator */}
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-mantis-green rounded-full animate-pulse shadow-[0_0_10px_rgba(0,255,100,0.8)]"></span>
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-mantis-green/50 rounded-full animate-ping"></span>
-        </div>
-      </motion.button>
+            {/* Label (Desktop only) */}
+            {!isMobile && (
+              <motion.div
+                className="absolute right-full mr-4 bg-theme-text text-theme-bg text-[10px] font-mono px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
+                initial={{ x: 10 }}
+                whileHover={{ x: 0 }}
+              >
+                NEURAL_LINK_OFFLINE
+              </motion.div>
+            )}
+          </motion.button>
+        )}
+      </AnimatePresence>
 
+      {/* --- DOCK PANEL --- */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <>
+            {/* Backdrop (Mobile only) */}
+            {isMobile && (
+              <motion.div
+                className="fixed inset-0 bg-theme-text/20 backdrop-blur-sm z-[60]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsOpen(false)}
+              />
+            )}
+
             <motion.div
-              className="w-full max-w-2xl bg-[#e6e6e6] border-2 border-black shadow-2xl overflow-hidden flex flex-col h-[60vh] md:h-[500px] relative"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              className={`
+                fixed z-[70] bg-theme-bg border-2 border-theme-border flex flex-col overflow-hidden shadow-2xl
+                ${isMobile
+                  ? 'bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl'
+                  : 'bottom-8 right-8 w-[380px] h-[600px] max-h-[80vh] rounded-xl'
+                }
+              `}
+              initial={isMobile ? { y: "100%" } : { x: "100%", opacity: 0 }}
+              animate={isMobile ? { y: 0 } : { x: 0, opacity: 1 }}
+              exit={isMobile ? { y: "100%" } : { x: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
             >
               {/* Header */}
-              <div className="bg-black text-mantis-green p-3 flex justify-between items-center font-mono text-xs tracking-widest border-b border-mantis-green select-none">
+              <div className="flex items-center justify-between px-4 py-3 bg-theme-panel border-b border-theme-border select-none">
                 <div className="flex items-center gap-2">
-                  <Terminal size={14} />
-                  <span>XUNI_NEURAL_LINK_V1.0</span>
+                  <div className="w-2 h-2 bg-theme-accent rounded-full animate-pulse" />
+                  <span className="font-mono text-xs font-bold tracking-widest text-theme-text">XUNI_NEURAL_DOCK</span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <button onClick={handleClear} className="hover:text-white transition-colors" title="Clear Terminal">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleClear}
+                    className="text-theme-text/40 hover:text-theme-text transition-colors"
+                    title="Purge Memory"
+                  >
                     <Trash2 size={14} />
                   </button>
-                  <button onClick={() => setIsOpen(false)} className="hover:text-white transition-colors">
-                    <X size={18} />
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="text-theme-text hover:text-red-500 transition-colors"
+                  >
+                    {isMobile ? <X size={20} /> : <Minimize2 size={16} />}
                   </button>
                 </div>
               </div>
 
               {/* Chat Area */}
               <div
-                className="flex-1 p-6 overflow-y-auto font-mono text-sm"
+                className="flex-1 overflow-y-auto p-4 space-y-4 bg-theme-bg"
                 ref={scrollRef}
-                style={{ backgroundColor: '#f0f0f0' }}
               >
-                <AnimatePresence mode="popLayout" initial={false}>
-                  {messages.map((msg) => (
-                    <MessageItem key={msg.id} msg={msg} />
-                  ))}
-                </AnimatePresence>
-
-                {isThinking && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-start"
-                  >
-                    <div className="bg-transparent text-black font-mono text-xs flex items-center gap-2">
-                      <span className="animate-spin">/</span>
-                      PROCESSING_NEURAL_PATHWAYS...
-                    </div>
-                  </motion.div>
-                )}
+                {messages.map((msg) => (
+                  <MessageItem key={msg.id} msg={msg} />
+                ))}
+                {isThinking && <LoadingIndicator />}
               </div>
 
               {/* Input Area */}
-              <div className="p-4 bg-white border-t border-black flex gap-4">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Ask about projects or skills..."
-                  className="flex-1 bg-transparent border-b border-black/20 focus:border-black outline-none font-mono text-sm py-2 placeholder:text-black/30"
-                  autoFocus
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={isThinking || !input.trim()}
-                  className="bg-black text-mantis-green px-6 py-2 hover:bg-mantis-green hover:text-black transition-colors font-mono text-xs uppercase tracking-wider flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span>Send</span>
-                  <Send size={12} />
-                </button>
-              </div>
-
-              {/* Decorative Elements */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-mantis-green to-transparent opacity-50 pointer-events-none"></div>
-              <div className="absolute bottom-0 right-0 p-1 pointer-events-none">
-                <div className="w-2 h-2 bg-black/10"></div>
+              <div className="p-3 bg-theme-panel border-t border-theme-border">
+                <div className="flex items-center gap-2 bg-theme-bg border border-theme-border/20 focus-within:border-theme-border rounded-lg px-3 py-2 transition-colors">
+                  <Terminal size={14} className="text-theme-text/40" />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder="Input command..."
+                    className="flex-1 bg-transparent outline-none font-mono text-sm placeholder:text-theme-text/30 text-theme-text"
+                    autoComplete="off"
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={!input.trim() || isThinking}
+                    className="text-theme-text hover:text-theme-accent disabled:opacity-30 disabled:hover:text-theme-text transition-colors"
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+                <div className="flex justify-between mt-2 px-1">
+                  <span className="text-[9px] font-mono text-theme-text/30">V2.4.0 STABLE</span>
+                  <span className="text-[9px] font-mono text-theme-text/30">LATENCY: 12ms</span>
+                </div>
               </div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

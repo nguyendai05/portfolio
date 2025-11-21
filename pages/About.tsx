@@ -157,8 +157,8 @@ export const About: React.FC = () => {
               {/* Main Image Container */}
               <div className="relative h-full border-2 border-theme-text bg-black overflow-hidden">
                 <img
-                  src="https://nguyendai05.github.io/access_file/images/individual/portrait/Untitled%20design.png"
-                  alt="Coding Setup"
+                  src="https://nguyendai05.github.io/access_file/images/individual/portrait/transparent-img.png"
+                  alt="About me"
                   className="w-full h-full object-cover filter contrast-125 transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
                 />
 
