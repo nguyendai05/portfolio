@@ -25,7 +25,7 @@ export const WorkHero: React.FC = () => {
 
                 <GlitchText
                     text="Work. Experiments. The Labs."
-                    className="text-[8vw] md:text-[6vw] leading-[0.8] font-black tracking-tighter mb-8"
+                    className="text-4xl md:text-[6vw] leading-[0.8] font-black tracking-tighter mb-8"
                     highlightWord="Labs."
                 />
 

@@ -121,14 +121,7 @@ export const Contact: React.FC = () => {
          <div className="fixed inset-0 z-0 pointer-events-none bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)]" />
 
          {/* Main Content Container */}
-         {/* 
-            Layout Fixes:
-            - pl-20 (mobile) / pl-32 (desktop): Clears the fixed left sidebar (w-16/w-24) + gap.
-            - pr-20 (mobile) / pr-32 (desktop): Clears the fixed right navigation (p-8/p-10) + gap.
-            - py-24/py-32: Ensures top/bottom spacing for header/footer elements.
-            - min-h-screen: Ensures the section takes full height.
-         */}
-         <div className="relative z-10 w-full min-h-screen flex flex-col justify-center py-24 md:py-32 pl-20 md:pl-32 pr-20 md:pr-32">
+         <div className="relative z-10 w-full min-h-screen flex flex-col justify-center py-24 md:py-32 px-4 md:pl-32 md:pr-32">
             <div className="container mx-auto max-w-7xl">
                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
 

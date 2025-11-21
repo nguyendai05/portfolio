@@ -62,7 +62,7 @@ export const Gallery: React.FC = () => {
       </div>
 
       {/* 2. HUD / UI Layer - Safe viewing area with padding to avoid fixed navigation */}
-      <div className="relative z-10 flex-grow flex flex-col min-h-screen pointer-events-none pt-24 md:pt-28 pb-12 md:pb-16 pl-20 md:pl-28 pr-8 md:pr-12">
+      <div className="relative z-10 flex-grow flex flex-col min-h-screen pointer-events-none pt-24 md:pt-28 pb-12 md:pb-16 px-4 md:pl-28 md:pr-12">
 
         {/* Constrained content wrapper for better visual hierarchy */}
         <div className="mx-auto w-full max-w-7xl flex-grow flex flex-col">

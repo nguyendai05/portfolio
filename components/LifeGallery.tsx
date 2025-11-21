@@ -110,7 +110,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
     caption: 'Hành trình đi thi Quân sự Thpt',
     date: '2022.11.19',
     location: 'Số 204 Đường Hoàng Văn Thụ, Phường 9, Tân Bình, Thành phố Hồ Chí Minh, VN',
-    rotation: 3,
+    rotation: -5,
     scale: 0.9,
     zIndex: 2
   },
@@ -167,10 +167,10 @@ const LIFE_MOMENTS: LifeMoment[] = [
     url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763747971/Screenshot_2025-11-22_0056261_omdt87.png',
     videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763744077/video_2025-11-21_00-56-19_qy7nhs.mp4',
     videoPlatform: 'direct',
-    category: ['hobby', 'thpt','travel'],
+    category: ['hobby', 'thpt', 'travel'],
     caption: 'Tối đó - Chúng tôi đã làm những điều khó hiểu',
     date: '2023.01.03',
-    location: 'Home Lab',
+    location: 'Đà Lạt, Vn',
     rotation: -4,
     scale: 0.95,
     zIndex: 2
@@ -181,7 +181,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
     url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763745704/photo_1_2025-11-22_00-21-31_aplph1.jpg',
     videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763743944/dalat_fpfgqt.mp4',
     videoPlatform: 'direct',
-    category: ['thpt','travel'],
+    category: ['thpt', 'travel'],
     caption: 'Đà Lạt - Video Log',
     date: '2023.01.04',
     location: 'Đà Lạt, Vn',
@@ -194,7 +194,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
     type: 'video',
     url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763748314/photo_1_2025-11-22_01-05-02_rwsyzd.jpg',
     videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749805/AQMZp-eYYLMrJITzdT7h3TnyRcUixAN0wvX3TOgVaAbibViP5A9aUSSs2psqzNUHjcysYFm_9ky6rj0UGPM7VAp8J5tT4k2bNXf3GT0nD8MBJw_fuqzys.mp4',
-    category: ['Tet','sports'],
+    category: ['Tet', 'sports'],
     caption: 'Mồng 4 đi cày',
     date: '2023.01.26',
     location: 'Xã Thanh Giang, Thanh Chương, Nghệ An, VN',
@@ -211,10 +211,10 @@ const LIFE_MOMENTS: LifeMoment[] = [
       'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749888/AQPwNGfZxe7qZlTgF8AqVuxk0-yepWf75yqhxK2wROITqn5img9G93SMQuV1PSB1zLilyevFIpo8k4rydHrwP3OpVZJu2iMXrr-vlHhLIKSKXQ_u2y9ut.mp4',
       'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749888/AQO1p4PTJRIZaHP7p-F1Dc5dEJOhJJDzP05T3RAl8KvoOcrq0EKzfp7fR70xuXO8LrxU2-r_CeotJG3vrk7G2GlgfDpyYP6brXk6oTnquBOdJw_byaoi0.mp4'
     ],
-    category: ['Thpt','sports'],
+    category: ['Thpt', 'sports'],
     caption: 'Tuy thất bại khó tránh nhưng cũng đã rồi, thật may rằng tôi được cùng thầy và đồng đội trải qua giây phút khó quên này.',
     date: '2023.03.05',
-    location: 'Desk',
+    location: '',
     rotation: 4,
     scale: 1.02,
     zIndex: 3
@@ -254,7 +254,7 @@ const ControlDeck: React.FC<{
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="sticky top-8 z-40 mx-auto max-w-4xl px-4 mb-16"
+      className="relative md:sticky md:top-8 z-40 mx-auto max-w-4xl px-4 mb-16"
     >
       <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] overflow-hidden">
         {/* Decorative Glow */}

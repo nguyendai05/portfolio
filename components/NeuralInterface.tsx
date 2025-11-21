@@ -220,7 +220,7 @@ export const NeuralInterface: React.FC = () => {
               className={`
                 fixed z-[70] bg-theme-bg border-2 border-theme-border flex flex-col overflow-hidden shadow-2xl
                 ${isMobile
-                  ? 'bottom-0 left-0 right-0 h-[75vh] rounded-t-2xl'
+                  ? 'bottom-20 left-2 right-2 h-[60vh] rounded-2xl'
                   : 'bottom-8 right-8 w-[380px] h-[600px] max-h-[80vh] rounded-xl'
                 }
               `}

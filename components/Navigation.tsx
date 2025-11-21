@@ -198,8 +198,14 @@ export const Navigation: React.FC = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex flex-col items-center gap-1 min-w-[64px] transition-colors ${isActive(link.path) ? 'text-theme-accent' : 'text-theme-text/50'}`}
+                  className={`relative flex flex-col items-center gap-1 min-w-[64px] transition-colors ${isActive(link.path) ? 'text-theme-accent' : 'text-theme-text/50'}`}
                 >
+                  {isActive(link.path) && (
+                    <motion.div
+                      layoutId="mobileNavIndicator"
+                      className="absolute -top-4 w-8 h-1 bg-theme-accent rounded-b-full"
+                    />
+                  )}
                   {link.icon}
                   <span className="text-[9px] font-mono uppercase whitespace-nowrap">{link.label}</span>
                 </Link>

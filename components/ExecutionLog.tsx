@@ -57,16 +57,20 @@ const LogNode = ({
             <div className="w-full md:w-5/12 hidden md:block" />
 
             {/* Center Node (The Anchor) */}
-            <div className="hidden md:flex w-2/12 justify-center relative z-10">
+            <div className="absolute left-4 -translate-x-1/2 md:static md:translate-x-0 md:flex md:w-2/12 justify-center z-10">
                 <motion.div
                     animate={{
                         scale: isActive ? 1.2 : 1,
                         borderColor: isActive ? 'var(--color-accent)' : 'var(--color-border)'
                     }}
-                    className={`w-12 h-12 rounded-full border-4 bg-theme-bg flex items-center justify-center shadow-xl relative transition-colors duration-500`}
+                    className={`w-8 h-8 md:w-12 md:h-12 rounded-full border-4 bg-theme-bg flex items-center justify-center shadow-xl relative transition-colors duration-500`}
                 >
                     <div className={`transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-50'}`}>
-                        {item.type === 'text' ? item.icon : <Activity size={20} />}
+                        {item.type === 'text' ? (
+                            <div className="scale-75 md:scale-100">{item.icon}</div>
+                        ) : (
+                            <Activity size={20} className="scale-75 md:scale-100" />
+                        )}
                     </div>
 
                     {/* Active Glow */}
@@ -81,7 +85,7 @@ const LogNode = ({
             </div>
 
             {/* Content Card */}
-            <div className={`w-full md:w-5/12 pl-8 md:pl-0 ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
+            <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
                 <motion.div
                     animate={{
                         scale: isActive ? 1.02 : 1,

@@ -34,7 +34,7 @@ export const Work: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-theme-bg text-theme-text pt-32 pb-24 relative"
+      className="min-h-screen bg-theme-bg text-theme-text pt-24 md:pt-32 pb-24 relative"
     >
       <WorkScrollProgress />
 

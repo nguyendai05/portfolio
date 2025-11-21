@@ -10,6 +10,15 @@ interface WorkDeepDiveStripProps {
 
 export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, onProjectClick }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isMobile, setIsMobile] = React.useState(false);
+
+    React.useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ["start end", "end start"]
@@ -22,8 +31,8 @@ export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, 
     if (featuredProjects.length === 0) return null;
 
     return (
-        <div ref={containerRef} className="py-32 overflow-hidden relative">
-            <div className="container mx-auto px-8 mb-12 flex items-end justify-between">
+        <div ref={containerRef} className="py-24 md:py-32 overflow-x-auto md:overflow-hidden relative no-scrollbar">
+            <div className="container mx-auto px-8 mb-12 flex items-end justify-between sticky left-0">
                 <div>
                     <div className="flex items-center gap-2 text-mantis-green mb-2">
                         <Layers size={16} />
@@ -38,7 +47,7 @@ export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, 
 
             {/* Horizontal Scroll Container */}
             <motion.div
-                style={{ x }}
+                style={{ x: isMobile ? 0 : x }}
                 className="flex gap-8 px-8 md:px-32 w-max"
             >
                 {featuredProjects.map((project, index) => (

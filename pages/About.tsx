@@ -57,13 +57,13 @@ export const About: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-theme-bg text-theme-text pt-32 pb-24"
+      className="min-h-screen bg-theme-bg text-theme-text pt-24 md:pt-32 pb-24"
     >
       <div className="fixed inset-0 z-0 opacity-10 pointer-events-none">
         <GenerativeArt variant="network" intensity={30} color={THEMES[theme].text} />
       </div>
 
-      <div className="container mx-auto px-8 md:px-32 relative z-10">
+      <div className="container mx-auto px-4 md:px-32 relative z-10">
         {/* Header */}
         <div className="mb-32 max-w-4xl">
           <div className="font-mono text-xs uppercase tracking-widest mb-8 flex items-center gap-2">
@@ -72,7 +72,7 @@ export const About: React.FC = () => {
           </div>
           <GlitchText
             text="I don't just use the browser. I explore it."
-            className="text-[5vw] leading-[1.1] font-bold tracking-tight"
+            className="text-4xl md:text-[5vw] leading-[1.1] font-bold tracking-tight"
             highlightWord="explore it."
           />
         </div>
