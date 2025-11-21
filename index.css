@@ -13,7 +13,6 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
-  /* Ensure anchor links don't land under header */
 }
 
 body {
@@ -41,19 +40,24 @@ body {
   background: var(--color-accent);
 }
 
-/* Utility for safe layout */
+/* Utility for safe layout - Updated for new Navigation */
 .layout-safe-padding {
-  padding-left: 5rem;
-  /* 80px - clears 64px sidebar */
-  padding-right: 5rem;
-  /* 80px - clears right nav area */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: 6rem;
+  /* Space for mobile header */
+  padding-bottom: 6rem;
+  /* Space for mobile bottom nav */
 }
 
 @media (min-width: 768px) {
   .layout-safe-padding {
-    padding-left: 7rem;
-    /* 112px - clears 96px sidebar */
-    padding-right: 7rem;
+    padding-left: 4rem;
+    /* Minimal left spacing for logo/identity */
+    padding-right: 6rem;
+    /* Space for right floating nav */
+    padding-top: 2rem;
+    padding-bottom: 2rem;
   }
 }
 
