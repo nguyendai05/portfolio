@@ -1,7 +1,72 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue, useMotionTemplate } from 'framer-motion';
-import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles, Maximize2 } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence, useMotionValue } from 'framer-motion';
+import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { GlitchText } from './GlitchText';
+
+// --- Helper Functions ---
+/**
+ * Convert Google Drive share link to direct viewable/embeddable URL
+ * Supports multiple formats:
+ * - /file/d/FILE_ID/view
+ * - /file/d/FILE_ID/view?usp=drive_link (new format)
+ * - /open?id=FILE_ID
+ * - /uc?id=FILE_ID
+ * 
+ * Returns: https://drive.google.com/uc?export=view&id=FILE_ID
+ * This format works best with <img> tags and doesn't require authentication
+ */
+const convertGoogleDriveUrl = (url: string): string => {
+  if (!url) return url;
+
+  // Check if it's a Google Drive link
+  if (!url.includes('drive.google.com')) {
+    return url;
+  }
+
+  // Extract file ID from various Google Drive URL formats
+  let fileId = '';
+
+  // Format 1: https://drive.google.com/file/d/FILE_ID/view (with or without query params)
+  // Example: https://drive.google.com/file/d/1B8jchrhOqwQj8MefBCxXWaPakN5R6lXw/view?usp=drive_link
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch && fileMatch[1]) {
+    fileId = fileMatch[1];
+  }
+
+  // Format 2: https://drive.google.com/open?id=FILE_ID
+  if (!fileId) {
+    const openMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (openMatch && openMatch[1]) {
+      fileId = openMatch[1];
+    }
+  }
+
+  // Format 3: https://drive.google.com/uc?id=FILE_ID
+  if (!fileId) {
+    const ucMatch = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+    if (ucMatch && ucMatch[1]) {
+      fileId = ucMatch[1];
+    }
+  }
+
+  // If we found a file ID, return the direct view URL
+  if (fileId) {
+    // Use uc?export=view&id=FILE_ID for best image compatibility
+    // This format works well with img tags and doesn't require authentication
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  }
+
+  // Fallback: return original URL
+  return url;
+};
+
+const getVideoPlatform = (url: string): 'youtube' | 'googledrive' | 'direct' => {
+  if (!url) return 'direct';
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+  if (url.includes('drive.google.com')) return 'googledrive';
+  return 'direct';
+};
+
 
 // --- Types ---
 interface LifeMoment {
@@ -10,8 +75,9 @@ interface LifeMoment {
   url: string;
   mediaUrls?: string[];
   videoUrl?: string;
+  videoUrls?: string[]; // Support for multiple videos
   videoPlatform?: 'youtube' | 'direct' | 'googledrive';
-  category: 'study' | 'travel' | 'sports' | 'social' | 'hobby';
+  category: string[]; // Updated to support multiple categories
   caption: string;
   date: string;
   location: string;
@@ -22,114 +88,154 @@ interface LifeMoment {
 
 // --- Data ---
 const LIFE_MOMENTS: LifeMoment[] = [
+  // {
+  //   id: '1',
+  //   type: 'image',
+  //   url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2072&auto=format&fit=crop',
+  //   category: ['study'],
+  //   caption: 'Late night debugging at the campus library.',
+  //   date: '2023.11.12',
+  //   location: 'NLU Library',
+  //   rotation: -5,
+  //   scale: 1.1,
+  //   zIndex: 1
+  // },
   {
     id: '1',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2072&auto=format&fit=crop',
-    category: 'study',
-    caption: 'Late night debugging at the campus library.',
-    date: '2023.11.12',
-    location: 'NLU Library',
-    rotation: -5,
-    scale: 1.1,
-    zIndex: 1
-  },
-  {
-    id: '2',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=1974&auto=format&fit=crop',
-    category: 'travel',
-    caption: 'Lost in the mist of Da Lat.',
-    date: '2023.06.15',
-    location: 'Da Lat, VN',
+    type: 'video',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743457/photo_8_2025-11-21_00-32-47_iduwdy.jpg',
+    videoUrl: 'https://drive.google.com/file/d/14WDUY4il5pwmTkg_pfGnEzgOr0AYET3j/view',
+    videoPlatform: 'googledrive',
+    category: ['Thpt', 'memories'], // Multiple categories example
+    caption: 'Hành trình đi thi Quân sự Thpt',
+    date: '2022.11.19',
+    location: 'Số 204 Đường Hoàng Văn Thụ, Phường 9, Tân Bình, Thành phố Hồ Chí Minh, VN',
     rotation: 3,
     scale: 0.9,
     zIndex: 2
   },
   {
-    id: '3',
+    id: '2',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop',
     mediaUrls: [
-      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=2070&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop'
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743457/photo_6_2025-11-21_00-32-47_sfy3mv.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743457/photo_5_2025-11-21_00-32-47_qbvykz.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743456/photo_1_2025-11-21_15-30-48_qd8rq0.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743457/photo_4_2025-11-21_00-32-47_vfskhn.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763744057/photo_3_2025-11-21_00-49-04_b80gfr.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743456/photo_2_2025-11-21_15-30-48_gm6pme.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743455/photo_2_2025-11-21_15-37-34_jyalhx.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743455/photo_1_2025-11-21_15-37-34_funykt.jpg'
     ],
-    category: 'study',
-    caption: 'Group project chaos. We shipped it though.',
-    date: '2024.01.20',
-    location: 'Coffee House',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743147/quan-su-1_r2jgwq.jpg',
+    category: ['Thpt', 'achievements'], // Multiple categories example
+    caption: 'Thành công tốt đẹp',
+    date: '2022.21.22',
+    location: 'Số 204 Đường Hoàng Văn Thụ, Phường 9, Tân Bình, Thành phố Hồ Chí Minh, VN',
     rotation: -2,
     scale: 1.0,
     zIndex: 3
   },
   {
-    id: '4',
+    id: '3',
     type: 'image',
     mediaUrls: [
-      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=2070&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop'
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743465/photo_16_2025-11-21_00-32-47_ykotha.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743465/photo_17_2025-11-21_00-32-47_kghoca.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743466/photo_19_2025-11-21_00-32-47_hmjjk3.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743461/photo_12_2025-11-21_00-32-47_uuk0kn.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743471/photo_1_2025-11-21_00-26-09_kacobr.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743455/photo_1_2025-11-21_15-59-12_y1bgkq.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743463/photo_14_2025-11-21_00-32-47_onxxcw.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743466/photo_15_2025-11-21_00-32-47_y66sjy.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743472/photo_3_2025-11-21_00-26-09_vtb82r.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743459/photo_9_2025-11-21_00-32-47_ha5dlo.jpg',
+      'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743459/photo_10_2025-11-21_00-32-47_thndsl.jpg'
     ],
-    url: 'https://images.unsplash.com/photo-1508197744197-83a2596f4dd2?q=80&w=2070&auto=format&fit=crop',
-    category: 'travel',
-    caption: 'Exploring the streets of Ho Chi Minh City.',
-    date: '2023.09.02',
-    location: 'District 1',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743461/photo_11_2025-11-21_00-32-47_gucco6.jpg',
+    category: ['travel', 'adventure', 'friends'], // Multiple categories example
+    caption: 'Chạy nước rút 3 ngày 2 đêm tại Đà Lạt',
+    date: '2023.01.02',
+    location: 'Đà Lạt, Vn',
     rotation: 6,
     scale: 1.05,
     zIndex: 1
   },
   {
-    id: '5',
+    id: '4',
     type: 'video',
-    url: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=1964&auto=format&fit=crop',
-    videoUrl: 'https://nguyendai05.github.io/access_file/videos/video_2025-11-21_00-56-19.mp4',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763747971/Screenshot_2025-11-22_0056261_omdt87.png',
+    videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763744077/video_2025-11-21_00-56-19_qy7nhs.mp4',
     videoPlatform: 'direct',
-    category: 'social',
-    caption: 'Post-exam celebration (Video Log).',
-    date: '2023.12.24',
-    location: 'Rooftop Bar',
+    category: ['hobby', 'thpt','travel'],
+    caption: 'Tối đó - Chúng tôi đã làm những điều khó hiểu',
+    date: '2023.01.03',
+    location: 'Home Lab',
     rotation: -4,
     scale: 0.95,
     zIndex: 2
   },
   {
-    id: '6',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop',
-    category: 'hobby',
-    caption: 'Mechanical keyboard build #3.',
-    date: '2024.02.10',
-    location: 'Home Lab',
+    id: '5',
+    type: 'video',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763745704/photo_1_2025-11-22_00-21-31_aplph1.jpg',
+    videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763743944/dalat_fpfgqt.mp4',
+    videoPlatform: 'direct',
+    category: ['thpt','travel'],
+    caption: 'Đà Lạt - Video Log',
+    date: '2023.01.04',
+    location: 'Đà Lạt, Vn',
     rotation: 2,
     scale: 1.0,
     zIndex: 1
   },
   {
-    id: '7',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2070&auto=format&fit=crop',
-    category: 'sports',
-    caption: 'Weekend football match.',
-    date: '2023.10.05',
-    location: 'Sports Complex',
+    id: '6',
+    type: 'video',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763748314/photo_1_2025-11-22_01-05-02_rwsyzd.jpg',
+    videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749805/AQMZp-eYYLMrJITzdT7h3TnyRcUixAN0wvX3TOgVaAbibViP5A9aUSSs2psqzNUHjcysYFm_9ky6rj0UGPM7VAp8J5tT4k2bNXf3GT0nD8MBJw_fuqzys.mp4',
+    category: ['Tet','sports'],
+    caption: 'Mồng 4 đi cày',
+    date: '2023.01.26',
+    location: 'Xã Thanh Giang, Thanh Chương, Nghệ An, VN',
     rotation: -3,
     scale: 1.0,
     zIndex: 2
   },
   {
-    id: '8',
-    type: 'image',
-    url: 'https://images.unsplash.com/photo-1504805572947-34fad45aed93?q=80&w=2070&auto=format&fit=crop',
-    category: 'study',
-    caption: 'HCI Assignment Sketches.',
-    date: '2024.03.01',
+    id: '7',
+    type: 'video',
+    url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763751715/photo_1_2025-11-22_02-01-24_qsxyzi.jpg',
+    videoUrls: [
+      'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763750775/AQPP2jr-1psdtttCD_3BDax2FCaLLQotgv6FY5mzRvcepdIL-xJvTyr_I8WUXVNtJMk3YUK6-ikTpUvqLlBURa6MeWmLG-QHjTHaBBdvwDsBmA_ejarfh.mp4',
+      'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749888/AQPwNGfZxe7qZlTgF8AqVuxk0-yepWf75yqhxK2wROITqn5img9G93SMQuV1PSB1zLilyevFIpo8k4rydHrwP3OpVZJu2iMXrr-vlHhLIKSKXQ_u2y9ut.mp4',
+      'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749888/AQO1p4PTJRIZaHP7p-F1Dc5dEJOhJJDzP05T3RAl8KvoOcrq0EKzfp7fR70xuXO8LrxU2-r_CeotJG3vrk7G2GlgfDpyYP6brXk6oTnquBOdJw_byaoi0.mp4'
+    ],
+    category: ['Thpt','sports'],
+    caption: 'Tuy thất bại khó tránh nhưng cũng đã rồi, thật may rằng tôi được cùng thầy và đồng đội trải qua giây phút khó quên này.',
+    date: '2023.03.05',
     location: 'Desk',
     rotation: 4,
     scale: 1.02,
     zIndex: 3
-  }
+  },
+  // {
+  //   id: '8',
+  //   type: 'video',
+  //   url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763751715/photo_1_2025-11-22_02-01-24_qsxyzi.jpg',
+  //   videoUrls: [
+  //     'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763750775/AQPP2jr-1psdtttCD_3BDax2FCaLLQotgv6FY5mzRvcepdIL-xJvTyr_I8WUXVNtJMk3YUK6-ikTpUvqLlBURa6MeWmLG-QHjTHaBBdvwDsBmA_ejarfh.mp4',
+  //     'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749888/AQPwNGfZxe7qZlTgF8AqVuxk0-yepWf75yqhxK2wROITqn5img9G93SMQuV1PSB1zLilyevFIpo8k4rydHrwP3OpVZJu2iMXrr-vlHhLIKSKXQ_u2y9ut.mp4',
+  //     'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763749888/AQO1p4PTJRIZaHP7p-F1Dc5dEJOhJJDzP05T3RAl8KvoOcrq0EKzfp7fR70xuXO8LrxU2-r_CeotJG3vrk7G2GlgfDpyYP6brXk6oTnquBOdJw_byaoi0.mp4'
+  //   ],
+  //   category: ['Thpt'],
+  //   caption: 'HCI Assignment Sketches.',
+  //   date: '2024.03.01',
+  //   location: 'Desk',
+  //   rotation: 4,
+  //   scale: 1.02,
+  //   zIndex: 3
+  // }
 ];
 
 // --- Components ---
@@ -179,8 +285,8 @@ const ControlDeck: React.FC<{
                 key={cat}
                 onClick={() => setFilter(cat)}
                 className={`relative px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${filter === cat
-                    ? 'text-black bg-theme-accent shadow-[0_0_15px_rgba(var(--color-accent-rgb),0.4)]'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-black bg-theme-accent shadow-[0_0_15px_rgba(var(--color-accent-rgb),0.4)]'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
                   }`}
               >
                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -271,8 +377,8 @@ const PhotoCard3D: React.FC<{
       viewport={{ once: true, margin: "-10%" }}
       transition={{ duration: 0.6, delay: index * 0.05 }}
       className={`relative group perspective-1000 ${layout === 'scatter'
-          ? 'w-full md:w-[45%] mb-24 md:mb-0'
-          : 'w-full aspect-[4/5]'
+        ? 'w-full md:w-[45%] mb-24 md:mb-0'
+        : 'w-full aspect-[4/5]'
         }`}
       style={{
         marginLeft: layout === 'scatter' ? (index % 2 === 0 ? '5%' : '50%') : 0,
@@ -297,7 +403,7 @@ const PhotoCard3D: React.FC<{
           {/* Image */}
           <div className="relative aspect-[4/5] overflow-hidden">
             <img
-              src={photo.url}
+              src={convertGoogleDriveUrl(photo.url)}
               alt={photo.caption}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -315,7 +421,7 @@ const PhotoCard3D: React.FC<{
                   <Play size={14} className="text-white ml-0.5" />
                 </div>
               )}
-              {photo.mediaUrls && photo.mediaUrls.length > 1 && (
+              {((photo.mediaUrls && photo.mediaUrls.length > 1) || (photo.videoUrls && photo.videoUrls.length > 1)) && (
                 <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur flex items-center justify-center border border-white/20">
                   <Layers size={14} className="text-white" />
                 </div>
@@ -326,9 +432,13 @@ const PhotoCard3D: React.FC<{
           {/* Info Panel (Slide Up) */}
           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded border border-theme-accent/20">
-                {photo.category}
-              </span>
+              <div className="flex gap-1">
+                {photo.category.map((cat, i) => (
+                  <span key={i} className="text-[10px] font-mono uppercase tracking-widest text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded border border-theme-accent/20">
+                    {cat}
+                  </span>
+                ))}
+              </div>
               <span className="text-[10px] font-mono text-white/60 flex items-center gap-1">
                 <Calendar size={10} /> {photo.date}
               </span>
@@ -377,24 +487,37 @@ export const LifeGallery: React.FC = () => {
     if (selectedPhoto) setCurrentMediaIndex(0);
   }, [selectedPhoto]);
 
+  // Filter logic: Support multiple categories per moment
+  // Uses .includes() to check if selected category exists in the moment's category array
+  // This allows moments with multiple categories to appear when any of their categories is selected
   const filteredPhotos = useMemo(() => {
-    return filter === 'all' ? LIFE_MOMENTS : LIFE_MOMENTS.filter(p => p.category === filter);
+    return filter === 'all' ? LIFE_MOMENTS : LIFE_MOMENTS.filter(p => p.category.includes(filter));
   }, [filter]);
 
-  const categories = ['all', ...Array.from(new Set(LIFE_MOMENTS.map(p => p.category)))];
+  // Extract all unique categories from all moments (including moments with multiple categories)
+  const categories = useMemo(() => {
+    const allCategories = LIFE_MOMENTS.flatMap(p => p.category);
+    return ['all', ...Array.from(new Set(allCategories))];
+  }, []);
 
   // Lightbox handlers
   const handleNextMedia = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (selectedPhoto?.mediaUrls) {
-      setCurrentMediaIndex((prev) => (prev + 1) % selectedPhoto.mediaUrls!.length);
+    if (selectedPhoto) {
+      const urls = selectedPhoto.type === 'video' && selectedPhoto.videoUrls ? selectedPhoto.videoUrls : selectedPhoto.mediaUrls;
+      if (urls) {
+        setCurrentMediaIndex((prev) => (prev + 1) % urls.length);
+      }
     }
   };
 
   const handlePrevMedia = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (selectedPhoto?.mediaUrls) {
-      setCurrentMediaIndex((prev) => (prev - 1 + selectedPhoto.mediaUrls!.length) % selectedPhoto.mediaUrls!.length);
+    if (selectedPhoto) {
+      const urls = selectedPhoto.type === 'video' && selectedPhoto.videoUrls ? selectedPhoto.videoUrls : selectedPhoto.mediaUrls;
+      if (urls) {
+        setCurrentMediaIndex((prev) => (prev - 1 + urls.length) % urls.length);
+      }
     }
   };
 
@@ -402,6 +525,31 @@ export const LifeGallery: React.FC = () => {
     if (platform === 'youtube') {
       const videoId = url.split('v=')[1]?.split('&')[0];
       return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=1&rel=0`;
+    }
+    if (platform === 'googledrive') {
+      // Extract file ID from various Google Drive URL formats
+      let fileId = '';
+
+      // Format 1: /file/d/FILE_ID/view (with or without query params like ?usp=drive_link)
+      const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (fileMatch && fileMatch[1]) {
+        fileId = fileMatch[1];
+      }
+
+      // Format 2: open?id=FILE_ID
+      if (!fileId) {
+        const openMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (openMatch && openMatch[1]) {
+          fileId = openMatch[1];
+        }
+      }
+
+      if (fileId) {
+        // Use /preview endpoint for video embedding
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+      }
+      // Fallback to simple replace
+      return url.replace('/view', '/preview');
     }
     return url;
   };
@@ -451,8 +599,8 @@ export const LifeGallery: React.FC = () => {
         <div
           ref={containerRef}
           className={`relative min-h-[80vh] transition-all duration-700 ${layout === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
-              : 'flex flex-wrap justify-center'
+            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
+            : 'flex flex-wrap justify-center'
             }`}
         >
           <AnimatePresence mode="popLayout">
@@ -502,21 +650,62 @@ export const LifeGallery: React.FC = () => {
             >
               {/* Media Area */}
               <div className="relative w-full md:w-3/4 h-[50vh] md:h-full bg-black flex items-center justify-center group">
-                {selectedPhoto.type === 'video' && selectedPhoto.videoUrl ? (
-                  selectedPhoto.videoPlatform === 'direct' ? (
-                    <video src={selectedPhoto.videoUrl} className="w-full h-full object-contain" controls autoPlay loop />
-                  ) : (
-                    <iframe
-                      src={getEmbedUrl(selectedPhoto.videoUrl, selectedPhoto.videoPlatform || 'direct')}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  )
+                {selectedPhoto.type === 'video' ? (
+                  (() => {
+                    const currentVideoUrl = selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 0
+                      ? selectedPhoto.videoUrls[currentMediaIndex]
+                      : selectedPhoto.videoUrl;
+
+                    // Determine platform for the current video
+                    const currentPlatform = selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 0
+                      ? getVideoPlatform(currentVideoUrl || '')
+                      : (selectedPhoto.videoPlatform || 'direct');
+
+                    if (!currentVideoUrl) return null;
+
+                    return (
+                      <>
+                        {currentPlatform === 'direct' ? (
+                          <video
+                            key={currentVideoUrl} // Force re-render on change
+                            src={currentVideoUrl}
+                            className="w-full h-full object-contain"
+                            controls
+                            autoPlay
+                            loop
+                          />
+                        ) : (
+                          <iframe
+                            key={currentVideoUrl} // Force re-render on change
+                            src={getEmbedUrl(currentVideoUrl, currentPlatform)}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        )}
+
+                        {/* Navigation for multiple videos */}
+                        {selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 1 && (
+                          <>
+                            <button onClick={handlePrevMedia} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                              <ChevronLeft size={24} />
+                            </button>
+                            <button onClick={handleNextMedia} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                              <ChevronRight size={24} />
+                            </button>
+                            {/* Video Counter */}
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
+                              {currentMediaIndex + 1} / {selectedPhoto.videoUrls.length}
+                            </div>
+                          </>
+                        )}
+                      </>
+                    );
+                  })()
                 ) : (
                   <>
                     <img
-                      src={selectedPhoto.mediaUrls ? selectedPhoto.mediaUrls[currentMediaIndex] : selectedPhoto.url}
+                      src={selectedPhoto.mediaUrls ? convertGoogleDriveUrl(selectedPhoto.mediaUrls[currentMediaIndex]) : convertGoogleDriveUrl(selectedPhoto.url)}
                       alt={selectedPhoto.caption}
                       className="w-full h-full object-contain"
                     />
@@ -528,16 +717,13 @@ export const LifeGallery: React.FC = () => {
                         <button onClick={handleNextMedia} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                           <ChevronRight size={24} />
                         </button>
+                        {/* Image Counter */}
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
+                          {currentMediaIndex + 1} / {selectedPhoto.mediaUrls.length}
+                        </div>
                       </>
                     )}
                   </>
-                )}
-
-                {/* Media Counter HUD */}
-                {selectedPhoto.mediaUrls && (
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
-                    {currentMediaIndex + 1} / {selectedPhoto.mediaUrls.length}
-                  </div>
                 )}
               </div>
 
@@ -561,9 +747,13 @@ export const LifeGallery: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-[10px] font-mono text-white/40 uppercase">Category</span>
-                    <span className="inline-flex self-start items-center px-2 py-1 rounded bg-theme-accent/10 text-theme-accent text-xs font-bold border border-theme-accent/20">
-                      {selectedPhoto.category}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPhoto.category.map((cat, i) => (
+                        <span key={i} className="inline-flex self-start items-center px-2 py-1 rounded bg-theme-accent/10 text-theme-accent text-xs font-bold border border-theme-accent/20">
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

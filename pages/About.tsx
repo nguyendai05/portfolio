@@ -6,55 +6,10 @@ import { GlitchText } from '../components/GlitchText';
 import { Terminal, GitBranch, Code2, Cpu } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { LifeGallery } from '../components/LifeGallery';
-import { VideoTimelineItem, VideoData } from '../components/VideoTimelineItem';
 import { AboutPortrait3D } from '../components/AboutPortrait3D';
+import { ExecutionLog, TimelineEntry } from '../components/ExecutionLog';
 
-// Define types for the mixed timeline
-type TextTimelineItem = {
-  type: 'text';
-  year: string;
-  title: string;
-  desc: string;
-  icon: React.ReactNode;
-};
 
-type TimelineEntry = TextTimelineItem | VideoData;
-
-const TimelineItem: React.FC<{
-  data: TextTimelineItem;
-  index: number
-}> = ({ data, index }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ margin: "-20%" }}
-      transition={{ duration: 0.8, type: "spring" }}
-      className={`flex items-center justify-between w-full mb-32 ${index % 2 === 0 ? 'flex-row-reverse' : ''}`}
-    >
-      {/* Mobile Connector line alignment adjustment */}
-      <div className="absolute left-4 top-0 bottom-0 w-[2px] bg-theme-border/10 md:hidden -z-10"></div>
-
-      <div className="w-full md:w-5/12 hidden md:block"></div>
-
-      {/* Center Node */}
-      <div className="hidden md:flex w-2/12 justify-center relative z-10">
-        <div className="w-12 h-12 bg-theme-text text-theme-bg rounded-full border-4 border-theme-bg flex items-center justify-center shadow-xl relative group">
-          {data.icon}
-          <div className="absolute inset-0 bg-mantis-green rounded-full opacity-0 group-hover:opacity-50 blur-md transition-opacity"></div>
-        </div>
-      </div>
-
-      <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${index % 2 === 0 ? 'md:pr-12' : 'md:pl-12'}`}>
-        <div className={`bg-theme-panel p-6 border border-theme-border shadow-[8px_8px_0px_0px_var(--color-border)] hover:translate-x-1 hover:-translate-y-1 transition-transform group ${index % 2 === 0 ? 'md:text-right' : ''}`}>
-          <span className="font-mono text-xs text-theme-bg bg-theme-text px-2 py-1 mb-2 inline-block">{data.year}</span>
-          <h4 className="text-xl font-bold mb-2">{data.title}</h4>
-          <p className="font-mono text-xs opacity-70 leading-relaxed">{data.desc}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
 
 export const About: React.FC = () => {
   const { theme } = useTheme();
@@ -63,8 +18,6 @@ export const About: React.FC = () => {
     target: containerRef,
     offset: ["start start", "end end"]
   });
-
-  const lineHeight = useTransform(scrollYProgress, [0, 0.8], ["0%", "100%"]);
 
   // Combined Data: Text Milestones + Video Entries
   const timelineData: TimelineEntry[] = [
@@ -151,37 +104,7 @@ export const About: React.FC = () => {
         </div>
 
         {/* Scroll Storytelling Section */}
-        <div className="relative py-12 mb-32">
-          <h3 className="text-center text-4xl font-black tracking-tighter mb-24">Execution Log</h3>
-
-          {/* Vertical Line (Desktop) */}
-          <div className="absolute left-1/2 top-32 bottom-0 w-[2px] bg-theme-border/10 -translate-x-1/2 hidden md:block">
-            <motion.div
-              style={{ height: lineHeight }}
-              className="w-full bg-mantis-green origin-top"
-            />
-          </div>
-
-          {/* Timeline Items */}
-          <div className="relative">
-            {timelineData.map((item, i) => (
-              <React.Fragment key={i}>
-                {item.type === 'text' ? (
-                  <TimelineItem data={item} index={i} />
-                ) : (
-                  <VideoTimelineItem data={item} index={i} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-
-          {/* Future Node */}
-          <div className="flex justify-center relative mt-12">
-            <div className="bg-theme-text text-theme-bg px-8 py-4 font-mono uppercase tracking-widest text-xs animate-pulse border border-theme-bg shadow-[4px_4px_0px_0px_var(--color-accent)]">
-              Awaiting Next Input...
-            </div>
-          </div>
-        </div>
+        <ExecutionLog items={timelineData} />
       </div>
 
       {/* FULL WIDTH GALLERY SECTION */}
