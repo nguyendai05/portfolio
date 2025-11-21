@@ -7,6 +7,7 @@ import { Terminal, GitBranch, Code2, Cpu } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { LifeGallery } from '../components/LifeGallery';
 import { VideoTimelineItem, VideoData } from '../components/VideoTimelineItem';
+import { AboutPortrait3D } from '../components/AboutPortrait3D';
 
 // Define types for the mixed timeline
 type TextTimelineItem = {
@@ -144,36 +145,8 @@ export const About: React.FC = () => {
           </div>
 
           {/* Enhanced 3D Image Section */}
-          <div className="md:col-span-7 perspective-[1000px] group">
-            <motion.div
-              className="relative w-full h-full [transform-style:preserve-3d] transition-transform duration-700 ease-out group-hover:[transform:rotateY(-5deg)_rotateX(5deg)]"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-            >
-              {/* Back Shadow Plate */}
-              <div className="absolute inset-0 bg-theme-accent/80 transform translate-x-4 translate-y-4 -z-10 transition-all duration-500 group-hover:translate-x-8 group-hover:translate-y-8 group-hover:bg-theme-accent"></div>
-
-              {/* Main Image Container */}
-              <div className="relative h-full border-2 border-theme-text bg-black overflow-hidden">
-                <img
-                  src="https://nguyendai05.github.io/access_file/images/individual/portrait/transparent-img.png"
-                  alt="About me"
-                  className="w-full h-full object-cover filter contrast-125 transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
-                />
-
-                {/* Color Overlay */}
-                <div className="absolute inset-0 bg-theme-accent/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                {/* Glitch/Texture Overlay */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,#000_2px,#000_4px)]"></div>
-              </div>
-
-              {/* 3D Floating Badge */}
-              <div className="absolute bottom-8 -left-4 bg-theme-text text-theme-bg px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest shadow-xl transform translate-z-12 opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all duration-500">
-                Operator: Xuni-Dizan
-              </div>
-            </motion.div>
+          <div className="md:col-span-7">
+            <AboutPortrait3D />
           </div>
         </div>
 
