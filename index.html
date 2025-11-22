@@ -1,102 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nguyen Xuan Dai – Xuni-Dizan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'mantis-green': '#39ff14', // Keep for legacy reference or specific highlights
-              'theme-bg': 'var(--color-bg)',
-              'theme-text': 'var(--color-text)',
-              'theme-accent': 'var(--color-accent)',
-              'theme-panel': 'var(--color-panel)',
-              'theme-border': 'var(--color-border)',
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            letterSpacing: {
-              tighter: '-0.05em',
-              tightest: '-0.08em',
-            },
-            animation: {
-              'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'glitch': 'glitch 3s linear infinite',
-              'blob': 'blob 7s infinite',
-              'marquee': 'marquee 30s linear infinite',
-              'scanline': 'scanline 8s linear infinite',
-            },
-            keyframes: {
-              glitch: {
-                '0%, 100%': { transform: 'translate(0)', opacity: '1' },
-                '2%': { transform: 'translate(2px,0) skew(0deg)', opacity: '0.8' },
-                '4%': { transform: 'translate(-2px,0) skew(0deg)', opacity: '0.8' },
-                '5%': { transform: 'translate(0)', opacity: '1' },
-                '59%': { transform: 'translate(0)', opacity: '1' },
-                '60%': { transform: 'translate(-2px,0) skew(0deg)', opacity: '0.8' },
-                '62%': { transform: 'translate(0,0) skew(5deg)', opacity: '0.8' },
-                '63%': { transform: 'translate(0)', opacity: '1' },
-              },
-              blob: {
-                '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                '100%': { transform: 'translate(0px, 0px) scale(1)' },
-              },
-              marquee: {
-                '0%': { transform: 'translateX(0%)' },
-                '100%': { transform: 'translateX(-50%)' },
-              },
-              scanline: {
-                '0%': { transform: 'translateY(-100%)' },
-                '100%': { transform: 'translateY(100%)' },
-              }
-            }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nguyen Xuan Dai – Xuni-Dizan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="icon" href="https://res.cloudinary.com/dak4x4d7u/image/upload/v1763820049/Untitled_design_4_jr11sv.png" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'mantis-green': '#39ff14', // Keep for legacy reference or specific highlights
+            'theme-bg': 'var(--color-bg)',
+            'theme-text': 'var(--color-text)',
+            'theme-accent': 'var(--color-accent)',
+            'theme-panel': 'var(--color-panel)',
+            'theme-border': 'var(--color-border)',
           },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          letterSpacing: {
+            tighter: '-0.05em',
+            tightest: '-0.08em',
+          },
+          animation: {
+            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glitch': 'glitch 3s linear infinite',
+            'blob': 'blob 7s infinite',
+            'marquee': 'marquee 30s linear infinite',
+            'scanline': 'scanline 8s linear infinite',
+          },
+          keyframes: {
+            glitch: {
+              '0%, 100%': { transform: 'translate(0)', opacity: '1' },
+              '2%': { transform: 'translate(2px,0) skew(0deg)', opacity: '0.8' },
+              '4%': { transform: 'translate(-2px,0) skew(0deg)', opacity: '0.8' },
+              '5%': { transform: 'translate(0)', opacity: '1' },
+              '59%': { transform: 'translate(0)', opacity: '1' },
+              '60%': { transform: 'translate(-2px,0) skew(0deg)', opacity: '0.8' },
+              '62%': { transform: 'translate(0,0) skew(5deg)', opacity: '0.8' },
+              '63%': { transform: 'translate(0)', opacity: '1' },
+            },
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+              '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' },
+            },
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' },
+            },
+            scanline: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100%)' },
+            }
+          }
         },
-      }
-    </script>
-    <style>
-      :root {
-        --color-bg: #e6e6e6;
-        --color-text: #0a0a0a;
-        --color-accent: #39ff14;
-        --color-panel: #ffffff;
-        --color-border: #0a0a0a;
-      }
-      body {
-        background-color: var(--color-bg);
-        color: var(--color-text);
-        overflow-x: hidden;
-        transition: background-color 0.5s ease, color 0.5s ease;
-      }
-      .stroke-text {
-        -webkit-text-stroke: 1px var(--color-text);
-        color: transparent;
-      }
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      .animation-delay-2000 {
-        animation-delay: 2s;
-      }
-      .animation-delay-4000 {
-        animation-delay: 4s;
-      }
-    </style>
+      },
+    }
+  </script>
+  <style>
+    :root {
+      --color-bg: #e6e6e6;
+      --color-text: #0a0a0a;
+      --color-accent: #39ff14;
+      --color-panel: #ffffff;
+      --color-border: #0a0a0a;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      overflow-x: hidden;
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    .stroke-text {
+      -webkit-text-stroke: 1px var(--color-text);
+      color: transparent;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+
+    .animation-delay-4000 {
+      animation-delay: 4s;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -116,10 +126,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body>
-    <div id="root"></div>
+
+<body>
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
