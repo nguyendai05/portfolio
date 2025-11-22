@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Navigation } from './components/Navigation';
@@ -195,6 +196,26 @@ function App() {
         <Router>
           <AppContent />
         </Router>
+        <Analytics
+          mode={import.meta.env.DEV ? 'development' : 'production'}
+          debug={import.meta.env.DEV}
+          beforeSend={(event) => {
+            try {
+              const url = new URL(event.url);
+              // If we are on a hash route like #/about, include that in the path
+              if (typeof window !== 'undefined' && window.location.hash.startsWith('#/')) {
+                const hashPath = window.location.hash.slice(1); // e.g. '/about'
+                url.pathname = hashPath || '/';
+              }
+              return {
+                ...event,
+                url: url.toString(),
+              };
+            } catch {
+              return event;
+            }
+          }}
+        />
       </GamificationProvider>
     </ThemeProvider>
   );

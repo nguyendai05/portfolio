@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { track } from '@vercel/analytics';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, Trophy, Clock, MapPin, Menu, X, Home, Briefcase, User, Mail, Image as ImageIcon, GraduationCap, Users } from 'lucide-react';
@@ -114,6 +115,7 @@ export const Navigation: React.FC = () => {
                 >
                   <Link
                     to={link.path}
+                    onClick={() => track('nav_click', { target: link.path })}
                     className="relative flex items-center justify-end"
                   >
                     <motion.div
@@ -198,6 +200,7 @@ export const Navigation: React.FC = () => {
                 <Link
                   key={link.path}
                   to={link.path}
+                  onClick={() => track('nav_click', { target: link.path })}
                   className={`relative flex flex-col items-center gap-1 min-w-[64px] transition-colors ${isActive(link.path) ? 'text-theme-accent' : 'text-theme-text/50'}`}
                 >
                   {isActive(link.path) && (

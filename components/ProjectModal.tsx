@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { track } from '@vercel/analytics';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, useMotionTemplate } from 'framer-motion';
 import {
    X, ExternalLink, ArrowRight, Code2, Layers, Cpu, Terminal,
@@ -191,6 +192,11 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
 // --- Main Component ---
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
+   // Track project open
+   useEffect(() => {
+      track('project_open', { id: project.id, source: 'modal' });
+   }, [project.id]);
+
    // Prevent body scroll
    useEffect(() => {
       document.body.style.overflow = 'hidden';
