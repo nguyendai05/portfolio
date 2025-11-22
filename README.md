@@ -10,10 +10,11 @@ This is a **brutalist, avant-garde portfolio website** for **Nguyen Xuan Dai (Xu
 - **Framework:** React 18.2.0 with TypeScript 5.8.2
 - **Build Tool:** Vite 6.2.0
 - **Router:** React Router DOM 6.23.0 (HashRouter)
-- **Animations:** Framer Motion 11.0.8
+- **Animations:** Framer Motion 10.18.0
 - **3D Graphics:** Three.js 0.160.0 with React Three Fiber & Drei
 - **Icons:** Lucide React 0.344.0
-- **AI Integration:** Google Gemini AI (@google/genai 1.30.0)
+- **AI Integration:** Google Gemini AI (@google/genai 1.30.0) with multi-key rotation
+- **Analytics:** Vercel Analytics 1.5.0
 - **Styling:** Tailwind CSS (via CDN) + CSS custom properties
 
 ---
@@ -23,37 +24,48 @@ This is a **brutalist, avant-garde portfolio website** for **Nguyen Xuan Dai (Xu
 ```
 portfolio/
 ├── components/          # Reusable UI components
-│   ├── GenerativeArt.tsx    # 3D/Canvas art backgrounds
-│   ├── Navigation.tsx        # Main navigation + sidebar
-│   ├── GlitchText.tsx       # Text effect component
-│   ├── Preloader.tsx        # Loading screen
-│   ├── NeuralInterface.tsx  # AI chat interface (Gemini)
-│   ├── ThemeSwitcher.tsx    # Theme selection UI
-│   ├── ProjectModal.tsx     # Project detail modal
-│   └── TrophyCase.tsx       # Achievement display
+│   ├── AboutPortrait3D.tsx      # 3D portrait for About page
+│   ├── ExecutionLog.tsx         # Execution log display
+│   ├── GalleryControlPanel.tsx  # Gallery controls
+│   ├── GenerativeArt.tsx        # 3D/Canvas art backgrounds
+│   ├── GlitchText.tsx           # Text effect component
+│   ├── LifeGallery.tsx          # Life moments gallery
+│   ├── Navigation.tsx           # Main navigation + sidebar
+│   ├── NeuralInterface.tsx      # AI chat interface (Gemini)
+│   ├── Preloader.tsx            # Loading screen
+│   ├── ProjectModal.tsx         # Project detail modal
+│   ├── ThemeSwitcher.tsx        # Theme selection UI
+│   ├── TrophyCase.tsx           # Achievement display
+│   ├── VideoTimelineItem.tsx    # Video timeline component
+│   ├── WorkColumns.tsx          # Work page column layout
+│   ├── WorkDeepDiveStrip.tsx    # Work page deep dive section
+│   ├── WorkHero.tsx             # Work page hero section
+│   └── WorkScrollProgress.tsx   # Work page scroll indicator
 ├── pages/              # Route-level page components
-│   ├── Home.tsx            # Landing page
-│   ├── Work.tsx            # Projects showcase
 │   ├── About.tsx           # About/bio page
+│   ├── Collaboration.tsx   # Collaboration info
 │   ├── Contact.tsx         # Contact form/info
 │   ├── Gallery.tsx         # Visual gallery
+│   ├── Home.tsx            # Landing page
 │   ├── Mentorship.tsx      # Mentorship offerings
-│   └── Collaboration.tsx   # Collaboration info
+│   └── Work.tsx            # Projects showcase
 ├── context/            # React Context providers
-│   ├── ThemeContext.tsx         # Theme state management
-│   └── GamificationContext.tsx  # Achievements & easter eggs
+│   ├── GamificationContext.tsx  # Achievements & easter eggs
+│   └── ThemeContext.tsx         # Theme state management
 ├── services/           # External service integrations
+│   ├── geminiKeyManager.ts # API key rotation & cooldown manager
 │   └── geminiService.ts    # Google Gemini AI service
 ├── data/               # Static data & mock content
 │   └── mockData.ts         # Projects, tech stack, milestones
 ├── App.tsx             # Main app component with routing
-├── index.tsx           # React entry point
+├── index.css           # Additional global styles
 ├── index.html          # HTML template with Tailwind config
-├── types.ts            # TypeScript type definitions
-├── tsconfig.json       # TypeScript configuration
-├── vite.config.ts      # Vite build configuration
+├── index.tsx           # React entry point
+├── metadata.json       # App metadata
 ├── package.json        # Dependencies & scripts
-└── metadata.json       # App metadata
+├── tsconfig.json       # TypeScript configuration
+├── types.ts            # TypeScript type definitions
+└── vite.config.ts      # Vite build configuration
 ```
 
 ---
@@ -153,7 +165,7 @@ Implemented in `ThemeEffects` component in `App.tsx:50-153`
 ## Gamification System
 
 ### Easter Eggs & Achievements
-Defined in `context/GamificationContext.tsx:30-38`:
+Defined in `context/GamificationContext.tsx:32-97`:
 
 1. **Konami Code** (`↑↑↓↓←→←→BA`): Toggles Neo Mode
 2. **"hacktheplanet"** (typed): Activates Neo Mode
@@ -162,6 +174,7 @@ Defined in `context/GamificationContext.tsx:30-38`:
 5. **Night Owl**: Auto-unlocked when visiting 11pm-4am
 6. **Art Connoisseur**: View all generative art pieces
 7. **Conversationalist**: Long AI chat session
+8. **Lab Explorer**: Scroll to the bottom of the Work page
 
 **Pattern:**
 ```tsx
@@ -177,16 +190,37 @@ unlockAchievement('achievement_id');
 ### Required Environment Variables
 Create `.env.local` in project root:
 ```bash
+# Primary API key (required)
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional additional keys for rotation (prevents rate limiting)
+GEMINI_API_KEY_1=your_second_key_here
+GEMINI_API_KEY_2=your_third_key_here
+GEMINI_API_KEY_3=your_fourth_key_here
+GEMINI_API_KEY_4=your_fifth_key_here
+GEMINI_API_KEY_5=your_sixth_key_here
+
+# Key cooldown period in minutes (default: 15)
+GEMINI_KEY_COOLDOWN_MINUTES=15
 ```
 
-**Vite exposes this as:**
-- `process.env.API_KEY` (for backwards compatibility)
-- `process.env.GEMINI_API_KEY`
+**Vite exposes these as:**
+- `process.env.GEMINI_API_KEYS` (array of all keys)
+- `process.env.GEMINI_KEY_COOLDOWN_MINUTES` (cooldown duration)
+- `process.env.API_KEY` (backwards compatibility)
+- `process.env.GEMINI_API_KEY` (backwards compatibility)
 
-Configured in `vite.config.ts:13-16`
+Configured in `vite.config.ts:14-25`
 
-**Important:** API key is loaded at build time, not runtime. Requires rebuild after changes.
+**API Key Rotation System:**
+The app implements automatic key rotation when rate limits are hit:
+- When a key hits rate limit, it's marked as "limited" with a cooldown period
+- System automatically switches to the next available key
+- Limited keys are restored after cooldown expires
+- State persists in `localStorage` as `xuni_gemini_key_state_v1`
+- Managed by `services/geminiKeyManager.ts`
+
+**Important:** API keys are loaded at build time, not runtime. Requires rebuild after changes.
 
 ---
 
@@ -255,19 +289,33 @@ export const ComponentName: React.FC = () => {
 ### Service Layer (`services/geminiService.ts`)
 - **Function:** `sendMessageToMantis(history, message)`
 - **Model:** `gemini-2.5-flash`
-- **System Instruction:** Brutalist persona, student context (lines 8-26)
-- **Error Handling:** Returns fallback messages on failure
+- **System Instruction:** Brutalist persona, student context (lines 4-37)
+- **API Key Management:** Automatic rotation via `geminiKeyManager.ts`
+- **Error Handling:** Returns fallback messages on failure with Vietnamese error messages
+- **Rate Limit Handling:** Automatically switches to next available key when rate limited
+- **Response Normalization:** Strips markdown code fences, limits length to 1200 chars
+
+### Key Manager Service (`services/geminiKeyManager.ts`)
+Sophisticated API key rotation system:
+- **Round-robin selection** of available keys
+- **Automatic cooldown** when rate limit detected (default 15 minutes)
+- **Persistent state** in localStorage
+- **Multiple key support** (up to 6 keys)
+- **Status tracking** for each key (available/limited/cooldown expiry)
 
 ### Neural Interface Component
 Located in `components/NeuralInterface.tsx`:
 - Floating chat button in bottom-left corner
 - Maintains conversation history
 - Stores messages in component state (not persisted)
+- Branded as "XUNI_CORE"
 
 **Important Notes:**
 - AI represents Nguyen Xuan Dai as a **student**, not an agency
-- Persona is experimental, brutalist, and concise (under 50 words typically)
+- Persona is experimental, brutalist, and concise
+- **Bilingual support:** Responds in Vietnamese or English based on user input
 - Mentions university projects and learning experiments when asked about work
+- Real project grounding from `mockData.ts`
 
 ---
 
@@ -275,22 +323,30 @@ Located in `components/NeuralInterface.tsx`:
 
 ### Mock Data (`data/mockData.ts`)
 Contains static content:
-- **PROJECTS:** Array of university coursework and personal projects
-- **CLIENTS:** Repurposed as tech stack for marquee animation
-- **AWARDS:** Repurposed as milestones/achievements
-- **EXPERIMENTS:** Additional UI/UX experiments
+- **PROJECTS:** Array of 6 real portfolio projects:
+  1. Personal Portfolio – DIZAN (HTML/CSS/JS foundation)
+  2. Christmas Gift for Crush (Interactive mini-site)
+  3. Flick Tale Movie Website (Movie browsing UI)
+  4. HCI Group 10 Course Portal (University project)
+  5. Handmade Craft Shop – Group 10 (E-commerce team project)
+  6. Dizan – Experience Studio (Next.js portfolio on Vercel)
+- **CLIENTS:** Repurposed as tech stack for marquee animation (17 technologies)
+- **AWARDS:** Repurposed as milestones (4 key career moments from 2023-2025)
+- **EXPERIMENTS:** Additional UI/UX experiments (3 items)
 
 **Pattern:**
 ```tsx
-import { PROJECTS, CLIENTS } from '../data/mockData';
+import { PROJECTS, CLIENTS, AWARDS, EXPERIMENTS } from '../data/mockData';
 ```
 
 ### Data Update Guidelines
 When modifying portfolio content:
 1. Update `data/mockData.ts` (source of truth)
 2. Ensure `Project` type matches interface in `types.ts`
-3. Verify images are accessible (uses Unsplash URLs)
-4. Add GitHub links where applicable
+3. Verify images are accessible (uses Cloudinary CDN)
+4. Add GitHub Pages or Vercel links where applicable
+5. Include `featured` flag for highlighted projects
+6. Include `phases` array for project timeline
 
 ---
 
@@ -361,9 +417,10 @@ npm run preview      # Preview production build
 ```
 
 ### Development Server
-- **Port:** 3000
+- **Port:** 5173 (Vite default)
 - **Host:** 0.0.0.0 (accessible on network)
 - **Hot Module Replacement (HMR):** Enabled
+- **Vercel Analytics:** Development mode when running locally
 
 ### Build Output
 - **Directory:** `dist/`
@@ -376,14 +433,18 @@ npm run preview      # Preview production build
 
 | File | Purpose | When to Modify |
 |------|---------|----------------|
-| `App.tsx` | Main app, routing, context providers | Adding new routes, global effects |
+| `App.tsx` | Main app, routing, context providers, theme effects | Adding new routes, global effects |
 | `index.tsx` | React entry point | Rarely needed |
 | `index.html` | HTML template, Tailwind config | Adding fonts, global styles, meta tags |
+| `index.css` | Additional global styles | Custom CSS beyond Tailwind |
 | `vite.config.ts` | Build configuration | Env vars, aliases, plugins |
 | `types.ts` | Type definitions | Adding new interfaces/types |
-| `data/mockData.ts` | Portfolio content | Updating projects, tech stack, milestones |
-| `context/ThemeContext.tsx` | Theme management | Adding new themes, changing colors |
-| `context/GamificationContext.tsx` | Achievements | Adding new easter eggs |
+| `data/mockData.ts` | Portfolio content (6 projects, 17 tech items, 4 milestones) | Updating projects, tech stack, milestones |
+| `context/ThemeContext.tsx` | Theme management (8 themes) | Adding new themes, changing colors |
+| `context/GamificationContext.tsx` | Achievements (8 easter eggs) | Adding new easter eggs |
+| `services/geminiService.ts` | Gemini AI chat integration | Modifying AI persona, response handling |
+| `services/geminiKeyManager.ts` | API key rotation & rate limit management | Changing cooldown logic, key handling |
+| `metadata.json` | App metadata | Updating app name, description |
 
 ---
 
@@ -480,13 +541,15 @@ When extending this portfolio, consider:
 |---------|---------|---------|
 | `react` | 18.2.0 | UI framework |
 | `react-dom` | 18.2.0 | React DOM renderer |
-| `react-router-dom` | 6.23.0 | Client-side routing |
-| `framer-motion` | 11.0.8 | Animation library |
+| `react-router-dom` | 6.23.0 | Client-side routing (HashRouter) |
+| `framer-motion` | 10.18.0 | Animation library |
 | `three` | 0.160.0 | 3D graphics engine |
 | `@react-three/fiber` | 8.15.16 | React renderer for Three.js |
-| `@react-three/drei` | 9.102.6 | Three.js helpers |
+| `@react-three/drei` | 9.102.6 | Three.js helpers & abstractions |
+| `@remix-run/router` | 1.16.0 | Router dependency |
 | `lucide-react` | 0.344.0 | Icon library |
 | `@google/genai` | 1.30.0 | Google Gemini AI SDK |
+| `@vercel/analytics` | 1.5.0 | Analytics tracking |
 | `typescript` | 5.8.2 | Type system |
 | `vite` | 6.2.0 | Build tool & dev server |
 
@@ -555,31 +618,40 @@ When AI assistants interact with this codebase, remember:
 ```bash
 # Development
 npm install              # First time setup
-npm run dev              # Start dev server → http://localhost:3000
+npm run dev              # Start dev server → http://localhost:5173
 
 # Production
 npm run build            # Build to dist/
 npm run preview          # Preview production build
 
-# Environment
-cp .env.local.example .env.local    # Create env file
-echo "GEMINI_API_KEY=your_key" > .env.local  # Add API key
+# Environment Setup
+# Create .env.local file manually and add:
+# GEMINI_API_KEY=your_primary_key
+# GEMINI_API_KEY_1=your_second_key  # Optional for rotation
+# GEMINI_KEY_COOLDOWN_MINUTES=15    # Optional cooldown duration
 ```
 
 ---
 
 ## Version History & Changelog
 
-**Current Version:** 0.0.0 (Initial Release)
+**Current Version:** 0.0.0 (Active Development)
 
 **Recent Updates:**
 - Initial portfolio structure
-- Theme system with 8 modes
-- Gamification with 7 achievements
-- AI chat integration (Gemini)
+- Theme system with 8 modes (focused, night_owl, early_bird, rainy_day, celebration, zen, cyberpunk, retro)
+- Gamification with 8 achievements including easter eggs
+- AI chat integration (Gemini 2.5 Flash) with bilingual support
+- **API key rotation system** with automatic rate limit handling
 - React Three Fiber art backgrounds
-- Responsive navigation
+- Responsive navigation with sidebar
 - HashRouter for GitHub Pages compatibility
+- Vercel Analytics integration
+- 6 real portfolio projects showcased
+- Work page with deep dive sections and scroll progress
+- Gallery page with control panel
+- 3D portrait on About page
+- Execution log component
 
 ---
 
@@ -602,16 +674,27 @@ When working with this codebase:
 2. **Respect the brutalist aesthetic** (bold, experimental, minimal)
 3. **Maintain TypeScript types** (no `any` types)
 4. **Test responsiveness** (mobile-first approach)
-5. **Check gamification features** (don't break easter eggs)
-6. **Update mockData.ts** for content changes
+5. **Check gamification features** (don't break 8 easter eggs)
+6. **Update mockData.ts** for content changes (6 projects, 17 tech items, 4 milestones)
 7. **Use Context API** for global state (don't prop-drill)
 8. **Follow existing patterns** (component structure, naming)
 9. **Remember the student context** (not a professional agency)
 10. **Test all 8 themes** after visual changes
+11. **API key rotation** - Multiple Gemini API keys supported with automatic failover
+12. **Bilingual AI** - Chat responds in Vietnamese or English based on user input
 
 **This is a living portfolio** that showcases experimental UI/UX, HCI principles, and front-end development skills. Treat it as a playground for creative coding while maintaining clean architecture.
 
+**Key Features:**
+- 8 dynamic themes with visual effects
+- 8 gamification achievements
+- Sophisticated API key rotation system
+- Bilingual AI chat interface
+- Real portfolio projects from GitHub
+- Cloudinary CDN for images
+- Vercel Analytics integration
+
 ---
 
-*Last Updated: 2025-11-20*
+*Last Updated: 2025-11-22*
 *Maintainer: Nguyen Xuan Dai (Xuni-Dizan)*
