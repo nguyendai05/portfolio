@@ -67,7 +67,7 @@ const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ proj
                 <motion.img
                     src={project.image}
                     alt={project.title}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
                 />
 
                 {/* Hover Overlay Info */}

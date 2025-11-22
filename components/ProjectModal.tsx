@@ -70,14 +70,14 @@ const TechMatrix: React.FC<{ technologies: string[] }> = ({ technologies }) => {
             <motion.div
                key={tech}
                variants={itemVariants}
-               whileHover={{ scale: 1.05, backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}
-               className="relative group border border-theme-border/20 bg-theme-panel/60 p-2 flex flex-col justify-between h-20 overflow-hidden cursor-default transition-colors"
+               whileHover={{ scale: 1.05 }}
+               className="relative group border border-theme-border/20 bg-theme-panel hover:border-theme-accent hover:shadow-md p-2 flex flex-col justify-between h-20 overflow-hidden cursor-default transition-all duration-300"
             >
                <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-mono opacity-50 text-theme-text">{(i + 1).toString().padStart(2, '0')}</span>
-                  <Cpu size={12} className="opacity-30 group-hover:opacity-100 transition-opacity text-theme-text" />
+                  <span className="text-[10px] font-mono opacity-50 text-theme-text group-hover:opacity-100 transition-opacity">{(i + 1).toString().padStart(2, '0')}</span>
+                  <Cpu size={12} className="opacity-30 group-hover:opacity-100 transition-opacity text-theme-text group-hover:text-theme-accent" />
                </div>
-               <span className="font-mono text-xs font-bold uppercase tracking-tight break-words z-10 text-theme-text">
+               <span className="font-mono text-xs font-bold uppercase tracking-tight break-words z-10 text-theme-text group-hover:text-theme-accent transition-colors">
                   {tech}
                </span>
                {/* Decorative corner */}
@@ -176,9 +176,9 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
                      initial={{ scale: 0 }}
                      animate={{ scale: 1 }}
                      transition={{ delay: 0.5 + (i * 0.1) }}
-                     className={`w-3 h-3 border-2 border-theme-border rounded-full z-10 transition-colors duration-300 ${i === phases.length - 1 ? 'bg-theme-accent' : 'bg-theme-panel group-hover:bg-theme-border'}`}
+                     className={`w-3 h-3 border-2 border-theme-border rounded-full z-10 transition-colors duration-300 ${i === phases.length - 1 ? 'bg-theme-accent' : 'bg-theme-panel group-hover:border-theme-accent'}`}
                   />
-                  <span className="font-mono text-[10px] uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity bg-theme-panel px-2 text-theme-text">
+                  <span className="font-mono text-[10px] uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity bg-theme-panel px-2 text-theme-text border border-transparent group-hover:border-theme-border/20 rounded">
                      {phase}
                   </span>
                </div>
@@ -228,7 +228,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                   {/* Mobile Close Button (Visible only on small screens) */}
                   <button
                      onClick={onClose}
-                     className="absolute top-4 right-4 md:hidden bg-theme-bg text-theme-text p-2 rounded-full z-50 shadow-lg border border-theme-border/20"
+                     className="absolute top-4 right-4 md:hidden bg-theme-panel text-theme-text p-2 rounded-full z-50 shadow-lg border border-theme-border/20 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                   >
                      <X size={20} />
                   </button>
@@ -245,12 +245,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
                      {/* Desktop Close Button */}
                      <div className="hidden md:flex items-center gap-4">
-                        <button className="opacity-40 hover:opacity-100 transition-opacity text-theme-text hover:text-theme-accent" title="Share">
+                        <button className="opacity-60 hover:opacity-100 transition-opacity text-theme-text hover:text-theme-accent p-2 rounded-md hover:bg-theme-panel/50" title="Share">
                            <Share2 size={18} />
                         </button>
                         <button
                            onClick={onClose}
-                           className="bg-theme-bg text-theme-text border border-theme-border/40 p-2 hover:bg-theme-accent hover:text-theme-bg transition-colors"
+                           className="bg-theme-panel text-theme-text border border-theme-border/40 p-2 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                         >
                            <X size={20} />
                         </button>
@@ -308,7 +308,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                               className="group relative w-full block"
                            >
                               <div className="absolute inset-0 bg-theme-accent translate-x-2 translate-y-2 transition-transform group-hover:translate-x-3 group-hover:translate-y-3" />
-                              <div className="relative bg-theme-text text-theme-bg p-5 flex items-center justify-between border border-transparent group-hover:border-theme-accent transition-colors">
+                              <div className="relative bg-theme-bg text-theme-text p-5 flex items-center justify-between border border-theme-border group-hover:border-theme-accent transition-colors">
                                  <div className="flex flex-col">
                                     <span className="font-mono text-xs text-theme-accent mb-1">Access_Terminal</span>
                                     <span className="font-bold text-xl uppercase tracking-wider flex items-center gap-2">
