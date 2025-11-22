@@ -96,7 +96,7 @@ export const NeuralInterface: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { id: 'init', role: 'model', text: 'Neural link established. Ready for input.' }
+    { id: 'init', role: 'model', text: 'Neural link online. Hỏi mình về project, code, hoặc cuộc đời IT sinh viên cũng được.' }
   ]);
   const [isThinking, setIsThinking] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -147,7 +147,7 @@ export const NeuralInterface: React.FC = () => {
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'model', text: 'Error: Neural connection unstable.' },
+        { id: (Date.now() + 1).toString(), role: 'model', text: 'Neural link vừa bị giật lag. Kiểm tra mạng hoặc API key, rồi ping mình lại nhé.' },
       ]);
     } finally {
       setIsThinking(false);
@@ -157,7 +157,7 @@ export const NeuralInterface: React.FC = () => {
   const handleClear = () => {
     setMessages([]);
     setTimeout(() => {
-      setMessages([{ id: Date.now().toString(), role: 'model', text: 'Memory purged. Systems normal.' }]);
+      setMessages([{ id: Date.now().toString(), role: 'model', text: 'Memory purged. Systems normal. Sẵn sàng cho câu hỏi mới.' }]);
     }, 500);
   };
 
