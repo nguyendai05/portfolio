@@ -1,9 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-
-// Initialize the client if API key is available
-const ai = process.env.API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.API_KEY })
-  : null;
+import { getNextAvailableKey, markKeyLimited } from "./geminiKeyManager";
 
 const SYSTEM_INSTRUCTION = `
 You are "XUNI_CORE", the Neural Interface for Nguyễn Xuân Đại (alias: Xuni-Dizan), an IT student and aspiring front-end developer based in Ho Chi Minh City, Vietnam.
@@ -61,33 +57,80 @@ function normalizeMantisResponse(raw: string | undefined | null): string {
   return text;
 }
 
-export const sendMessageToMantis = async (history: { role: string, parts: { text: string }[] }[], message: string): Promise<string> => {
-  if (!ai) {
-    return "Neural link offline. API_KEY missing.";
+function createClient(apiKey: string): GoogleGenAI {
+  return new GoogleGenAI({ apiKey });
+}
+
+function isRateLimitError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const anyError = error as any;
+  const status = anyError.status ?? anyError.code;
+  const message = String(anyError.message ?? '').toLowerCase();
+
+  if (status === 429) return true;
+  if (status === 'RESOURCE_EXHAUSTED' || status === 'rate_limit_exceeded') return true;
+  if (message.includes('rate limit') || message.includes('quota') || message.includes('exceeded')) return true;
+
+  return false;
+}
+
+async function withGeminiClient<T>(
+  execute: (client: GoogleGenAI) => Promise<T>
+): Promise<T> {
+  const tried = new Set<number>();
+  let lastError: unknown = null;
+
+  while (true) {
+    const keyState = getNextAvailableKey(tried);
+    if (!keyState) {
+      if (lastError) {
+        console.error('All Gemini API keys are limited or invalid.', lastError);
+      }
+      throw new Error('All Gemini API keys are temporarily unavailable.');
+    }
+
+    tried.add(keyState.index);
+    const client = createClient(keyState.value);
+
+    try {
+      return await execute(client);
+    } catch (error: any) {
+      lastError = error;
+
+      if (isRateLimitError(error)) {
+        markKeyLimited(keyState.index);
+        continue;
+      }
+
+      throw error;
+    }
   }
+}
 
+export const sendMessageToMantis = async (history: { role: string, parts: { text: string }[] }[], message: string): Promise<string> => {
   try {
-    // Construct the full conversation history for the request
-    const contents = [
-      ...history,
-      { role: 'user', parts: [{ text: message }] }
-    ];
+    return await withGeminiClient(async (client) => {
+      const contents = [
+        ...history,
+        { role: 'user', parts: [{ text: message }] }
+      ];
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: contents,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        maxOutputTokens: 768,
-        temperature: 0.6,
-        topP: 0.9,
-        topK: 40,
-      },
+      const response = await client.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: contents,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          maxOutputTokens: 768,
+          temperature: 0.6,
+          topP: 0.9,
+          topK: 40,
+        },
+      });
+
+      return normalizeMantisResponse(response.text);
     });
-
-    return normalizeMantisResponse(response.text);
   } catch (error) {
     console.error("Mantis Neural Interface Error:", error);
-    return "Kết nối bị gián đoạn. Thử lại chút nữa xem sao.";
+    return "Xin lỗi, kết nối với XUNI_CORE đang bị giới hạn tạm thời (hết quota API). Thử lại sau vài phút nhé.";
   }
 };

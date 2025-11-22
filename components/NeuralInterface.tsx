@@ -99,6 +99,7 @@ export const NeuralInterface: React.FC = () => {
     { id: 'init', role: 'model', text: 'Neural link online. Hỏi mình về project, code, hoặc cuộc đời IT sinh viên cũng được.' }
   ]);
   const [isThinking, setIsThinking] = useState(false);
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +141,13 @@ export const NeuralInterface: React.FC = () => {
 
     try {
       const responseText = await sendMessageToMantis(history, userMsg.text);
+
+      if (responseText.includes("kết nối với XUNI_CORE đang bị giới hạn tạm thời")) {
+        setIsRateLimited(true);
+      } else {
+        setIsRateLimited(false);
+      }
+
       setMessages((prev) => [
         ...prev,
         { id: (Date.now() + 1).toString(), role: 'model', text: responseText },
@@ -234,6 +242,11 @@ export const NeuralInterface: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-theme-accent rounded-full animate-pulse" />
                   <span className="font-mono text-xs font-bold tracking-widest text-theme-text">XUNI_NEURAL_DOCK</span>
+                  {isRateLimited && (
+                    <span className="ml-2 px-1.5 py-0.5 text-[9px] font-bold bg-red-500/20 text-red-500 border border-red-500/50 rounded animate-pulse">
+                      API_COOLDOWN
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <button
