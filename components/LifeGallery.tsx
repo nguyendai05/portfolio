@@ -306,7 +306,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
     type: 'video',
     url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763796722/photo_1_2025-11-22_14-27-06_gmzwn8.jpg',
     videoUrl: 'https://res.cloudinary.com/dak4x4d7u/video/upload/v1763753272/Untitled_video_-_Made_with_Clipchamp_cmwhym.mp4',
-    category: ['Thpt', 'memories'],
+    category: ['IT', 'memories', 'sports'],
     caption: 'Tôi yêu IT cụa tôii ♥',
     date: '2024.03.27',
     location: 'Nhà thi đấu - Đại học Nông Lâm, khu phố 6, Thủ Đức, Thành phố Hồ Chí Minh',
