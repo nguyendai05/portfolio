@@ -1,46 +1,59 @@
 import { Project } from '../types';
 
-// PROJECTS: Based on student coursework and labs
+// PROJECTS: Real personal and team web projects from GitHub
 export const PROJECTS: Project[] = [
   {
     id: 1,
-    title: "HCI EXPERIMENTS",
-    category: "University Coursework",
-    image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=2555&auto=format&fit=crop",
-    description: "A collection of Human-Computer Interaction exercises exploring user flow, layout hierarchies, and navigation structures. Built as part of the HCI curriculum at Nong Lam University.",
-    technologies: ["HTML5", "CSS3", "Wireframing", "UI Principles"],
-    link: "https://github.com/Xuni-Dizan/Human_Computer_Interaction",
+    title: "Personal Portfolio – DIZAN",
+    category: "Personal Website",
+    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=2669&auto=format&fit=crop",
+    description: "My digital identity branded as DIZAN, featuring sections for Home, About, Lab, and Results. A personal website showcasing my journey as an IT student at Nong Lam University, complete with contact information and a video-based hero experience. This project served as the foundation for learning responsive design and personal branding.",
+    technologies: ["HTML5", "CSS3", "JavaScript", "Responsive Design", "Video Integration"],
+    link: "https://xuni-dizan.github.io/Trang_ca_nhan/",
     featured: true,
-    phases: ["Research", "Prototyping", "Implementation"]
+    phases: ["Concept", "Design", "Development", "Deployment"]
   },
   {
     id: 2,
-    title: "DIGITAL IDENTITY",
-    category: "Personal Website",
-    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=2669&auto=format&fit=crop",
-    description: "My personal corner of the web. A static site playground used to practice sectioning, multimedia embedding, and responsive design techniques. The foundation of my front-end journey.",
-    technologies: ["HTML", "CSS", "JavaScript", "Responsive Design"],
-    link: "https://github.com/Xuni-Dizan/Trang_ca_nhan",
-    featured: true,
-    phases: ["Design", "Development", "Deployment"]
+    title: "Christmas Gift for Crush",
+    category: "Creative Mini Project",
+    image: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?q=80&w=2669&auto=format&fit=crop",
+    description: "An interactive Christmas-themed mini-site with playful romance elements. Features animated UI components, rating inputs, and heart icons with toggleable background music. Built as a creative gift project focusing on micro-interactions, animations, and emotional UX design.",
+    technologies: ["HTML5", "CSS3", "JavaScript", "Animation", "Audio Integration"],
+    link: "https://xuni-dizan.github.io/web_noel/",
+    phases: ["Concept", "Animation Design", "Implementation"]
   },
   {
     id: 3,
-    title: "DOM LABS",
-    category: "JavaScript Practice",
-    image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=2574&auto=format&fit=crop",
-    description: "A series of raw JavaScript experiments. Focusing on DOM manipulation, event handling, and logic implementation without the crutch of modern frameworks. Pure functional exploration.",
-    technologies: ["Vanilla JS", "DOM API", "Event Handling"],
-    link: "https://github.com/Xuni-Dizan/lab1-nhom2"
+    title: "Flick Tale Movie Website",
+    category: "Movie UI / Frontend",
+    image: "https://images.unsplash.com/photo-1574267432644-f610a75d3752?q=80&w=2669&auto=format&fit=crop",
+    description: "A responsive movie browsing platform featuring categories for standalone films and series, including anime and 2D/3D content. Implements comprehensive search and filter controls by genre, format, year, and rating, with sort options for latest releases and highest-rated titles. Built to practice complex UI layouts and filtering UX patterns.",
+    technologies: ["HTML5", "CSS3", "JavaScript", "Responsive Design", "Grid Layout", "UI/UX"],
+    link: "https://xuni-dizan.github.io/WebPhim/",
+    featured: true,
+    phases: ["Research", "Wireframing", "Implementation", "Testing"]
   },
   {
     id: 4,
-    title: "UI SANDBOX",
-    category: "R&D",
-    image: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2574&auto=format&fit=crop",
-    description: "Small, isolated UI components and animations. Where I break CSS to see how it works.",
-    technologies: ["CSS Animations", "Keyframes", "Experimental Layouts"],
-    link: "#"
+    title: "HCI Group 10 Course Portal",
+    category: "University Group Project",
+    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2670&auto=format&fit=crop",
+    description: "Final project website for the Human-Computer Interaction course at Nong Lam University. A comprehensive multi-page portal featuring team member introductions, group diary, technical documentation, style guides, and blog content. Emphasizes collaborative development, information architecture, and usability principles learned throughout the HCI curriculum.",
+    technologies: ["HTML5", "CSS3", "JavaScript", "UI/UX", "Accessibility", "Team Collaboration"],
+    link: "https://duyhuunguyen.github.io/GroupWeb/GroupWeb/public/home.html",
+    phases: ["Planning", "Team Collaboration", "Design", "Delivery"]
+  },
+  {
+    id: 5,
+    title: "Handmade Craft Shop – Group 10",
+    category: "Team E-commerce Project",
+    image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?q=80&w=2670&auto=format&fit=crop",
+    description: "A collaborative e-commerce platform showcasing Vietnamese handmade crafts including bamboo weaving, ceramics, woodwork, jewelry, and decorative gifts. Features a hero section emphasizing Vietnamese cultural aesthetics, category navigation, promotional discounts, featured products grid, and news section. Built as a team project focusing on product catalog layout, pricing displays, and responsive design.",
+    technologies: ["HTML5", "CSS3", "JavaScript", "Responsive Design", "Flexbox", "E-commerce UI"],
+    link: "https://dhphuc211.github.io/WebShop-Handmake-Group10/",
+    featured: true,
+    phases: ["Planning", "Team Collaboration", "Implementation", "Deployment"]
   }
 ];
 

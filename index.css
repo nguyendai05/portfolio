@@ -90,4 +90,14 @@ body {
   .mask-linear-fade {
     mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
   }
+
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+
+    100% {
+      transform: translateY(1000%);
+    }
+  }
 }
