@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="" />
+<img width="1200" height="475" alt="GHBanner" src="https://res.cloudinary.com/dak4x4d7u/image/upload/v1763829217/Whisk_cjmyety3imz3y2mk1snzmtytyjm4qtl3gzy40sz_k2c1um.png" />
 </div>
 
 ## Project Overview
