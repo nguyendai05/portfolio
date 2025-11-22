@@ -71,17 +71,17 @@ const TechMatrix: React.FC<{ technologies: string[] }> = ({ technologies }) => {
                key={tech}
                variants={itemVariants}
                whileHover={{ scale: 1.05, backgroundColor: "var(--color-text)", color: "var(--color-bg)" }}
-               className="relative group border border-black/20 bg-white/50 p-2 flex flex-col justify-between h-20 overflow-hidden cursor-default transition-colors"
+               className="relative group border border-theme-border/20 bg-theme-panel/60 p-2 flex flex-col justify-between h-20 overflow-hidden cursor-default transition-colors"
             >
                <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-mono opacity-50">{(i + 1).toString().padStart(2, '0')}</span>
-                  <Cpu size={12} className="opacity-30 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-[10px] font-mono opacity-50 text-theme-text">{(i + 1).toString().padStart(2, '0')}</span>
+                  <Cpu size={12} className="opacity-30 group-hover:opacity-100 transition-opacity text-theme-text" />
                </div>
-               <span className="font-mono text-xs font-bold uppercase tracking-tight break-words z-10">
+               <span className="font-mono text-xs font-bold uppercase tracking-tight break-words z-10 text-theme-text">
                   {tech}
                </span>
                {/* Decorative corner */}
-               <div className="absolute bottom-0 right-0 w-2 h-2 bg-mantis-green opacity-0 group-hover:opacity-100 transition-opacity" />
+               <div className="absolute bottom-0 right-0 w-2 h-2 bg-theme-accent opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
          ))}
       </div>
@@ -108,7 +108,7 @@ const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
          ref={containerRef}
          onMouseMove={handleMouseMove}
          onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
-         className="relative w-full h-[400px] md:h-full min-h-[400px] bg-black overflow-hidden group perspective-1000"
+         className="relative w-full h-[400px] md:h-full min-h-[400px] bg-theme-panel overflow-hidden group perspective-1000"
       >
          {/* 3D Tilt Container */}
          <motion.div
@@ -127,15 +127,15 @@ const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
 
             {/* Overlay Grid */}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+            <div className="absolute inset-0 bg-gradient-to-t from-theme-panel via-theme-panel/5 to-transparent opacity-60" />
 
             {/* Floating UI Elements (Parallax) */}
             <motion.div
                style={{ z: 50, x: useTransform(mouseX, [-0.5, 0.5], [20, -20]) }}
-               className="absolute top-6 left-6 bg-black/80 backdrop-blur-md border border-white/20 p-3 text-white hidden md:block"
+               className="absolute top-6 left-6 bg-theme-panel/90 backdrop-blur-md border border-theme-border/30 p-3 text-theme-text hidden md:block"
             >
                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-theme-accent rounded-full animate-pulse" />
                   <span className="font-mono text-[10px] uppercase tracking-widest">Live Feed</span>
                </div>
                <div className="font-mono text-xs opacity-70">
@@ -145,14 +145,14 @@ const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
 
             <motion.div
                style={{ z: 30, x: useTransform(mouseX, [-0.5, 0.5], [-10, 10]) }}
-               className="absolute bottom-6 right-6 bg-mantis-green text-black px-4 py-2 font-bold font-mono text-sm uppercase tracking-wider shadow-lg"
+               className="absolute bottom-6 right-6 bg-theme-accent text-theme-bg px-4 py-2 font-bold font-mono text-sm uppercase tracking-wider shadow-lg"
             >
                {project.category}
             </motion.div>
          </motion.div>
 
          {/* Scanline */}
-         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-white/5 to-transparent h-[10%] w-full animate-[scan_4s_linear_infinite]" />
+         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-theme-text/5 to-transparent h-[10%] w-full animate-[scan_4s_linear_infinite]" />
       </motion.div>
    );
 };
@@ -161,14 +161,14 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
    if (!phases || phases.length === 0) return null;
 
    return (
-      <div className="mt-8 pt-8 border-t border-black/10">
-         <div className="flex items-center gap-2 mb-4 opacity-60">
+      <div className="mt-8 pt-8 border-t border-theme-border/10">
+         <div className="flex items-center gap-2 mb-4 opacity-60 text-theme-text">
             <GitBranch size={14} />
             <span className="font-mono text-xs uppercase tracking-widest">Development_Log</span>
          </div>
          <div className="relative flex justify-between items-center">
             {/* Connecting Line */}
-            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/10 -z-10" />
+            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-theme-border/10 -z-10" />
 
             {phases.map((phase, i) => (
                <div key={i} className="flex flex-col items-center gap-3 group cursor-default">
@@ -176,9 +176,9 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
                      initial={{ scale: 0 }}
                      animate={{ scale: 1 }}
                      transition={{ delay: 0.5 + (i * 0.1) }}
-                     className={`w-3 h-3 border-2 border-black rounded-full bg-white z-10 transition-colors duration-300 ${i === phases.length - 1 ? 'bg-mantis-green' : 'group-hover:bg-black'}`}
+                     className={`w-3 h-3 border-2 border-theme-border rounded-full z-10 transition-colors duration-300 ${i === phases.length - 1 ? 'bg-theme-accent' : 'bg-theme-panel group-hover:bg-theme-border'}`}
                   />
-                  <span className="font-mono text-[10px] uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity bg-[#e6e6e6] px-2">
+                  <span className="font-mono text-[10px] uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity bg-theme-panel px-2 text-theme-text">
                      {phase}
                   </span>
                </div>
@@ -214,43 +214,43 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4 lg:p-8 overflow-y-auto"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-theme-bg/90 backdrop-blur-sm p-0 md:p-4 lg:p-8 overflow-y-auto"
          >
             <motion.div
                variants={containerVariants}
                onClick={(e) => e.stopPropagation()}
-               className="w-full max-w-7xl bg-[#e6e6e6] min-h-screen md:min-h-0 md:h-auto md:max-h-[95vh] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border border-black/50"
+               className="w-full max-w-7xl bg-theme-panel min-h-screen md:min-h-0 md:h-auto md:max-h-[95vh] shadow-2xl overflow-hidden flex flex-col md:flex-row relative border border-theme-border/40"
             >
                {/* --- LEFT PANEL: VISUAL CORE (55%) --- */}
-               <div className="w-full md:w-[55%] relative border-b md:border-b-0 md:border-r border-black/20">
+               <div className="w-full md:w-[55%] relative border-b md:border-b-0 md:border-r border-theme-border/20">
                   <VisualCore project={project} />
 
                   {/* Mobile Close Button (Visible only on small screens) */}
                   <button
                      onClick={onClose}
-                     className="absolute top-4 right-4 md:hidden bg-black text-white p-2 rounded-full z-50 shadow-lg"
+                     className="absolute top-4 right-4 md:hidden bg-theme-bg text-theme-text p-2 rounded-full z-50 shadow-lg border border-theme-border/20"
                   >
                      <X size={20} />
                   </button>
                </div>
 
                {/* --- RIGHT PANEL: DATA STREAM (45%) --- */}
-               <div className="w-full md:w-[45%] flex flex-col bg-[#e6e6e6] overflow-y-auto max-h-[95vh]">
+               <div className="w-full md:w-[45%] flex flex-col bg-theme-panel overflow-y-auto max-h-[95vh]">
                   {/* Header Bar */}
-                  <div className="sticky top-0 z-20 bg-[#e6e6e6]/90 backdrop-blur-md border-b border-black/10 p-6 flex justify-between items-center">
-                     <div className="flex items-center gap-2 opacity-50">
+                  <div className="sticky top-0 z-20 bg-theme-panel/90 backdrop-blur-md border-b border-theme-border/10 p-6 flex justify-between items-center">
+                     <div className="flex items-center gap-2 opacity-50 text-theme-text">
                         <Terminal size={14} />
                         <span className="font-mono text-xs uppercase tracking-widest">System_ID: {project.id}</span>
                      </div>
 
                      {/* Desktop Close Button */}
                      <div className="hidden md:flex items-center gap-4">
-                        <button className="opacity-40 hover:opacity-100 transition-opacity" title="Share">
+                        <button className="opacity-40 hover:opacity-100 transition-opacity text-theme-text hover:text-theme-accent" title="Share">
                            <Share2 size={18} />
                         </button>
                         <button
                            onClick={onClose}
-                           className="bg-black text-mantis-green p-2 hover:bg-mantis-green hover:text-black transition-colors"
+                           className="bg-theme-bg text-theme-text border border-theme-border/40 p-2 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                         >
                            <X size={20} />
                         </button>
@@ -258,19 +258,19 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                   </div>
 
                   {/* Content Scroll Area */}
-                  <div className="p-6 md:p-10 flex-1 flex flex-col">
+                  <div className="p-6 md:p-10 flex-1 flex flex-col text-theme-text">
 
                      {/* Title Section */}
                      <motion.div variants={itemVariants} className="mb-8">
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[0.9] mb-4 uppercase break-words">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[0.9] mb-4 uppercase break-words text-theme-text">
                            {project.title}
                         </h2>
                         <div className="flex flex-wrap gap-3">
-                           <span className="px-3 py-1 border border-black text-xs font-mono font-bold uppercase bg-white">
+                           <span className="px-3 py-1 border border-theme-border text-xs font-mono font-bold uppercase bg-theme-panel text-theme-text">
                               {project.category}
                            </span>
                            {project.featured && (
-                              <span className="px-3 py-1 bg-mantis-green text-black text-xs font-mono font-bold uppercase flex items-center gap-1">
+                              <span className="px-3 py-1 bg-theme-accent text-theme-bg text-xs font-mono font-bold uppercase flex items-center gap-1">
                                  <Activity size={12} /> Featured
                               </span>
                            )}
@@ -286,7 +286,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
                      {/* Tech Matrix */}
                      <motion.div variants={itemVariants} className="mb-10">
-                        <div className="flex items-center gap-2 mb-4 opacity-60">
+                        <div className="flex items-center gap-2 mb-4 opacity-60 text-theme-text">
                            <Database size={14} />
                            <span className="font-mono text-xs uppercase tracking-widest">Tech_Stack_Matrix</span>
                         </div>
@@ -307,19 +307,19 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                               rel="noopener noreferrer"
                               className="group relative w-full block"
                            >
-                              <div className="absolute inset-0 bg-mantis-green translate-x-2 translate-y-2 transition-transform group-hover:translate-x-3 group-hover:translate-y-3" />
-                              <div className="relative bg-black text-white p-5 flex items-center justify-between border border-transparent group-hover:border-mantis-green transition-colors">
+                              <div className="absolute inset-0 bg-theme-accent translate-x-2 translate-y-2 transition-transform group-hover:translate-x-3 group-hover:translate-y-3" />
+                              <div className="relative bg-theme-text text-theme-bg p-5 flex items-center justify-between border border-transparent group-hover:border-theme-accent transition-colors">
                                  <div className="flex flex-col">
-                                    <span className="font-mono text-xs text-mantis-green mb-1">Access_Terminal</span>
+                                    <span className="font-mono text-xs text-theme-accent mb-1">Access_Terminal</span>
                                     <span className="font-bold text-xl uppercase tracking-wider flex items-center gap-2">
                                        Launch Project
                                     </span>
                                  </div>
-                                 <ArrowRight className="transform group-hover:translate-x-2 transition-transform text-mantis-green" />
+                                 <ArrowRight className="transform group-hover:translate-x-2 transition-transform text-theme-accent" />
                               </div>
                            </a>
                         ) : (
-                           <div className="p-4 border border-black/10 bg-black/5 font-mono text-xs text-center uppercase opacity-60">
+                           <div className="p-4 border border-theme-border/20 bg-theme-bg/5 font-mono text-xs text-center uppercase opacity-60 text-theme-text">
                               Project_Archived // No_Live_Link
                            </div>
                         )}
