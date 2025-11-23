@@ -703,16 +703,19 @@ export const LifeGallery: React.FC = () => {
 
       </div>
 
-      {/* Immersive Lightbox Overlay */}
-      <AnimatePresence>
-        {selectedPhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-0 md:p-8"
-            onClick={() => setSelectedPhoto(null)}
-          >
+            {/* Immersive Lightbox Overlay */}
+        <AnimatePresence>
+          {selectedPhoto && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              // Desktop giữ blur, mobile bỏ blur để video nhẹ hơn
+              className={`fixed inset-0 z-[100] bg-black/95 ${
+                isMobile ? '' : 'backdrop-blur-2xl'
+              } flex items-center justify-center p-0 md:p-8`}
+              onClick={() => setSelectedPhoto(null)}
+            >
             {/* Close Button */}
             <button
               className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-theme-accent hover:text-black transition-all"
@@ -749,14 +752,22 @@ export const LifeGallery: React.FC = () => {
                             src={currentVideoUrl}
                             className="w-full h-full object-contain"
                             controls
-                            autoPlay
-                            loop
+                            // Giúp video phát trực tiếp trong trang trên iOS
+                            playsInline
+                            // Mobile: chỉ load metadata, khi user bấm play mới tải mạnh
+                            preload={isMobile ? 'metadata' : 'auto'}
+                            // Desktop: vẫn autoplay như cũ; Mobile: không autoplay để giảm giật/đơ
+                            autoPlay={!isMobile}
+                            // Desktop: loop như cũ; Mobile: tắt loop để giảm CPU
+                            loop={!isMobile}
                           />
                         ) : (
                           <iframe
                             key={currentVideoUrl} // Force re-render on change
                             src={getEmbedUrl(currentVideoUrl, currentPlatform)}
                             className="w-full h-full"
+                            // Mobile: lazy để giảm gánh network & CPU khi mở lightbox
+                            loading={isMobile ? 'lazy' : 'eager'}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           />
