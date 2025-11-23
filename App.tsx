@@ -1,21 +1,24 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Navigation } from './components/Navigation';
-import { NeuralInterface } from './components/NeuralInterface';
+// Lazy load NeuralInterface
+const NeuralInterface = React.lazy(() => import('./components/NeuralInterface').then(module => ({ default: module.NeuralInterface })));
 import { Preloader } from './components/Preloader';
-import { Home } from './pages/Home';
-import { Work } from './pages/Work';
-import { About } from './pages/About';
-import { Contact } from './pages/Contact';
-import { Gallery } from './pages/Gallery';
-import { Mentorship } from './pages/Mentorship';
-import { Collaboration } from './pages/Collaboration';
 import { GamificationProvider, useGamification } from './context/GamificationContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+
+// Lazy load pages
+const Home = React.lazy(() => import('./pages/Home').then(module => ({ default: module.Home })));
+const Work = React.lazy(() => import('./pages/Work').then(module => ({ default: module.Work })));
+const About = React.lazy(() => import('./pages/About').then(module => ({ default: module.About })));
+const Contact = React.lazy(() => import('./pages/Contact').then(module => ({ default: module.Contact })));
+const Gallery = React.lazy(() => import('./pages/Gallery').then(module => ({ default: module.Gallery })));
+const Mentorship = React.lazy(() => import('./pages/Mentorship').then(module => ({ default: module.Mentorship })));
+const Collaboration = React.lazy(() => import('./pages/Collaboration').then(module => ({ default: module.Collaboration })));
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -63,9 +66,13 @@ const ThemeEffects = () => {
     let animationFrameId: number;
     const particles: any[] = [];
 
+    let resizeTimeout: NodeJS.Timeout;
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }, 100);
     };
     window.addEventListener('resize', resize);
     resize();
@@ -163,16 +170,23 @@ const AppContent = () => {
     <div className="relative min-h-screen bg-theme-bg text-theme-text transition-colors duration-500">
       <ThemeEffects />
       <GlobalEffects />
+
       <AnimatePresence mode="wait">
         {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
       </AnimatePresence>
 
-      {!isLoading && (
-        <>
-          <ScrollToTop />
-          <Navigation />
+      {/* 
+        Render the app content immediately but keep it hidden/interactive-disabled 
+        until loading is complete. This allows assets to fetch in parallel with the preloader.
+      */}
+      <div className={isLoading ? 'opacity-0 pointer-events-none fixed inset-0 z-[-1]' : ''}>
+        <ScrollToTop />
+        <Navigation />
+        <Suspense fallback={null}>
           <NeuralInterface />
+        </Suspense>
 
+        <Suspense fallback={<div className="min-h-screen" />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<Home />} />
@@ -184,8 +198,8 @@ const AppContent = () => {
               <Route path="/contact" element={<Contact />} />
             </Routes>
           </AnimatePresence>
-        </>
-      )}
+        </Suspense>
+      </div>
     </div>
   );
 };

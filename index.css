@@ -40,22 +40,18 @@ body {
   background: var(--color-accent);
 }
 
-/* Utility for safe layout - Updated for new Navigation */
+/* Utility for safe layout */
 .layout-safe-padding {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   padding-top: 6rem;
-  /* Space for mobile header */
   padding-bottom: 6rem;
-  /* Space for mobile bottom nav */
 }
 
 @media (min-width: 768px) {
   .layout-safe-padding {
     padding-left: 4rem;
-    /* Minimal left spacing for logo/identity */
     padding-right: 6rem;
-    /* Space for right floating nav */
     padding-top: 2rem;
     padding-bottom: 2rem;
   }
@@ -99,5 +95,28 @@ body {
     100% {
       transform: translateY(1000%);
     }
+  }
+
+  /* Styles moved from index.html */
+  .stroke-text {
+    -webkit-text-stroke: 1px var(--color-text);
+    color: transparent;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
   }
 }

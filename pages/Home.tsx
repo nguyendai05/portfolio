@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -107,7 +106,6 @@ export const Home: React.FC = () => {
               <div className="w-[500px] h-[500px] bg-theme-accent/30 blur-[100px] rounded-full"></div>
             </motion.div>
 
-            {/* 3D Layer Stack - Deep Background */}
             {/* 3D Layer Stack - Deep Background */}
             {[6, 5, 4, 3, 2, 1].map((depth) => (
               <motion.h1
@@ -611,8 +609,14 @@ export const Home: React.FC = () => {
       <section className="relative min-h-screen flex items-center bg-theme-bg">
         <div className="absolute inset-0 w-full h-1/2 md:h-2/3 bg-theme-text overflow-hidden">
           <img
-            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1280"
+            srcSet="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=640 640w,
+                    https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1280 1280w,
+                    https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1920 1920w"
+            sizes="100vw"
             alt="Digital Landscape"
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-1000"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-theme-bg"></div>

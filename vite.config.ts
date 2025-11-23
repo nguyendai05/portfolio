@@ -10,6 +10,19 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
     },
     plugins: [react()],
+    build: {
+      // Optimize chunking for caching
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
+            'framer': ['framer-motion'],
+            'ai': ['@google/genai']
+          }
+        }
+      }
+    },
     define: {
       'process.env.GEMINI_API_KEYS': JSON.stringify([
         env.GEMINI_API_KEY,
