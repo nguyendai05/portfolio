@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Navigation } from './components/Navigation';
@@ -189,6 +190,18 @@ const AppContent = () => {
   );
 };
 
+function getCurrentSpeedInsightsRoute(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  if (window.location.hash && window.location.hash.startsWith('#/')) {
+    const hashPath = window.location.hash.slice(1); // '/about', '/work', etc.
+    return hashPath || '/';
+  }
+
+  // Fallback for non-hash URLs (should be just '/')
+  return window.location.pathname || '/';
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -216,6 +229,9 @@ function App() {
             }
           }}
         />
+        {/* Vercel Speed Insights – tracks Core Web Vitals for this SPA. */}
+        {/* Requires Speed Insights to be enabled in the Vercel dashboard (Project → Speed Insights). */}
+        <SpeedInsights route={getCurrentSpeedInsightsRoute()} />
       </GamificationProvider>
     </ThemeProvider>
   );
