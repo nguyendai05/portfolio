@@ -120,3 +120,26 @@ body {
     animation-delay: 4s;
   }
 }
+
+/* Moved from inline <style> in index.html so Tailwind build can tree-shake correctly */
+.stroke-text {
+  -webkit-text-stroke: 1px var(--color-text);
+  color: transparent;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}

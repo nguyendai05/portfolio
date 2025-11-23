@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { GenerativeArt } from '../components/GenerativeArt';
@@ -8,18 +8,26 @@ import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
 import { PROJECTS, CLIENTS, AWARDS, EXPERIMENTS } from '../data/mockData';
 import { Project } from '../types';
 
+
 export const Home: React.FC = () => {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const containerRef = useRef(null);
+const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+const [showHeroArt, setShowHeroArt] = useState(false);
+const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+  target: containerRef,
+  offset: ["start start", "end end"]
+});
 
-  const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
-  const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
+const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
+const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
+
+useEffect(() => {
+  const timer = setTimeout(() => setShowHeroArt(true), 400);
+  return () => clearTimeout(timer);
+}, []);
+
 
   // Display only first 3 projects on Home
   const FEATURED_PROJECTS = PROJECTS.slice(0, 3);
@@ -46,12 +54,14 @@ export const Home: React.FC = () => {
 
       {/* HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <motion.div
-          className="absolute inset-0 z-0"
-          style={{ y: yArt }}
-        >
-          <GenerativeArt intensity={40} speed={0.8} variant="network" color="#047857" />
-        </motion.div>
+        {showHeroArt && (
+          <motion.div
+            className="absolute inset-0 z-0"
+            style={{ y: yArt }}
+          >
+            <GenerativeArt intensity={40} speed={0.8} variant="network" color="#047857" />
+          </motion.div>
+        )}
 
         <motion.div
           style={{ y: yHero, opacity: opacityHero }}

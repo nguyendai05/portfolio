@@ -1,24 +1,40 @@
-
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
-import { Navigation } from './components/Navigation';
-// Lazy load NeuralInterface
-const NeuralInterface = React.lazy(() => import('./components/NeuralInterface').then(module => ({ default: module.NeuralInterface })));
+import { AnimatePresence, motion } from 'framer-motion';
 import { Preloader } from './components/Preloader';
 import { GamificationProvider, useGamification } from './context/GamificationContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 
-// Lazy load pages
-const Home = React.lazy(() => import('./pages/Home').then(module => ({ default: module.Home })));
-const Work = React.lazy(() => import('./pages/Work').then(module => ({ default: module.Work })));
-const About = React.lazy(() => import('./pages/About').then(module => ({ default: module.About })));
-const Contact = React.lazy(() => import('./pages/Contact').then(module => ({ default: module.Contact })));
-const Gallery = React.lazy(() => import('./pages/Gallery').then(module => ({ default: module.Gallery })));
-const Mentorship = React.lazy(() => import('./pages/Mentorship').then(module => ({ default: module.Mentorship })));
-const Collaboration = React.lazy(() => import('./pages/Collaboration').then(module => ({ default: module.Collaboration })));
+// 🔹 Lazy-loaded components to reduce initial bundle size
+const Navigation = lazy(() =>
+  import('./components/Navigation').then((m) => ({ default: m.Navigation }))
+);
+const NeuralInterface = lazy(() =>
+  import('./components/NeuralInterface').then((m) => ({ default: m.NeuralInterface }))
+);
+const Home = lazy(() =>
+  import('./pages/Home').then((m) => ({ default: m.Home }))
+);
+const Work = lazy(() =>
+  import('./pages/Work').then((m) => ({ default: m.Work }))
+);
+const About = lazy(() =>
+  import('./pages/About').then((m) => ({ default: m.About }))
+);
+const Contact = lazy(() =>
+  import('./pages/Contact').then((m) => ({ default: m.Contact }))
+);
+const Gallery = lazy(() =>
+  import('./pages/Gallery').then((m) => ({ default: m.Gallery }))
+);
+const Mentorship = lazy(() =>
+  import('./pages/Mentorship').then((m) => ({ default: m.Mentorship }))
+);
+const Collaboration = lazy(() =>
+  import('./pages/Collaboration').then((m) => ({ default: m.Collaboration }))
+);
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -38,17 +54,19 @@ const GlobalEffects = () => {
     if (neoMode && theme !== 'cyberpunk') {
       setTheme('cyberpunk');
     }
-  }, [neoMode]);
+  }, [neoMode, theme, setTheme]);
+
+  if (!debugMode) return null;
 
   return (
-    <>
-      {debugMode && (
-        <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9999] border-4 border-red-500/50">
-          <div className="absolute top-4 left-24 bg-red-500 text-black px-2 font-mono text-xs font-bold">DEBUG MODE ACTIVE</div>
-          <div className="absolute bottom-4 right-24 bg-black text-red-500 px-2 font-mono text-xs">FPS: 60 | MEM: 42MB</div>
-        </div>
-      )}
-    </>
+    <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[9999] border-4 border-red-500/50">
+      <div className="absolute top-4 left-24 bg-red-500 text-black px-2 font-mono text-xs font-bold">
+        DEBUG MODE ACTIVE
+      </div>
+      <div className="absolute bottom-4 right-24 bg-black text-red-500 px-2 font-mono text-xs">
+        FPS: 60 | MEM: 42MB
+      </div>
+    </div>
   );
 };
 
@@ -56,45 +74,44 @@ const ThemeEffects = () => {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Rain / Confetti Logic
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let animationFrameId: number;
     const particles: any[] = [];
 
-    let resizeTimeout: NodeJS.Timeout;
     const resize = () => {
-      if (resizeTimeout) clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }, 100);
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     };
+
     window.addEventListener('resize', resize);
     resize();
 
     if (theme === 'rainy_day') {
-      for (let i = 0; i < 100; i++) {
+      const count = 70;
+      for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          speed: Math.random() * 5 + 2,
-          len: Math.random() * 20 + 10
+          speed: Math.random() * 4 + 2,
+          len: Math.random() * 18 + 8,
         });
       }
     } else if (theme === 'celebration') {
-      for (let i = 0; i < 50; i++) {
+      const count = 35;
+      for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
           color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-          size: Math.random() * 5 + 2,
-          speedY: Math.random() * 2 + 1,
-          speedX: Math.random() * 2 - 1
+          size: Math.random() * 4 + 2,
+          speedY: Math.random() * 1.5 + 0.8,
+          speedX: Math.random() * 1.5 - 0.75,
         });
       }
     }
@@ -106,7 +123,7 @@ const ThemeEffects = () => {
         ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        particles.forEach(p => {
+        particles.forEach((p) => {
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(p.x, p.y + p.len);
           p.y += p.speed;
@@ -117,7 +134,7 @@ const ThemeEffects = () => {
         });
         ctx.stroke();
       } else if (theme === 'celebration') {
-        particles.forEach(p => {
+        particles.forEach((p) => {
           ctx.fillStyle = p.color;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -129,18 +146,18 @@ const ThemeEffects = () => {
           if (p.x < 0) p.x = canvas.width;
         });
       } else if (theme === 'cyberpunk') {
-        // Simple Matrix-lite effect for background
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.08)';
         ctx.font = '12px monospace';
-        if (Math.random() > 0.9) {
-          const x = Math.floor(Math.random() * canvas.width / 12) * 12;
-          const y = Math.floor(Math.random() * canvas.height / 12) * 12;
+        if (Math.random() > 0.95) {
+          const x = Math.floor((Math.random() * canvas.width) / 12) * 12;
+          const y = Math.floor((Math.random() * canvas.height) / 12) * 12;
           ctx.fillText(Math.random() > 0.5 ? '1' : '0', x, y);
         }
       }
 
       animationFrameId = requestAnimationFrame(render);
     };
+
     render();
 
     return () => {
@@ -155,16 +172,21 @@ const ThemeEffects = () => {
     <div className="fixed inset-0 pointer-events-none z-[0]">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       {theme === 'retro' && (
-        <div className="absolute inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none"></div>
+        <div className="absolute inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
       )}
     </div>
   );
 };
 
-// Inner App component to use Router hooks
 const AppContent = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // đảm bảo preloader không kẹt nếu có lỗi
+    const failSafe = setTimeout(() => setIsLoading(false), 4000);
+    return () => clearTimeout(failSafe);
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-theme-bg text-theme-text transition-colors duration-500">
@@ -175,31 +197,27 @@ const AppContent = () => {
         {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
       </AnimatePresence>
 
-      {/* 
-        Render the app content immediately but keep it hidden/interactive-disabled 
-        until loading is complete. This allows assets to fetch in parallel with the preloader.
-      */}
-      <div className={isLoading ? 'opacity-0 pointer-events-none fixed inset-0 z-[-1]' : ''}>
-        <ScrollToTop />
-        <Navigation />
+      {!isLoading && (
         <Suspense fallback={null}>
-          <NeuralInterface />
-        </Suspense>
+          <>
+            <ScrollToTop />
+            <Navigation />
+            <NeuralInterface />
 
-        <Suspense fallback={<div className="min-h-screen" />}>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Home />} />
-              <Route path="/work" element={<Work />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/mentorship" element={<Mentorship />} />
-              <Route path="/collaboration" element={<Collaboration />} />
-              <Route path="/contact" element={<Contact />} />
-            </Routes>
-          </AnimatePresence>
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<Home />} />
+                <Route path="/work" element={<Work />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/mentorship" element={<Mentorship />} />
+                <Route path="/collaboration" element={<Collaboration />} />
+                <Route path="/contact" element={<Contact />} />
+              </Routes>
+            </AnimatePresence>
+          </>
         </Suspense>
-      </div>
+      )}
     </div>
   );
 };
@@ -208,11 +226,10 @@ function getCurrentSpeedInsightsRoute(): string | null {
   if (typeof window === 'undefined') return null;
 
   if (window.location.hash && window.location.hash.startsWith('#/')) {
-    const hashPath = window.location.hash.slice(1); // '/about', '/work', etc.
+    const hashPath = window.location.hash.slice(1);
     return hashPath || '/';
   }
 
-  // Fallback for non-hash URLs (should be just '/')
   return window.location.pathname || '/';
 }
 
@@ -229,9 +246,8 @@ function App() {
           beforeSend={(event) => {
             try {
               const url = new URL(event.url);
-              // If we are on a hash route like #/about, include that in the path
               if (typeof window !== 'undefined' && window.location.hash.startsWith('#/')) {
-                const hashPath = window.location.hash.slice(1); // e.g. '/about'
+                const hashPath = window.location.hash.slice(1);
                 url.pathname = hashPath || '/';
               }
               return {
@@ -243,8 +259,6 @@ function App() {
             }
           }}
         />
-        {/* Vercel Speed Insights – tracks Core Web Vitals for this SPA. */}
-        {/* Requires Speed Insights to be enabled in the Vercel dashboard (Project → Speed Insights). */}
         <SpeedInsights route={getCurrentSpeedInsightsRoute()} />
       </GamificationProvider>
     </ThemeProvider>

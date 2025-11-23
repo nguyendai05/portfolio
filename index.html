@@ -1,31 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nguyen Xuan Dai – Xuni-Dizan</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="icon" href="https://res.cloudinary.com/dak4x4d7u/image/upload/v1763820049/Untitled_design_4_jr11sv.png" />
-  <!-- Critical CSS Variables for immediate theme application before JS loads -->
-  <style>
-    :root {
-      --color-bg: #e6e6e6;
-      --color-text: #0a0a0a;
-      --color-accent: #39ff14;
-      --color-panel: #ffffff;
-      --color-border: #0a0a0a;
-    }
-    /* Prevent FOUC */
-    body {
-      background-color: var(--color-bg);
-      color: var(--color-text);
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nguyen Xuan Dai – Xuni-Dizan</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;900&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="https://res.cloudinary.com/dak4x4d7u/image/upload/v1763820049/Untitled_design_4_jr11sv.png"
+    />
+
+    <!-- Import map (chỉ dùng nếu mở index.html trực tiếp, không ảnh hưởng Vite build) -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react/": "https://esm.sh/react@18.2.0/",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+          "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react",
+          "framer-motion": "https://esm.sh/framer-motion@11.0.8?external=react,react-dom",
+          "three": "https://esm.sh/three@0.160.0",
+          "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.15.16?external=react,react-dom,three",
+          "@react-three/drei": "https://esm.sh/@react-three/drei@9.102.6?external=react,react-dom,three,@react-three/fiber",
+          "react-router-dom": "https://esm.sh/react-router-dom@6.23.0?external=react,react-dom",
+          "@remix-run/router": "https://esm.sh/@remix-run/router@1.16.0"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>
