@@ -2,42 +2,30 @@ import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { Navigation } from './components/Navigation';
 import { Preloader } from './components/Preloader';
 import { GamificationProvider, useGamification } from './context/GamificationContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 
-// 🔹 Lazy-loaded components to reduce initial bundle size
-const Navigation = lazy(() =>
-  import('./components/Navigation').then((m) => ({ default: m.Navigation }))
-);
+// Lazy‑load heavy components so chúng không nằm hết trong initial bundle
 const NeuralInterface = lazy(() =>
-  import('./components/NeuralInterface').then((m) => ({ default: m.NeuralInterface }))
+  import('./components/NeuralInterface').then((module) => ({ default: module.NeuralInterface }))
 );
-const Home = lazy(() =>
-  import('./pages/Home').then((m) => ({ default: m.Home }))
-);
-const Work = lazy(() =>
-  import('./pages/Work').then((m) => ({ default: m.Work }))
-);
-const About = lazy(() =>
-  import('./pages/About').then((m) => ({ default: m.About }))
-);
-const Contact = lazy(() =>
-  import('./pages/Contact').then((m) => ({ default: m.Contact }))
-);
-const Gallery = lazy(() =>
-  import('./pages/Gallery').then((m) => ({ default: m.Gallery }))
-);
+const Home = lazy(() => import('./pages/Home').then((module) => ({ default: module.Home })));
+const Work = lazy(() => import('./pages/Work').then((module) => ({ default: module.Work })));
+const About = lazy(() => import('./pages/About').then((module) => ({ default: module.About })));
+const Contact = lazy(() => import('./pages/Contact').then((module) => ({ default: module.Contact })));
+const Gallery = lazy(() => import('./pages/Gallery').then((module) => ({ default: module.Gallery })));
 const Mentorship = lazy(() =>
-  import('./pages/Mentorship').then((m) => ({ default: m.Mentorship }))
+  import('./pages/Mentorship').then((module) => ({ default: module.Mentorship }))
 );
 const Collaboration = lazy(() =>
-  import('./pages/Collaboration').then((m) => ({ default: m.Collaboration }))
+  import('./pages/Collaboration').then((module) => ({ default: module.Collaboration }))
 );
 
-// Scroll to top on route change
-const ScrollToTop = () => {
+// Scroll to top when route changes
+const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -45,11 +33,11 @@ const ScrollToTop = () => {
   return null;
 };
 
-const GlobalEffects = () => {
+const GlobalEffects: React.FC = () => {
   const { neoMode, debugMode } = useGamification();
   const { theme, setTheme } = useTheme();
 
-  // Sync Neo Mode with Cyberpunk theme
+  // Neo mode = ép theme cyberpunk
   useEffect(() => {
     if (neoMode && theme !== 'cyberpunk') {
       setTheme('cyberpunk');
@@ -70,7 +58,7 @@ const GlobalEffects = () => {
   );
 };
 
-const ThemeEffects = () => {
+const ThemeEffects: React.FC = () => {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -93,6 +81,7 @@ const ThemeEffects = () => {
     resize();
 
     if (theme === 'rainy_day') {
+      // Giảm nhẹ số hạt để bớt tốn CPU nhưng vẫn giống hiệu ứng cũ
       const count = 70;
       for (let i = 0; i < count; i++) {
         particles.push({
@@ -178,46 +167,51 @@ const ThemeEffects = () => {
   );
 };
 
-const AppContent = () => {
+const AppContent: React.FC = () => {
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
+  const [showPreloader, setShowPreloader] = useState(true);
 
+  // Failsafe: tối đa 2s là ẩn preloader để không bao giờ bị kẹt
   useEffect(() => {
-    // đảm bảo preloader không kẹt nếu có lỗi
-    const failSafe = setTimeout(() => setIsLoading(false), 4000);
-    return () => clearTimeout(failSafe);
+    const timeout = setTimeout(() => setShowPreloader(false), 2000);
+    return () => clearTimeout(timeout);
   }, []);
+
+  const handlePreloaderComplete = () => {
+    setShowPreloader(false);
+  };
 
   return (
     <div className="relative min-h-screen bg-theme-bg text-theme-text transition-colors duration-500">
       <ThemeEffects />
       <GlobalEffects />
 
-      <AnimatePresence mode="wait">
-        {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
+      {/* App content luôn render ngay lập tức, không bị ẩn → LCP không bị chặn */}
+      <ScrollToTop />
+      <Navigation />
+
+      <Suspense fallback={null}>
+        <NeuralInterface />
+      </Suspense>
+
+      <Suspense fallback={<div className="min-h-screen" />}>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/work" element={<Work />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/mentorship" element={<Mentorship />} />
+            <Route path="/collaboration" element={<Collaboration />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Preloader chỉ là overlay, không ẩn nội dung bên dưới */}
+      <AnimatePresence>
+        {showPreloader && <Preloader onComplete={handlePreloaderComplete} />}
       </AnimatePresence>
-
-      {!isLoading && (
-        <Suspense fallback={null}>
-          <>
-            <ScrollToTop />
-            <Navigation />
-            <NeuralInterface />
-
-            <AnimatePresence mode="wait">
-              <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<Home />} />
-                <Route path="/work" element={<Work />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/gallery" element={<Gallery />} />
-                <Route path="/mentorship" element={<Mentorship />} />
-                <Route path="/collaboration" element={<Collaboration />} />
-                <Route path="/contact" element={<Contact />} />
-              </Routes>
-            </AnimatePresence>
-          </>
-        </Suspense>
-      )}
     </div>
   );
 };
@@ -225,8 +219,9 @@ const AppContent = () => {
 function getCurrentSpeedInsightsRoute(): string | null {
   if (typeof window === 'undefined') return null;
 
+  // Dùng HashRouter nên cần map từ hash sang path cho Speed Insights
   if (window.location.hash && window.location.hash.startsWith('#/')) {
-    const hashPath = window.location.hash.slice(1);
+    const hashPath = window.location.hash.slice(1); // '/about', '/work', ...
     return hashPath || '/';
   }
 
@@ -246,6 +241,7 @@ function App() {
           beforeSend={(event) => {
             try {
               const url = new URL(event.url);
+              // Nếu đang ở hash route (#/about) thì ghi đúng path để analytics/insights hiểu
               if (typeof window !== 'undefined' && window.location.hash.startsWith('#/')) {
                 const hashPath = window.location.hash.slice(1);
                 url.pathname = hashPath || '/';

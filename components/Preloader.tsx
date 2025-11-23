@@ -5,11 +5,24 @@ interface PreloaderProps {
   onComplete: () => void;
 }
 
+/**
+ * Full-screen preloader overlay.
+ *
+ * Visual design giữ giống bản cũ:
+ * - Logo "Xuni-Dizan"
+ * - Counter 0 → 100%
+ * - Thanh progress (horizon line)
+ * - Nền blob + noise
+ *
+ * Chỉ thay đổi logic thời gian để preload nhanh hơn,
+ * tránh chặn Largest Contentful Paint.
+ */
 export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const duration = 1200; // Shorter duration to reduce blocking without changing visuals too much
+    // Rút ngắn thời lượng cho cảm giác vẫn "dramatic" nhưng không chặn UI quá lâu
+    const duration = 900; // ms
     const updateInterval = 20;
     const steps = duration / updateInterval;
     const increment = 100 / steps;
@@ -25,9 +38,12 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       });
     }, updateInterval);
 
+    // Hoàn tất và gọi onComplete ngay sau khi đạt 100%
     const completeTimeout = setTimeout(() => {
       setCount(100);
-      setTimeout(onComplete, 200); // Small delay so 100% state is visible
+      const extraDelay = 200; // cho user thấy 100% một chút
+      const endTimeout = setTimeout(onComplete, extraDelay);
+      return () => clearTimeout(endTimeout);
     }, duration);
 
     return () => {
@@ -39,7 +55,8 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   return (
     <motion.div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#e6e6e6] text-black cursor-wait overflow-hidden"
-      initial={{ y: 0 }}
+      initial={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       exit={{
         y: '-100%',
         transition: {
@@ -56,8 +73,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           }}
         />
       </div>
