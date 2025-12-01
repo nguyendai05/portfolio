@@ -12,6 +12,7 @@ interface EmailPayload {
   service_id: string;
   template_id: string;
   user_id: string;
+  accessToken: string;
   template_params: Record<string, unknown>;
 }
 
@@ -42,11 +43,12 @@ function getRotationIndex(): number {
 
 function getCurrentConfig() {
   const publicKeys = parseEnvList(process.env.EMAILJS_PUBLIC_KEY);
+  const privateKeys = parseEnvList(process.env.EMAILJS_PRIVATE_KEY);
   const serviceIds = parseEnvList(process.env.EMAILJS_SERVICE_ID);
   const contactIds = parseEnvList(process.env.EMAILJS_CONTACT_ID);
   const autoReplyIds = parseEnvList(process.env.EMAILJS_AUTO_REPLY_ID);
 
-  if (publicKeys.length === 0) {
+  if (publicKeys.length === 0 || privateKeys.length === 0) {
     return null;
   }
 
@@ -58,6 +60,7 @@ function getCurrentConfig() {
     contactTemplateId: contactIds[index] || `contact_xunidizan_${number}`,
     autoReplyTemplateId: autoReplyIds[index] || `reply_xunidizan_${number}`,
     publicKey: publicKeys[index],
+    privateKey: privateKeys[index],
   };
 }
 
@@ -156,6 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       service_id: config.serviceId,
       template_id: config.contactTemplateId,
       user_id: config.publicKey,
+      accessToken: config.privateKey,
       template_params: {
         from_name: data.name,
         from_email: data.email,
@@ -177,6 +181,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       service_id: config.serviceId,
       template_id: config.autoReplyTemplateId,
       user_id: config.publicKey,
+      accessToken: config.privateKey,
       template_params: {
         name: data.name,
         email: data.email,
