@@ -62,16 +62,26 @@ function getCurrentConfig() {
 }
 
 
-async function sendEmailJS(payload: EmailPayload): Promise<boolean> {
+async function sendEmailJS(payload: EmailPayload): Promise<{ ok: boolean; error?: string }> {
   try {
+    console.log('Sending email with payload:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch(EMAILJS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return response.ok;
-  } catch {
-    return false;
+    
+    const responseText = await response.text();
+    console.log('EmailJS response:', response.status, responseText);
+    
+    if (!response.ok) {
+      return { ok: false, error: responseText };
+    }
+    return { ok: true };
+  } catch (error) {
+    console.error('EmailJS fetch error:', error);
+    return { ok: false, error: String(error) };
   }
 }
 
@@ -139,6 +149,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const topicCapitalized = data.topic.charAt(0).toUpperCase() + data.topic.slice(1);
 
   try {
+    console.log('Using config:', config);
+
     // 1. Send contact notification
     const contactPayload: EmailPayload = {
       service_id: config.serviceId,
@@ -152,7 +164,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         timestamp,
       },
     };
-    await sendEmailJS(contactPayload);
+    const contactResult = await sendEmailJS(contactPayload);
+    
+    if (!contactResult.ok) {
+      console.error('Contact email failed:', contactResult.error);
+      return res.status(500).json({ success: false, error: `Contact email failed: ${contactResult.error}` });
+    }
 
     // 2. Send auto-reply
     let autoReplySent = false;
@@ -167,7 +184,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         extra_message: isFinalWarning ? FINAL_WARNING_MESSAGE : DEFAULT_MESSAGE,
       },
     };
-    autoReplySent = await sendEmailJS(autoReplyPayload);
+    const replyResult = await sendEmailJS(autoReplyPayload);
+    autoReplySent = replyResult.ok;
+    
+    if (!replyResult.ok) {
+      console.warn('Auto-reply failed:', replyResult.error);
+    }
 
     // Increment count
     incrementEmailCount(data.email);
