@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { GlitchText } from '../components/GlitchText';
 import { GenerativeArt } from '../components/GenerativeArt';
+import { sendContactEmail, isEmailBlocked } from '../services/emailService';
 
 // --- Types ---
 type ContactTopic = 'collaboration' | 'mentorship' | 'freelance' | 'other';
@@ -80,6 +81,7 @@ export const Contact: React.FC = () => {
    });
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [isSent, setIsSent] = useState(false);
+   const [error, setError] = useState<string | null>(null);
    const [currentTime, setCurrentTime] = useState<string>('');
 
    // Scroll parallax
@@ -102,14 +104,29 @@ export const Contact: React.FC = () => {
       return () => clearInterval(interval);
    }, []);
 
-   const handleSubmit = (e: React.FormEvent) => {
+   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      setError(null);
+
+      // Kiểm tra email bị block trước khi submit
+      if (isEmailBlocked(formState.email)) {
+         setError('This email has reached the maximum submission limit. Please use a different email or contact via social media.');
+         return;
+      }
+
       setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-         setIsSubmitting(false);
+
+      const result = await sendContactEmail(formState);
+
+      setIsSubmitting(false);
+      if (result.success) {
          setIsSent(true);
-      }, 2000);
+         setFormState({ name: '', email: '', topic: 'collaboration', message: '' });
+      } else if (result.blocked) {
+         setError('This email has reached the maximum submission limit. Please use a different email or contact via social media.');
+      } else {
+         setError(result.error || 'Failed to send message. Please try again.');
+      }
    };
 
    return (
@@ -277,6 +294,20 @@ export const Contact: React.FC = () => {
                                     onSubmit={handleSubmit}
                                     className="space-y-8"
                                  >
+                                    {/* Error Message Display */}
+                                    {error && (
+                                       <motion.div
+                                          initial={{ opacity: 0, y: -10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          className="p-4 border border-red-500/50 bg-red-500/10 text-red-400 font-mono text-sm"
+                                       >
+                                          <div className="flex items-center gap-2">
+                                             <span className="text-red-500">⚠</span>
+                                             <span>ERROR: {error}</span>
+                                          </div>
+                                          <p className="mt-2 text-xs opacity-70">Please check your connection and try again.</p>
+                                       </motion.div>
+                                    )}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                        <div className="group">
                                           <label className="block font-mono text-[10px] uppercase tracking-widest mb-2 text-theme-text/50 group-focus-within:text-theme-accent transition-colors">
