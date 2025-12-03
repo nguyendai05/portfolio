@@ -5,13 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nguyen Xuan Dai – Xuni-Dizan</title>
 
-    <!-- Fonts -->
+    <!-- Fonts - Optimized for mobile: use font-display swap and preload critical subset -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preload critical font weights only -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;900&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <!-- JetBrains Mono loaded async - not critical for FCP -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+    </noscript>
 
     <!-- Favicon -->
     <link

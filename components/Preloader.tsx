@@ -21,8 +21,9 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    // Rút ngắn thời lượng cho cảm giác vẫn "dramatic" nhưng không chặn UI quá lâu
-    const duration = 900; // ms
+    // Mobile: shorter duration to improve FCP/LCP
+    const isMobile = window.innerWidth < 768;
+    const duration = isMobile ? 500 : 900; // ms - faster on mobile
     const updateInterval = 20;
     const steps = duration / updateInterval;
     const increment = 100 / steps;
@@ -41,7 +42,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
     // Hoàn tất và gọi onComplete ngay sau khi đạt 100%
     const completeTimeout = setTimeout(() => {
       setCount(100);
-      const extraDelay = 200; // cho user thấy 100% một chút
+      const extraDelay = isMobile ? 100 : 200; // shorter on mobile
       const endTimeout = setTimeout(onComplete, extraDelay);
       return () => clearTimeout(endTimeout);
     }, duration);

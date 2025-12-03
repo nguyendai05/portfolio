@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from 'framer-motion';
 import { VideoData } from './VideoTimelineItem';
 import { Activity, ChevronRight, Terminal, Cpu, Zap, Hash } from 'lucide-react';
 
@@ -33,13 +33,14 @@ const LogNode = ({
     onActivate: (index: number) => void;
 }) => {
     const ref = useRef(null);
-    const isInView = useInView(ref, { margin: "-40% 0px -40% 0px", amount: 0.5 });
+    const isInView = useInView(ref, { margin: "-45% 0px -45% 0px" });
 
     useEffect(() => {
         if (isInView) {
+            console.log('Item in view:', index, 'Year:', item.year);
             onActivate(index);
         }
-    }, [isInView, index, onActivate]);
+    }, [isInView, index, onActivate, item.year]);
 
     const isEven = index % 2 === 0;
 
@@ -273,15 +274,37 @@ export const ExecutionLog: React.FC<ExecutionLogProps> = ({ items }) => {
                 >
                     {/* Big Year Display */}
                     <div className="relative">
-                        <motion.h2
-                            key={activeIdx}
-                            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-                            animate={{ opacity: 0.1, y: 0, filter: 'blur(0px)' }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="text-[20vw] font-black leading-none select-none text-theme-text whitespace-nowrap"
-                        >
-                            {items[activeIdx]?.year.split(' ')[0]}
-                        </motion.h2>
+                        <AnimatePresence mode="wait">
+                            <motion.h2
+                                key={items[activeIdx]?.year.split(' ')[0]}
+                                initial={{ opacity: 0, scale: 0.8, y: 50, filter: 'blur(20px)' }}
+                                animate={{ opacity: 0.08, scale: 1, y: 0, filter: 'blur(0px)' }}
+                                exit={{ opacity: 0, scale: 1.1, y: -50, filter: 'blur(20px)' }}
+                                transition={{ 
+                                    duration: 0.8, 
+                                    ease: [0.16, 1, 0.3, 1]
+                                }}
+                                className="text-[25vw] md:text-[20vw] font-black leading-none select-none text-theme-text whitespace-nowrap"
+                            >
+                                {items[activeIdx]?.year.split(' ')[0]}
+                            </motion.h2>
+                        </AnimatePresence>
+
+                        {/* Subtitle for year range */}
+                        <AnimatePresence mode="wait">
+                            {items[activeIdx]?.year.includes(' ') && (
+                                <motion.span
+                                    key={`sub-${items[activeIdx]?.year}`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 0.15, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                    className="absolute -bottom-4 right-0 text-[5vw] font-mono text-theme-accent"
+                                >
+                                    {items[activeIdx]?.year.split(' ').slice(1).join(' ')}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
 
                         {/* Decorative Grid/Lines */}
                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />

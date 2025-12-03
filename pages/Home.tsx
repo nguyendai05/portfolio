@@ -1,18 +1,24 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, lazy, Suspense } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { GenerativeArt } from '../components/GenerativeArt';
 import { GlitchText } from '../components/GlitchText';
 import { ProjectModal } from '../components/ProjectModal';
 import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
 import { PROJECTS, CLIENTS, AWARDS, EXPERIMENTS } from '../data/mockData';
 import { Project } from '../types';
 
+// Lazy load GenerativeArt - heavy component, defer on mobile
+const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
+
+// Check if mobile for conditional rendering
+const isMobileDevice = () => typeof window !== 'undefined' && window.innerWidth < 768;
+
 
 export const Home: React.FC = () => {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
 const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 const [showHeroArt, setShowHeroArt] = useState(false);
+const [isMobile, setIsMobile] = useState(isMobileDevice);
 const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
   target: containerRef,
@@ -24,8 +30,19 @@ const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
 
 useEffect(() => {
-  const timer = setTimeout(() => setShowHeroArt(true), 400);
-  return () => clearTimeout(timer);
+  // Detect mobile on mount and resize
+  const checkMobile = () => setIsMobile(window.innerWidth < 768);
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+  
+  // Delay GenerativeArt more on mobile to prioritize LCP
+  const delay = isMobile ? 1500 : 400;
+  const timer = setTimeout(() => setShowHeroArt(true), delay);
+  
+  return () => {
+    clearTimeout(timer);
+    window.removeEventListener('resize', checkMobile);
+  };
 }, []);
 
 
@@ -54,12 +71,14 @@ useEffect(() => {
 
       {/* HERO SECTION */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {showHeroArt && (
+        {showHeroArt && !isMobile && (
           <motion.div
             className="absolute inset-0 z-0"
             style={{ y: yArt }}
           >
-            <GenerativeArt intensity={40} speed={0.8} variant="network" color="#047857" />
+            <Suspense fallback={null}>
+              <GenerativeArt intensity={40} speed={0.8} variant="network" color="#047857" />
+            </Suspense>
           </motion.div>
         )}
 
@@ -74,36 +93,38 @@ useEffect(() => {
             className="relative select-none z-20 perspective-[1000px]"
             style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
           >
-            {/* Animated Background Particles */}
-            <div className="absolute inset-0 pointer-events-none">
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-1 h-1 bg-theme-accent rounded-full"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                  }}
-                  animate={{
-                    scale: [0, 1.5, 0],
-                    opacity: [0, 0.8, 0],
-                    x: [0, (Math.random() - 0.5) * 100],
-                    y: [0, (Math.random() - 0.5) * 100],
-                  }}
-                  transition={{
-                    duration: 2 + Math.random() * 2,
-                    repeat: Infinity,
-                    delay: Math.random() * 2,
-                    ease: "easeInOut"
-                  }}
-                />
-              ))}
-            </div>
+            {/* Animated Background Particles - reduced on mobile */}
+            {!isMobile && (
+              <div className="absolute inset-0 pointer-events-none">
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-theme-accent rounded-full"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                    }}
+                    animate={{
+                      scale: [0, 1.5, 0],
+                      opacity: [0, 0.8, 0],
+                      x: [0, (Math.random() - 0.5) * 100],
+                      y: [0, (Math.random() - 0.5) * 100],
+                    }}
+                    transition={{
+                      duration: 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      delay: Math.random() * 2,
+                      ease: "easeInOut"
+                    }}
+                  />
+                ))}
+              </div>
+            )}
 
-            {/* Dynamic Glow Effect */}
+            {/* Dynamic Glow Effect - simplified on mobile */}
             <motion.div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-              animate={{
+              animate={isMobile ? {} : {
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.6, 0.3],
               }}
@@ -113,11 +134,11 @@ useEffect(() => {
                 ease: "easeInOut"
               }}
             >
-              <div className="w-[500px] h-[500px] bg-theme-accent/30 blur-[100px] rounded-full"></div>
+              <div className={`bg-theme-accent/30 rounded-full ${isMobile ? 'w-[200px] h-[200px] blur-[40px]' : 'w-[500px] h-[500px] blur-[100px]'}`}></div>
             </motion.div>
 
-            {/* 3D Layer Stack - Deep Background */}
-            {[6, 5, 4, 3, 2, 1].map((depth) => (
+            {/* 3D Layer Stack - Deep Background - fewer layers on mobile */}
+            {(isMobile ? [2, 1] : [6, 5, 4, 3, 2, 1]).map((depth) => (
               <motion.h1
                 key={`depth-${depth}`}
                 className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-text/5 pointer-events-none"
@@ -125,7 +146,7 @@ useEffect(() => {
                   transform: `translateZ(-${depth * 20}px)`,
                   transformStyle: 'preserve-3d',
                 }}
-                animate={{
+                animate={isMobile ? {} : {
                   rotateY: [0, 2, 0, -2, 0],
                   rotateX: [0, -1, 0, 1, 0],
                 }}
@@ -140,38 +161,42 @@ useEffect(() => {
               </motion.h1>
             ))}
 
-            {/* Chromatic Aberration Layers */}
-            <motion.h1
-              className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-red-500/20 pointer-events-none mix-blend-screen"
-              animate={{
-                x: [-2, 2, -2],
-                y: [1, -1, 1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              Hi.
-            </motion.h1>
+            {/* Chromatic Aberration Layers - disabled on mobile for performance */}
+            {!isMobile && (
+              <>
+                <motion.h1
+                  className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-red-500/20 pointer-events-none mix-blend-screen"
+                  animate={{
+                    x: [-2, 2, -2],
+                    y: [1, -1, 1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  Hi.
+                </motion.h1>
 
-            <motion.h1
-              className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-cyan-500/20 pointer-events-none mix-blend-screen"
-              animate={{
-                x: [2, -2, 2],
-                y: [-1, 1, -1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              Hi.
-            </motion.h1>
+                <motion.h1
+                  className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-cyan-500/20 pointer-events-none mix-blend-screen"
+                  animate={{
+                    x: [2, -2, 2],
+                    y: [-1, 1, -1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  Hi.
+                </motion.h1>
+              </>
+            )}
 
-            {/* Accent Stroke Layer */}
+            {/* Accent Stroke Layer - simplified animation on mobile */}
             <motion.h1
               className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-transparent stroke-accent-thick pointer-events-none"
               style={{
@@ -179,7 +204,7 @@ useEffect(() => {
                 transform: 'translateZ(30px)',
                 transformStyle: 'preserve-3d',
               }}
-              animate={{
+              animate={isMobile ? {} : {
                 rotateY: [0, 5, 0, -5, 0],
                 scale: [1, 1.02, 1],
               }}
@@ -192,12 +217,12 @@ useEffect(() => {
               Hi.
             </motion.h1>
 
-            {/* Main 3D Text with Hover Interaction */}
+            {/* Main 3D Text with Hover Interaction - simplified on mobile */}
             <motion.div
               className="relative cursor-pointer"
               style={{ transformStyle: 'preserve-3d' }}
-              whileHover={{ scale: 1.05 }}
-              animate={{
+              whileHover={isMobile ? {} : { scale: 1.05 }}
+              animate={isMobile ? {} : {
                 rotateY: [0, 3, 0, -3, 0],
                 rotateX: [0, -2, 0, 2, 0],
               }}
@@ -249,93 +274,97 @@ useEffect(() => {
               </h1>
             </motion.div>
 
-            {/* Floating 3D Decorative Elements */}
-            <motion.div
-              className="absolute -right-8 md:-right-16 top-[20%] pointer-events-none"
-              style={{ transformStyle: 'preserve-3d' }}
-              animate={{
-                rotateY: [0, 360],
-                rotateX: [0, 180],
-                z: [0, 50, 0],
-              }}
-              transition={{
-                duration: 20,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            >
-              <div
-                className="w-10 h-10 md:w-16 md:h-16 border-4 border-theme-accent/50"
-                style={{
-                  transform: 'translateZ(100px)',
-                  transformStyle: 'preserve-3d',
-                }}
-              />
-            </motion.div>
+            {/* Floating 3D Decorative Elements - hidden on mobile */}
+            {!isMobile && (
+              <>
+                <motion.div
+                  className="absolute -right-8 md:-right-16 top-[20%] pointer-events-none"
+                  style={{ transformStyle: 'preserve-3d' }}
+                  animate={{
+                    rotateY: [0, 360],
+                    rotateX: [0, 180],
+                    z: [0, 50, 0],
+                  }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  <div
+                    className="w-10 h-10 md:w-16 md:h-16 border-4 border-theme-accent/50"
+                    style={{
+                      transform: 'translateZ(100px)',
+                      transformStyle: 'preserve-3d',
+                    }}
+                  />
+                </motion.div>
 
-            <motion.div
-              className="absolute -left-8 md:-left-16 bottom-[20%] pointer-events-none"
-              style={{ transformStyle: 'preserve-3d' }}
-              animate={{
-                rotateZ: [0, 360],
-                rotateY: [0, -360],
-                scale: [1, 1.5, 1],
-              }}
-              transition={{
-                duration: 15,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            >
-              <div
-                className="w-8 h-8 md:w-12 md:h-12 rounded-full border-4 border-theme-text/30"
-                style={{
-                  transform: 'translateZ(80px)',
-                  transformStyle: 'preserve-3d',
-                }}
-              />
-            </motion.div>
+                <motion.div
+                  className="absolute -left-8 md:-left-16 bottom-[20%] pointer-events-none"
+                  style={{ transformStyle: 'preserve-3d' }}
+                  animate={{
+                    rotateZ: [0, 360],
+                    rotateY: [0, -360],
+                    scale: [1, 1.5, 1],
+                  }}
+                  transition={{
+                    duration: 15,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  <div
+                    className="w-8 h-8 md:w-12 md:h-12 rounded-full border-4 border-theme-text/30"
+                    style={{
+                      transform: 'translateZ(80px)',
+                      transformStyle: 'preserve-3d',
+                    }}
+                  />
+                </motion.div>
 
-            {/* Animated Text Badge */}
-            <motion.div
-              className="absolute right-0 md:-right-8 top-[25%]"
-              initial={{ opacity: 0, x: -30, rotateZ: 0 }}
-              animate={{
-                opacity: [0, 1, 1, 0],
-                x: [-30, 10, 10, 40],
-                rotateZ: [0, 12, 12, 20],
-                scale: [0.8, 1, 1, 0.8],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                times: [0, 0.3, 0.7, 1]
-              }}
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <div
-                className="bg-theme-text text-theme-bg px-2 py-1 md:px-4 md:py-2 font-mono text-[10px] md:text-xs font-bold border-2 border-theme-accent shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
-                style={{
-                  transform: 'translateZ(100px)',
-                }}
-              >
-                INITIALIZING...
-              </div>
-            </motion.div>
+                {/* Animated Text Badge */}
+                <motion.div
+                  className="absolute right-0 md:-right-8 top-[25%]"
+                  initial={{ opacity: 0, x: -30, rotateZ: 0 }}
+                  animate={{
+                    opacity: [0, 1, 1, 0],
+                    x: [-30, 10, 10, 40],
+                    rotateZ: [0, 12, 12, 20],
+                    scale: [0.8, 1, 1, 0.8],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    times: [0, 0.3, 0.7, 1]
+                  }}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  <div
+                    className="bg-theme-text text-theme-bg px-2 py-1 md:px-4 md:py-2 font-mono text-[10px] md:text-xs font-bold border-2 border-theme-accent shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+                    style={{
+                      transform: 'translateZ(100px)',
+                    }}
+                  >
+                    INITIALIZING...
+                  </div>
+                </motion.div>
 
-            {/* Scanline Effect */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none overflow-hidden"
-              animate={{ opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <motion.div
-                className="w-full h-1 bg-theme-accent/50 blur-sm"
-                animate={{ y: ['-100%', '200%'] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              />
-            </motion.div>
+                {/* Scanline Effect */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none overflow-hidden"
+                  animate={{ opacity: [0.1, 0.3, 0.1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <motion.div
+                    className="w-full h-1 bg-theme-accent/50 blur-sm"
+                    animate={{ y: ['-100%', '200%'] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  />
+                </motion.div>
+              </>
+            )}
           </div>
 
           <div className="mt-8 opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
@@ -416,9 +445,13 @@ useEffect(() => {
               </div>
             </div>
           </div>
+          {!isMobile && (
           <div className="absolute top-0 right-0 w-full h-full pointer-events-none opacity-40">
-            <GenerativeArt intensity={30} speed={0.5} color="#000" variant="particles" />
+            <Suspense fallback={null}>
+              <GenerativeArt intensity={30} speed={0.5} color="#000" variant="particles" />
+            </Suspense>
           </div>
+        )}
         </div>
       </section>
 
@@ -519,9 +552,13 @@ useEffect(() => {
 
       {/* FOCUS AREAS PREVIEW */}
       <section className="relative min-h-screen bg-theme-text text-theme-bg flex flex-col justify-center overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <GenerativeArt intensity={60} color="#39ff14" variant="network" />
-        </div>
+        {!isMobile && (
+          <div className="absolute inset-0 opacity-20">
+            <Suspense fallback={null}>
+              <GenerativeArt intensity={60} color="#39ff14" variant="network" />
+            </Suspense>
+          </div>
+        )}
 
         <div className="container mx-auto px-8 md:px-32 relative z-10">
           <motion.div
@@ -565,11 +602,15 @@ useEffect(() => {
 
       {/* LAB PREVIEW */}
       <section className="relative py-32 bg-theme-text text-theme-bg overflow-hidden border-b border-theme-border">
-        <div className="absolute top-0 right-0 p-12 opacity-30 pointer-events-none">
-          <div className="w-[500px] h-[500px]">
-            <GenerativeArt intensity={25} color="#39ff14" variant="particles" speed={2} />
+        {!isMobile && (
+          <div className="absolute top-0 right-0 p-12 opacity-30 pointer-events-none">
+            <div className="w-[500px] h-[500px]">
+              <Suspense fallback={null}>
+                <GenerativeArt intensity={25} color="#39ff14" variant="particles" speed={2} />
+              </Suspense>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="container mx-auto px-8 md:px-32 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 border-b border-white/20 pb-8">
@@ -624,9 +665,12 @@ useEffect(() => {
                     https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1280 1280w,
                     https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1920 1920w"
             sizes="100vw"
+            width={1280}
+            height={853}
             alt="Digital Landscape"
             loading="lazy"
             decoding="async"
+            fetchPriority="low"
             className="w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-1000"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-theme-bg"></div>

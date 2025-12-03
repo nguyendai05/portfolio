@@ -80,9 +80,12 @@ const ThemeEffects: React.FC = () => {
     window.addEventListener('resize', resize);
     resize();
 
+    // Reduce particles on mobile for better performance
+    const isMobile = window.innerWidth < 768;
+    
     if (theme === 'rainy_day') {
       // Giảm nhẹ số hạt để bớt tốn CPU nhưng vẫn giống hiệu ứng cũ
-      const count = 70;
+      const count = isMobile ? 30 : 70;
       for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * canvas.width,
@@ -92,7 +95,7 @@ const ThemeEffects: React.FC = () => {
         });
       }
     } else if (theme === 'celebration') {
-      const count = 35;
+      const count = isMobile ? 15 : 35;
       for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * canvas.width,
@@ -171,9 +174,11 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const [showPreloader, setShowPreloader] = useState(true);
 
-  // Failsafe: tối đa 2s là ẩn preloader để không bao giờ bị kẹt
+  // Failsafe: shorter on mobile to improve FCP/LCP
   useEffect(() => {
-    const timeout = setTimeout(() => setShowPreloader(false), 2000);
+    const isMobile = window.innerWidth < 768;
+    const maxDuration = isMobile ? 800 : 2000; // ms
+    const timeout = setTimeout(() => setShowPreloader(false), maxDuration);
     return () => clearTimeout(timeout);
   }, []);
 
