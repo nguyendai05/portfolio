@@ -35,8 +35,9 @@ useEffect(() => {
   checkMobile();
   window.addEventListener('resize', checkMobile);
   
-  // Delay GenerativeArt more on mobile to prioritize LCP
-  const delay = isMobile ? 1500 : 400;
+  // Delay GenerativeArt: longer on mobile to prioritize LCP, shorter on desktop for better UX
+  // Desktop: show art after LCP is likely painted (100ms), mobile: defer more (1500ms)
+  const delay = isMobile ? 1500 : 100;
   const timer = setTimeout(() => setShowHeroArt(true), delay);
   
   return () => {

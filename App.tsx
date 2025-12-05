@@ -174,10 +174,12 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const [showPreloader, setShowPreloader] = useState(true);
 
-  // Failsafe: shorter on mobile to improve FCP/LCP
+  // Failsafe: shorter duration to improve LCP on both mobile and desktop
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
-    const maxDuration = isMobile ? 800 : 2000; // ms
+    // Desktop: reduced from 2000ms to 1000ms for better LCP
+    // Mobile: keep 800ms
+    const maxDuration = isMobile ? 800 : 1000; // ms
     const timeout = setTimeout(() => setShowPreloader(false), maxDuration);
     return () => clearTimeout(timeout);
   }, []);

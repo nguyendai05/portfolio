@@ -5,10 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nguyen Xuan Dai – Xuni-Dizan</title>
 
-    <!-- Fonts - Optimized for mobile: use font-display swap and preload critical subset -->
+    <!-- Fonts - Optimized: preconnect + preload critical fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Preload critical font weights only -->
+    
+    <!-- Desktop: Preload Inter 900 (LCP "Hi." text) - critical for desktop LCP -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.woff2"
+      crossorigin
+      media="(min-width: 768px)"
+    />
+    
+    <!-- Load fonts with swap for fast rendering -->
     <link
       rel="preload"
       as="style"
