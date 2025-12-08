@@ -23,7 +23,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   useEffect(() => {
     // Shorter duration to improve FCP/LCP on both mobile and desktop
     const isMobile = window.innerWidth < 768;
-    const duration = isMobile ? 500 : 600; // ms - faster on desktop too for better LCP
+    const duration = isMobile ? 500 : 300; // ms - much faster on desktop for better LCP
     const updateInterval = 20;
     const steps = duration / updateInterval;
     const increment = 100 / steps;

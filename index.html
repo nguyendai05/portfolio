@@ -1,55 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nguyen Xuan Dai – Xuni-Dizan</title>
 
-    <!-- Fonts - Optimized: preconnect + preload critical fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
-    <!-- Desktop: Preload Inter 900 (LCP "Hi." text) - critical for desktop LCP -->
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.woff2"
-      crossorigin
-      media="(min-width: 768px)"
-    />
-    
-    <!-- Load fonts with swap for fast rendering -->
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
-    />
-    <!-- JetBrains Mono loaded async - not critical for FCP -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
-    </noscript>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nguyen Xuan Dai – Xuni-Dizan</title>
 
-    <!-- Favicon -->
-    <link
-      rel="icon"
-      href="https://res.cloudinary.com/dak4x4d7u/image/upload/v1764596213/Untitled_design_13_e3ksgf.png"
-    />
+  <!-- Fonts - Optimized: preconnect + preload critical fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Import map (chỉ dùng nếu mở index.html trực tiếp, không ảnh hưởng Vite build) -->
-    <script type="importmap">
+  <!-- Desktop: Preload Inter 900 (LCP "Hi." text) - critical for desktop LCP -->
+  <link rel="preload" as="font" type="font/woff2"
+    href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.woff2" crossorigin
+    media="(min-width: 768px)" fetchpriority="high" />
+
+  <!-- Load fonts with swap for fast rendering -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet" media="print"
+    onload="this.media='all'" />
+  <!-- JetBrains Mono loaded async - not critical for FCP -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"
+    media="print" onload="this.media='all'" />
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet" />
+  </noscript>
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://res.cloudinary.com/dak4x4d7u/image/upload/v1764596213/Untitled_design_13_e3ksgf.png" />
+
+  <!-- Import map (chỉ dùng nếu mở index.html trực tiếp, không ảnh hưởng Vite build) -->
+  <script type="importmap">
       {
         "imports": {
           "react": "https://esm.sh/react@18.2.0",
@@ -68,10 +50,11 @@
         }
       }
     </script>
-  </head>
+</head>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

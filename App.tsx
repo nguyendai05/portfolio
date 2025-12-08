@@ -82,7 +82,7 @@ const ThemeEffects: React.FC = () => {
 
     // Reduce particles on mobile for better performance
     const isMobile = window.innerWidth < 768;
-    
+
     if (theme === 'rainy_day') {
       // Giảm nhẹ số hạt để bớt tốn CPU nhưng vẫn giống hiệu ứng cũ
       const count = isMobile ? 30 : 70;
@@ -177,9 +177,9 @@ const AppContent: React.FC = () => {
   // Failsafe: shorter duration to improve LCP on both mobile and desktop
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
-    // Desktop: reduced from 2000ms to 1000ms for better LCP
-    // Mobile: keep 800ms
-    const maxDuration = isMobile ? 800 : 1000; // ms
+    // Desktop: further reduced to 400ms for better LCP
+    // Mobile: keep 800ms unchanged
+    const maxDuration = isMobile ? 800 : 400; // ms - faster on desktop
     const timeout = setTimeout(() => setShowPreloader(false), maxDuration);
     return () => clearTimeout(timeout);
   }, []);
