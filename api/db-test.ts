@@ -33,14 +33,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
 
         // Try to connect
-        connection = await mysql.createConnection({
+        const connectionConfig: any = {
             host: process.env.MYSQL_HOST,
             port: parseInt(process.env.MYSQL_PORT || '3306'),
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DATABASE,
             connectTimeout: 10000, // 10 seconds timeout
-        });
+        };
+
+        if (process.env.MYSQL_SSL === 'true') {
+            connectionConfig.ssl = { rejectUnauthorized: true };
+        }
+
+        connection = await mysql.createConnection(connectionConfig);
 
         // Test query
         const [rows] = await connection.execute('SELECT 1 as test, NOW() as server_time');

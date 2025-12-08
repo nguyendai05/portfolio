@@ -47,13 +47,22 @@ loadEnv();
 
 // Database connection
 async function getConnection() {
-    return mysql.createConnection({
+    const config = {
         host: process.env.MYSQL_HOST,
         port: parseInt(process.env.MYSQL_PORT || '3306'),
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
         database: process.env.MYSQL_DATABASE,
-    });
+    };
+
+    // Enable SSL for TiDB Cloud and other cloud providers
+    if (process.env.MYSQL_SSL === 'true') {
+        config.ssl = {
+            rejectUnauthorized: true,
+        };
+    }
+
+    return mysql.createConnection(config);
 }
 
 // ============================================
