@@ -55,7 +55,7 @@ async function getIdea(id: string, res: VercelResponse) {
         id: row.id,
         title: row.title,
         description: row.description,
-        tags: JSON.parse(row.tags || '[]'),
+        tags: typeof row.tags === 'string' ? JSON.parse(row.tags || '[]') : (row.tags || []),
         difficulty: row.difficulty,
         upvotes: row.upvotes,
         lookingForTeam: Boolean(row.looking_for_team),
