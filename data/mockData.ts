@@ -1,5 +1,9 @@
 import { Project } from '../types';
 
+// TOOLS: Personal utility tools and applications
+// Currently empty - tools are fetched from database
+export const TOOLS: Project[] = [];
+
 // PROJECTS: Real personal and team web projects from GitHub + latest Next.js portfolio
 export const PROJECTS: Project[] = [
   {

@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { GlitchText } from '../components/GlitchText';
 import { ProjectModal } from '../components/ProjectModal';
 import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
-import { PROJECTS, CLIENTS, AWARDS, EXPERIMENTS } from '../data/mockData';
+import { PROJECTS as MOCK_PROJECTS, CLIENTS as MOCK_CLIENTS, AWARDS as MOCK_AWARDS, EXPERIMENTS as MOCK_EXPERIMENTS } from '../data/mockData';
+import { fetchProjects, fetchSkillNames, fetchAwards, fetchExperiments, Award, Experiment } from '../services/portfolioService';
 import { Project } from '../types';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
@@ -16,35 +17,64 @@ const isMobileDevice = () => typeof window !== 'undefined' && window.innerWidth 
 
 export const Home: React.FC = () => {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
-const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-const [showHeroArt, setShowHeroArt] = useState(false);
-const [isMobile, setIsMobile] = useState(isMobileDevice);
-const containerRef = useRef(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showHeroArt, setShowHeroArt] = useState(false);
+  const [isMobile, setIsMobile] = useState(isMobileDevice);
+  const containerRef = useRef(null);
+
+  // Data states - fetch from API, fallback to mockData
+  const [PROJECTS, setProjects] = useState<Project[]>(MOCK_PROJECTS);
+  const [CLIENTS, setClients] = useState<string[]>(MOCK_CLIENTS);
+  const [AWARDS, setAwards] = useState<Award[]>(MOCK_AWARDS);
+  const [EXPERIMENTS, setExperiments] = useState<Experiment[]>(MOCK_EXPERIMENTS);
+
   const { scrollYProgress } = useScroll({
-  target: containerRef,
-  offset: ["start start", "end end"]
-});
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
 
-const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
-const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
+  const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
+  const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
 
-useEffect(() => {
-  // Detect mobile on mount and resize
-  const checkMobile = () => setIsMobile(window.innerWidth < 768);
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
-  
-  // Delay GenerativeArt: longer on mobile to prioritize LCP, shorter on desktop for better UX
-  // Desktop: show art after LCP is likely painted (100ms), mobile: defer more (1500ms)
-  const delay = isMobile ? 1500 : 100;
-  const timer = setTimeout(() => setShowHeroArt(true), delay);
-  
-  return () => {
-    clearTimeout(timer);
-    window.removeEventListener('resize', checkMobile);
-  };
-}, []);
+  // Fetch data from API on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [projectsData, skillsData, awardsData, experimentsData] = await Promise.allSettled([
+          fetchProjects(),
+          fetchSkillNames(),
+          fetchAwards(),
+          fetchExperiments()
+        ]);
+
+        if (projectsData.status === 'fulfilled') setProjects(projectsData.value);
+        if (skillsData.status === 'fulfilled') setClients(skillsData.value);
+        if (awardsData.status === 'fulfilled') setAwards(awardsData.value);
+        if (experimentsData.status === 'fulfilled') setExperiments(experimentsData.value);
+      } catch (error) {
+        console.warn('Failed to fetch data from API, using mock data:', error);
+      }
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    // Detect mobile on mount and resize
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // Delay GenerativeArt: longer on mobile to prioritize LCP, shorter on desktop for better UX
+    // Desktop: show art after LCP is likely painted (100ms), mobile: defer more (1500ms)
+    const delay = isMobile ? 1500 : 100;
+    const timer = setTimeout(() => setShowHeroArt(true), delay);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
 
   // Display only first 3 projects on Home
@@ -447,12 +477,12 @@ useEffect(() => {
             </div>
           </div>
           {!isMobile && (
-          <div className="absolute top-0 right-0 w-full h-full pointer-events-none opacity-40">
-            <Suspense fallback={null}>
-              <GenerativeArt intensity={30} speed={0.5} color="#000" variant="particles" />
-            </Suspense>
-          </div>
-        )}
+            <div className="absolute top-0 right-0 w-full h-full pointer-events-none opacity-40">
+              <Suspense fallback={null}>
+                <GenerativeArt intensity={30} speed={0.5} color="#000" variant="particles" />
+              </Suspense>
+            </div>
+          )}
         </div>
       </section>
 

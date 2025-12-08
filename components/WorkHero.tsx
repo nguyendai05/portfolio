@@ -12,9 +12,12 @@ export const WorkHero: React.FC = () => {
     const uniqueCategories = new Set(PROJECTS.map(p => p.category)).size;
     const totalProjects = PROJECTS.length;
 
+    // Disable pointer events when hero fades out
+    const pointerEvents = useTransform(opacity, (v) => v < 0.5 ? 'none' : 'auto');
+
     return (
         <motion.section
-            style={{ opacity, scale, y }}
+            style={{ opacity, scale, y, pointerEvents }}
             className="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 mb-24 sticky top-20 z-10"
         >
             <div className="mb-8">

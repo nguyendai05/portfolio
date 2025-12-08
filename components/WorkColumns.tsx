@@ -23,8 +23,11 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
     const y1 = useTransform(scrollYProgress, [0, 1], [0, -50]);
     const y2 = useTransform(scrollYProgress, [0, 1], [50, -100]);
 
+    // Return null if no projects
+    if (projects.length === 0) return null;
+
     return (
-        <div ref={containerRef} className="relative z-20 min-h-screen">
+        <div ref={containerRef} className="relative z-20 min-h-[50vh]">
             {/* Mobile Layout (Single Column) */}
             <div className="md:hidden flex flex-col gap-12 pb-24">
                 {projects.map((project) => (
@@ -53,7 +56,6 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
 const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ project, onClick }) => {
     return (
         <motion.div
-            layoutId={`project-${project.id}`}
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-10%" }}
