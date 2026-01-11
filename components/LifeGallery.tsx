@@ -331,13 +331,15 @@ const ControlDeck: React.FC<{
   setLayout: (l: 'scatter' | 'grid') => void;
   categories: string[];
   totalCount: number;
-}> = ({ filter, setFilter, layout, setLayout, categories, totalCount }) => {
+  motionEnabled: boolean;
+  isMobile: boolean;
+}> = ({ filter, setFilter, layout, setLayout, categories, totalCount, motionEnabled, isMobile }) => {
   return (
     <motion.div
-      initial={{ y: -50, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      initial={motionEnabled ? { y: -50, opacity: 0 } : false}
+      whileInView={motionEnabled ? { y: 0, opacity: 1 } : undefined}
+      viewport={motionEnabled ? { once: true } : undefined}
+      transition={motionEnabled ? { duration: 0.8, ease: "easeOut" } : undefined}
       className="relative md:sticky md:top-8 z-40 mx-auto max-w-4xl px-4 mb-16"
     >
       <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] overflow-hidden">
@@ -389,7 +391,8 @@ const ControlDeck: React.FC<{
           <div className="flex items-center gap-1 bg-black/20 p-1 rounded-lg border border-white/5">
             <button
               onClick={() => setLayout('scatter')}
-              className={`p-1.5 rounded-md transition-all ${layout === 'scatter' ? 'bg-white/10 text-theme-accent shadow-inner' : 'text-white/40 hover:text-white'}`}
+              disabled={isMobile}
+              className={`p-1.5 rounded-md transition-all ${layout === 'scatter' ? 'bg-white/10 text-theme-accent shadow-inner' : 'text-white/40 hover:text-white'} ${isMobile ? 'opacity-40 cursor-not-allowed' : ''}`}
               title="3D Scatter"
             >
               <Shuffle size={16} />
@@ -415,11 +418,14 @@ const PhotoCard3D: React.FC<{
   layout: 'scatter' | 'grid';
   onSelect: (photo: LifeMoment) => void;
   motionEnabled: boolean;
-}> = React.memo(({ photo, index, layout, onSelect, motionEnabled }) => {
+  isMobile: boolean;
+}> = React.memo(({ photo, index, layout, onSelect, motionEnabled, isMobile }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobileDevice = isMobile;
+
+  const lazyRootMargin = isMobileDevice ? '100px' : '200px';
 
   // IntersectionObserver để lazy render content
   useEffect(() => {
@@ -430,11 +436,11 @@ const PhotoCard3D: React.FC<{
           observer.disconnect();
         }
       },
-      { rootMargin: '200px', threshold: 0.1 }
+      { rootMargin: lazyRootMargin, threshold: 0.1 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, [lazyRootMargin]);
 
   // Mouse tilt effect
   const x = useMotionValue(0);
@@ -494,11 +500,11 @@ const PhotoCard3D: React.FC<{
   return (
     <motion.div
       ref={ref}
-      layout
-      initial={{ opacity: 0, scale: 0.8 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "-10%" }}
-      transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.3) }} // Cap delay để không chờ quá lâu
+      layout={motionEnabled}
+      initial={motionEnabled ? { opacity: 0, scale: 0.8 } : false}
+      whileInView={motionEnabled ? { opacity: 1, scale: 1 } : undefined}
+      viewport={motionEnabled ? { once: true, margin: "-10%" } : undefined}
+      transition={motionEnabled ? { duration: 0.6, delay: Math.min(index * 0.05, 0.3) } : undefined} // Cap delay để không chờ quá lâu
       className={`relative group perspective-1000 photo-card-3d ${layout === 'scatter'
         ? 'w-full md:w-[45%] mb-24 md:mb-0'
         : 'w-full aspect-[4/5]'
@@ -608,21 +614,30 @@ interface LifeGalleryProps {
 }
 
 export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }) => {
-  const [layout, setLayout] = useState<'scatter' | 'grid'>('scatter');
+  const [layout, setLayout] = useState<'scatter' | 'grid'>(() => (
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'grid' : 'scatter'
+  ));
   const [filter, setFilter] = useState<string>('all');
   const [selectedPhoto, setSelectedPhoto] = useState<LifeMoment | null>(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [videoLoading, setVideoLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const prefersReducedMotion = useReducedMotion();
   const isVideoLightboxOpen = selectedPhoto?.type === 'video';
-  const motionEnabled = !prefersReducedMotion && !isVideoLightboxOpen;
+  const motionEnabled = !prefersReducedMotion && !isVideoLightboxOpen && !isMobile;
 
   // Force grid on mobile
   useEffect(() => {
     if (isMobile) setLayout('grid');
   }, [isMobile]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Reset media index and video loading state
   useEffect(() => {
@@ -725,9 +740,9 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
         {/* Header */}
         <div className="mb-24 text-center md:text-left">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            initial={motionEnabled ? { opacity: 0, y: 20 } : false}
+            whileInView={motionEnabled ? { opacity: 1, y: 0 } : undefined}
+            viewport={motionEnabled ? { once: true } : undefined}
             className="flex items-center justify-center md:justify-start gap-2 text-theme-accent opacity-80 mb-4"
           >
             <Aperture size={16} className={motionEnabled ? "animate-spin-slow" : ""} />
@@ -749,6 +764,8 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
           setLayout={setLayout}
           categories={categories}
           totalCount={filteredPhotos.length}
+          motionEnabled={motionEnabled}
+          isMobile={isMobile}
         />
 
         {/* Gallery Grid / Scatter */}
@@ -768,6 +785,7 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
                 layout={layout}
                 onSelect={setSelectedPhoto}
                 motionEnabled={motionEnabled}
+                isMobile={isMobile}
               />
             ))}
           </AnimatePresence>

@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { GenerativeArt } from '../components/GenerativeArt';
 import { GlitchText } from '../components/GlitchText';
@@ -14,11 +14,19 @@ import { ExecutionLog, TimelineEntry } from '../components/ExecutionLog';
 export const About: React.FC = () => {
   const { theme } = useTheme();
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Combined Data: Text Milestones + Video Entries
   const timelineData: TimelineEntry[] = [
@@ -60,7 +68,7 @@ export const About: React.FC = () => {
       exit={{ opacity: 0 }}
       className="min-h-screen bg-theme-bg text-theme-text pt-24 md:pt-32 pb-24"
     >
-      {!isVideoOverlayOpen && (
+      {!isVideoOverlayOpen && !isMobile && (
         <div className="fixed inset-0 z-0 opacity-10 pointer-events-none">
           <GenerativeArt variant="network" intensity={30} color={THEMES[theme].text} />
         </div>
@@ -102,7 +110,7 @@ export const About: React.FC = () => {
 
           {/* Enhanced 3D Image Section */}
           <div className="md:col-span-7">
-            <AboutPortrait3D motionPaused={isVideoOverlayOpen} />
+            <AboutPortrait3D motionPaused={isVideoOverlayOpen || isMobile} />
           </div>
         </div>
 
