@@ -402,13 +402,32 @@ const ControlDeck: React.FC<{
   );
 };
 
+// Memoized PhotoCard3D component để tránh re-render không cần thiết
 const PhotoCard3D: React.FC<{
   photo: LifeMoment;
   index: number;
   layout: 'scatter' | 'grid';
   onSelect: (photo: LifeMoment) => void;
-}> = ({ photo, index, layout, onSelect }) => {
+}> = React.memo(({ photo, index, layout, onSelect }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  // IntersectionObserver để lazy render content
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px', threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Mouse tilt effect
   const x = useMotionValue(0);
@@ -416,7 +435,16 @@ const PhotoCard3D: React.FC<{
   const rotateX = useTransform(y, [-100, 100], [10, -10]);
   const rotateY = useTransform(x, [-100, 100], [-10, 10]);
 
+  // Debounce mouse events để giảm rerender - chỉ update 60fps
+  const lastUpdate = useRef(0);
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Skip trên mobile
+    if (isMobileDevice) return;
+
+    const now = Date.now();
+    if (now - lastUpdate.current < 16) return; // ~60fps cap
+    lastUpdate.current = now;
+
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -430,22 +458,23 @@ const PhotoCard3D: React.FC<{
     y.set(0);
   };
 
-  // Scroll Parallax for Scatter Mode
+  // Scroll Parallax for Scatter Mode - Giảm tải trên mobile
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"]
   });
 
-  const parallaxY = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  // Giảm parallax range trên mobile để nhẹ hơn
+  const parallaxY = useTransform(scrollYProgress, [0, 1], isMobileDevice ? [30, -30] : [100, -100]);
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
-  // Random positioning for scatter
+  // Random positioning for scatter - Stable với useMemo
   const randomOffset = useMemo(() => ({
     x: (index % 2 === 0 ? -1 : 1) * (Math.random() * 20 + 10),
     y: Math.random() * 50,
     z: Math.random() * 20 // slight depth variance
-  }), []);
+  }), [index]);
 
   return (
     <motion.div
@@ -454,8 +483,8 @@ const PhotoCard3D: React.FC<{
       initial={{ opacity: 0, scale: 0.8 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, margin: "-10%" }}
-      transition={{ duration: 0.6, delay: index * 0.05 }}
-      className={`relative group perspective-1000 ${layout === 'scatter'
+      transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.3) }} // Cap delay để không chờ quá lâu
+      className={`relative group perspective-1000 photo-card-3d ${layout === 'scatter'
         ? 'w-full md:w-[45%] mb-24 md:mb-0'
         : 'w-full aspect-[4/5]'
         }`}
@@ -470,22 +499,34 @@ const PhotoCard3D: React.FC<{
     >
       <motion.div
         style={{
-          rotateX: layout === 'scatter' ? rotateX : 0,
-          rotateY: layout === 'scatter' ? rotateY : 0,
+          // Disable 3D transforms trên mobile để nhẹ hơn
+          rotateX: layout === 'scatter' && !isMobileDevice ? rotateX : 0,
+          rotateY: layout === 'scatter' && !isMobileDevice ? rotateY : 0,
           transformStyle: "preserve-3d",
         }}
         className="relative w-full h-full cursor-pointer"
       >
-        {/* Glass Card Container */}
+        {/* Glass Card Container - Bỏ backdrop-blur trên mobile qua CSS */}
         <div className="relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-theme-accent/50 group-hover:shadow-[0_0_30px_rgba(var(--color-accent-rgb),0.2)]">
 
-          {/* Image */}
+          {/* Image với Skeleton Loading */}
           <div className="relative aspect-[4/5] overflow-hidden">
-            <img
-              src={convertGoogleDriveUrl(photo.url)}
-              alt={photo.caption}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            />
+            {/* Skeleton loader */}
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 bg-[length:200%_100%] animate-pulse" />
+            )}
+            {/* Chỉ load image khi visible */}
+            {isVisible && (
+              <img
+                src={convertGoogleDriveUrl(photo.url)}
+                alt={photo.caption}
+                loading="lazy"
+                decoding="async"
+                onLoad={() => setImageLoaded(true)}
+                className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                  } group-hover:scale-110`}
+              />
+            )}
 
             {/* Cinematic Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
@@ -543,7 +584,7 @@ const PhotoCard3D: React.FC<{
       </motion.div>
     </motion.div>
   );
-};
+});
 
 // --- Main Component ---
 
