@@ -679,7 +679,10 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
       body.style.position = previous.position;
       body.style.top = previous.top;
       body.style.width = previous.width;
-      window.scrollTo(0, scrollY);
+      // Sử dụng requestAnimationFrame để đảm bảo scrollTo được gọi sau khi browser repaint
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: 'instant' });
+      });
     };
   }, [isLightboxOpen]);
 
