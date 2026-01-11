@@ -130,7 +130,7 @@ export const Contact: React.FC = () => {
    };
 
    return (
-      <div className="min-h-screen bg-theme-bg text-theme-text relative overflow-hidden selection:bg-theme-accent selection:text-theme-bg">
+      <div className="min-h-screen bg-theme-bg text-theme-text relative overflow-hidden selection:bg-theme-accent selection:text-theme-bg pb-24 md:pb-0">
          {/* Background Elements */}
          <div className="fixed inset-0 z-0 opacity-20 pointer-events-none">
             <GenerativeArt variant="network" intensity={30} color="#888" />

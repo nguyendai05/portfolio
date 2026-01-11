@@ -14,7 +14,7 @@ export const TrophyCase: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-lg p-4 md:p-8"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-lg p-4 md:p-8"
           onClick={toggleTrophyCase}
         >
           <motion.div
@@ -53,7 +53,7 @@ export const TrophyCase: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-h-[65vh] overflow-y-auto relative z-10 scrollbar-thin scrollbar-thumb-mantis-green/30 scrollbar-track-transparent">
+            <div className="p-4 md:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 max-h-[60vh] md:max-h-[65vh] overflow-y-auto relative z-10 scrollbar-thin scrollbar-thumb-mantis-green/30 scrollbar-track-transparent">
               {achievements.map((ach, index) => (
                 <motion.div
                   key={ach.id}

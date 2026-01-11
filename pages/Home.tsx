@@ -86,7 +86,7 @@ export const Home: React.FC = () => {
   return (
     <motion.div
       ref={containerRef}
-      className="relative bg-theme-bg text-theme-text min-h-screen selection:bg-theme-accent selection:text-black"
+      className="relative bg-theme-bg text-theme-text min-h-screen selection:bg-theme-accent selection:text-black pb-24 md:pb-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
