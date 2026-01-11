@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useReducedMotion } from 'framer-motion';
 import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { GlitchText } from './GlitchText';
@@ -625,6 +626,7 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const prefersReducedMotion = useReducedMotion();
   const isVideoLightboxOpen = selectedPhoto?.type === 'video';
+  const isLightboxOpen = Boolean(selectedPhoto);
   const motionEnabled = !prefersReducedMotion && !isVideoLightboxOpen && !isMobile;
 
   // Force grid on mobile
@@ -657,6 +659,29 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
     onVideoOverlayChange(Boolean(isVideoLightboxOpen));
     return () => onVideoOverlayChange(false);
   }, [isVideoLightboxOpen, onVideoOverlayChange]);
+
+  useEffect(() => {
+    if (!isLightboxOpen || typeof window === 'undefined') return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const previous = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    return () => {
+      body.style.overflow = previous.overflow;
+      body.style.position = previous.position;
+      body.style.top = previous.top;
+      body.style.width = previous.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isLightboxOpen]);
 
   // Filter logic: Support multiple categories per moment
   // Uses .includes() to check if selected category exists in the moment's category array
@@ -725,239 +750,243 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
     return url;
   };
 
-  return (
-    <section className="relative py-32 bg-theme-bg text-theme-text overflow-hidden min-h-screen">
-
-      {/* Ambient Background Effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className={`absolute top-0 left-1/4 w-[500px] h-[500px] bg-theme-accent/5 rounded-full blur-[100px] ${motionEnabled ? 'animate-pulse-slow' : ''}`} />
-        <div className={`absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] ${motionEnabled ? 'animate-pulse-slow delay-1000' : ''}`} />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
-      </div>
-
-      <div className="container mx-auto px-4 md:px-8 relative z-10">
-
-        {/* Header */}
-        <div className="mb-24 text-center md:text-left">
-          <motion.div
-            initial={motionEnabled ? { opacity: 0, y: 20 } : false}
-            whileInView={motionEnabled ? { opacity: 1, y: 0 } : undefined}
-            viewport={motionEnabled ? { once: true } : undefined}
-            className="flex items-center justify-center md:justify-start gap-2 text-theme-accent opacity-80 mb-4"
-          >
-            <Aperture size={16} className={motionEnabled ? "animate-spin-slow" : ""} />
-            <span className="font-mono text-xs uppercase tracking-[0.2em]">Chronosphere // Archive</span>
-          </motion.div>
-
-          <GlitchText
-            text="Visual Memories."
-            className="text-[12vw] md:text-[7vw] leading-[0.8] font-black tracking-tighter text-center md:text-left"
-            highlightWord="Memories"
-          />
-        </div>
-
-        {/* Control Deck */}
-        <ControlDeck
-          filter={filter}
-          setFilter={setFilter}
-          layout={layout}
-          setLayout={setLayout}
-          categories={categories}
-          totalCount={filteredPhotos.length}
-          motionEnabled={motionEnabled}
-          isMobile={isMobile}
-        />
-
-        {/* Gallery Grid / Scatter */}
-        <div
-          ref={containerRef}
-          className={`relative min-h-[80vh] transition-all duration-700 ${layout === 'grid'
-            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
-            : 'flex flex-wrap justify-center'
-            } ${isVideoLightboxOpen ? 'invisible' : ''}`}
+  const lightbox = (
+    <AnimatePresence>
+      {selectedPhoto && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          // Bỏ backdrop-blur để giảm tải GPU khi xem video
+          className="fixed inset-0 z-[9999] bg-black/98 flex items-stretch justify-center p-0 md:p-8"
+          onClick={() => setSelectedPhoto(null)}
         >
-          <AnimatePresence mode="popLayout">
-            {filteredPhotos.map((photo, index) => (
-              <PhotoCard3D
-                key={photo.id}
-                photo={photo}
-                index={index}
-                layout={layout}
-                onSelect={setSelectedPhoto}
-                motionEnabled={motionEnabled}
-                isMobile={isMobile}
-              />
-            ))}
-          </AnimatePresence>
-
-          {filteredPhotos.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-50">
-              <Globe size={48} className={`mb-4 text-theme-accent ${motionEnabled ? 'animate-pulse' : ''}`} />
-              <p className="font-mono text-sm">NO_DATA_FOUND_IN_SECTOR</p>
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* Immersive Lightbox Overlay */}
-      <AnimatePresence>
-        {selectedPhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            // Bỏ backdrop-blur để giảm tải GPU khi xem video
-            className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-0 md:p-8"
+          {/* Close Button */}
+          <button
+            aria-label="Close lightbox"
+            className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-theme-accent hover:text-black transition-all"
             onClick={() => setSelectedPhoto(null)}
           >
-            {/* Close Button */}
-            <button
-              aria-label="Close lightbox"
-              className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-theme-accent hover:text-black transition-all"
-              onClick={() => setSelectedPhoto(null)}
-            >
-              <X size={24} />
-            </button>
+            <X size={24} />
+          </button>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="relative w-full h-full md:max-w-7xl md:h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-none md:rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Media Area */}
-              <div className="relative w-full md:w-3/4 h-[50vh] md:h-full bg-black flex items-center justify-center group">
-                {selectedPhoto.type === 'video' ? (
-                  (() => {
-                    const currentVideoUrl = selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 0
-                      ? selectedPhoto.videoUrls[currentMediaIndex]
-                      : selectedPhoto.videoUrl;
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-full h-full md:max-w-7xl md:h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-none md:rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl min-h-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Media Area */}
+            <div className="relative w-full md:w-3/4 h-[45vh] md:h-full bg-black flex items-center justify-center group flex-none">
+              {selectedPhoto.type === 'video' ? (
+                (() => {
+                  const currentVideoUrl = selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 0
+                    ? selectedPhoto.videoUrls[currentMediaIndex]
+                    : selectedPhoto.videoUrl;
 
-                    // Determine platform for the current video
-                    const currentPlatform = selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 0
-                      ? getVideoPlatform(currentVideoUrl || '')
-                      : (selectedPhoto.videoPlatform || 'direct');
+                  // Determine platform for the current video
+                  const currentPlatform = selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 0
+                    ? getVideoPlatform(currentVideoUrl || '')
+                    : (selectedPhoto.videoPlatform || 'direct');
 
-                    if (!currentVideoUrl) return null;
+                  if (!currentVideoUrl) return null;
 
-                    return (
-                      <>
-                        {/* Video Loading Spinner */}
-                        {videoLoading && currentPlatform === 'direct' && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
-                            <div className="w-12 h-12 border-4 border-theme-accent/30 border-t-theme-accent rounded-full animate-spin" />
-                          </div>
-                        )}
-                        {currentPlatform === 'direct' ? (
-                          <video
-                            key={currentVideoUrl}
-                            src={optimizeCloudinaryUrl(currentVideoUrl)}
-                            className="w-full h-full object-contain"
-                            controls
-                            playsInline
-                            preload="metadata"
-                            onLoadedData={() => setVideoLoading(false)}
-                          />
-                        ) : (
-                          <iframe
-                            key={currentVideoUrl} // Force re-render on change
-                            src={getEmbedUrl(currentVideoUrl, currentPlatform)}
-                            className="w-full h-full"
-                            title={selectedPhoto.caption || "Embedded video player"}
-                            // Mobile: lazy để giảm gánh network & CPU khi mở lightbox
-                            loading={isMobile ? 'lazy' : 'eager'}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        )}
-
-                        {/* Navigation for multiple videos */}
-                        {selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 1 && (
-                          <>
-                            <button onClick={handlePrevMedia} aria-label="Previous video" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
-                              <ChevronLeft size={24} />
-                            </button>
-                            <button onClick={handleNextMedia} aria-label="Next video" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
-                              <ChevronRight size={24} />
-                            </button>
-                            {/* Video Counter */}
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
-                              {currentMediaIndex + 1} / {selectedPhoto.videoUrls.length}
-                            </div>
-                          </>
-                        )}
-                      </>
-                    );
-                  })()
-                ) : (
-                  <>
-                    <img
-                      src={selectedPhoto.mediaUrls ? convertGoogleDriveUrl(selectedPhoto.mediaUrls[currentMediaIndex]) : convertGoogleDriveUrl(selectedPhoto.url)}
-                      alt={selectedPhoto.caption}
-                      className="w-full h-full object-contain"
-                    />
-                    {selectedPhoto.mediaUrls && selectedPhoto.mediaUrls.length > 1 && (
-                      <>
-                        <button onClick={handlePrevMedia} aria-label="Previous image" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
-                          <ChevronLeft size={24} />
-                        </button>
-                        <button onClick={handleNextMedia} aria-label="Next image" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
-                          <ChevronRight size={24} />
-                        </button>
-                        {/* Image Counter */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
-                          {currentMediaIndex + 1} / {selectedPhoto.mediaUrls.length}
+                  return (
+                    <>
+                      {/* Video Loading Spinner */}
+                      {videoLoading && currentPlatform === 'direct' && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+                          <div className="w-12 h-12 border-4 border-theme-accent/30 border-t-theme-accent rounded-full animate-spin" />
                         </div>
-                      </>
-                    )}
-                  </>
-                )}
+                      )}
+                      {currentPlatform === 'direct' ? (
+                        <video
+                          key={currentVideoUrl}
+                          src={optimizeCloudinaryUrl(currentVideoUrl)}
+                          className="w-full h-full object-contain"
+                          controls
+                          playsInline
+                          preload="metadata"
+                          onLoadedData={() => setVideoLoading(false)}
+                        />
+                      ) : (
+                        <iframe
+                          key={currentVideoUrl} // Force re-render on change
+                          src={getEmbedUrl(currentVideoUrl, currentPlatform)}
+                          className="w-full h-full"
+                          title={selectedPhoto.caption || "Embedded video player"}
+                          // Mobile: lazy để giảm gánh network & CPU khi mở lightbox
+                          loading={isMobile ? 'lazy' : 'eager'}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      )}
+
+                      {/* Navigation for multiple videos */}
+                      {selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 1 && (
+                        <>
+                          <button onClick={handlePrevMedia} aria-label="Previous video" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                            <ChevronLeft size={24} />
+                          </button>
+                          <button onClick={handleNextMedia} aria-label="Next video" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                            <ChevronRight size={24} />
+                          </button>
+                          {/* Video Counter */}
+                          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
+                            {currentMediaIndex + 1} / {selectedPhoto.videoUrls.length}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  );
+                })()
+              ) : (
+                <>
+                  <img
+                    src={selectedPhoto.mediaUrls ? convertGoogleDriveUrl(selectedPhoto.mediaUrls[currentMediaIndex]) : convertGoogleDriveUrl(selectedPhoto.url)}
+                    alt={selectedPhoto.caption}
+                    className="w-full h-full object-contain"
+                  />
+                  {selectedPhoto.mediaUrls && selectedPhoto.mediaUrls.length > 1 && (
+                    <>
+                      <button onClick={handlePrevMedia} aria-label="Previous image" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                        <ChevronLeft size={24} />
+                      </button>
+                      <button onClick={handleNextMedia} aria-label="Next image" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                        <ChevronRight size={24} />
+                      </button>
+                      {/* Image Counter */}
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-black/50 backdrop-blur rounded-full border border-white/10 text-xs font-mono text-white/80">
+                        {currentMediaIndex + 1} / {selectedPhoto.mediaUrls.length}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Info Sidebar */}
+            <div className="w-full md:w-1/4 flex-1 md:flex-none md:h-full bg-[#111] border-t border-white/5 md:border-t-0 md:border-l p-6 md:p-8 flex flex-col overflow-y-auto">
+              <div className="flex items-center gap-2 mb-6 opacity-50">
+                <Globe size={14} />
+                <span className="text-[10px] font-mono uppercase tracking-widest">Data Log #{selectedPhoto.id}</span>
               </div>
 
-              {/* Info Sidebar */}
-              <div className="w-full md:w-1/4 h-full bg-[#111] border-l border-white/5 p-8 flex flex-col overflow-y-auto">
-                <div className="flex items-center gap-2 mb-6 opacity-50">
-                  <Globe size={14} />
-                  <span className="text-[10px] font-mono uppercase tracking-widest">Data Log #{selectedPhoto.id}</span>
+              <h2 className="text-2xl font-bold text-white mb-4 leading-tight">{selectedPhoto.caption}</h2>
+
+              <div className="space-y-6 mt-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-mono text-white/40 uppercase">Date</span>
+                  <span className="text-sm text-white/80 flex items-center gap-2"><Calendar size={14} /> {selectedPhoto.date}</span>
                 </div>
-
-                <h2 className="text-2xl font-bold text-white mb-4 leading-tight">{selectedPhoto.caption}</h2>
-
-                <div className="space-y-6 mt-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-mono text-white/40 uppercase">Date</span>
-                    <span className="text-sm text-white/80 flex items-center gap-2"><Calendar size={14} /> {selectedPhoto.date}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-mono text-white/40 uppercase">Location</span>
-                    <span className="text-sm text-white/80 flex items-center gap-2"><MapPin size={14} /> {selectedPhoto.location}</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-mono text-white/40 uppercase">Category</span>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPhoto.category.map((cat, i) => (
-                        <span key={i} className="inline-flex self-start items-center px-2 py-1 rounded bg-theme-accent/10 text-theme-accent text-xs font-bold border border-theme-accent/20">
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-mono text-white/40 uppercase">Location</span>
+                  <span className="text-sm text-white/80 flex items-center gap-2"><MapPin size={14} /> {selectedPhoto.location}</span>
                 </div>
-
-                <div className="mt-auto pt-8">
-                  <button className="w-full py-3 rounded border border-white/10 hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest transition-all group">
-                    <Heart size={16} className="group-hover:text-red-500 transition-colors" />
-                    Add to Favorites
-                  </button>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-mono text-white/40 uppercase">Category</span>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPhoto.category.map((cat, i) => (
+                      <span key={i} className="inline-flex self-start items-center px-2 py-1 rounded bg-theme-accent/10 text-theme-accent text-xs font-bold border border-theme-accent/20">
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </motion.div>
+
+              <div className="mt-auto pt-8">
+                <button className="w-full py-3 rounded border border-white/10 hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest transition-all group">
+                  <Heart size={16} className="group-hover:text-red-500 transition-colors" />
+                  Add to Favorites
+                </button>
+              </div>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      <section className="relative py-32 bg-theme-bg text-theme-text overflow-hidden min-h-screen">
+
+        {/* Ambient Background Effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className={`absolute top-0 left-1/4 w-[500px] h-[500px] bg-theme-accent/5 rounded-full blur-[100px] ${motionEnabled ? 'animate-pulse-slow' : ''}`} />
+          <div className={`absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] ${motionEnabled ? 'animate-pulse-slow delay-1000' : ''}`} />
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
+        </div>
+
+        <div className="container mx-auto px-4 md:px-8 relative z-10">
+
+          {/* Header */}
+          <div className="mb-24 text-center md:text-left">
+            <motion.div
+              initial={motionEnabled ? { opacity: 0, y: 20 } : false}
+              whileInView={motionEnabled ? { opacity: 1, y: 0 } : undefined}
+              viewport={motionEnabled ? { once: true } : undefined}
+              className="flex items-center justify-center md:justify-start gap-2 text-theme-accent opacity-80 mb-4"
+            >
+              <Aperture size={16} className={motionEnabled ? "animate-spin-slow" : ""} />
+              <span className="font-mono text-xs uppercase tracking-[0.2em]">Chronosphere // Archive</span>
+            </motion.div>
+
+            <GlitchText
+              text="Visual Memories."
+              className="text-[12vw] md:text-[7vw] leading-[0.8] font-black tracking-tighter text-center md:text-left"
+              highlightWord="Memories"
+            />
+          </div>
+
+          {/* Control Deck */}
+          <ControlDeck
+            filter={filter}
+            setFilter={setFilter}
+            layout={layout}
+            setLayout={setLayout}
+            categories={categories}
+            totalCount={filteredPhotos.length}
+            motionEnabled={motionEnabled}
+            isMobile={isMobile}
+          />
+
+          {/* Gallery Grid / Scatter */}
+          <div
+            ref={containerRef}
+            className={`relative min-h-[80vh] transition-all duration-700 ${layout === 'grid'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
+              : 'flex flex-wrap justify-center'
+              } ${isVideoLightboxOpen ? 'invisible' : ''}`}
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredPhotos.map((photo, index) => (
+                <PhotoCard3D
+                  key={photo.id}
+                  photo={photo}
+                  index={index}
+                  layout={layout}
+                  onSelect={setSelectedPhoto}
+                  motionEnabled={motionEnabled}
+                  isMobile={isMobile}
+                />
+              ))}
+            </AnimatePresence>
+
+            {filteredPhotos.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-50">
+                <Globe size={48} className={`mb-4 text-theme-accent ${motionEnabled ? 'animate-pulse' : ''}`} />
+                <p className="font-mono text-sm">NO_DATA_FOUND_IN_SECTOR</p>
+              </div>
+            )}
+          </div>
+
+        </div>
+      </section>
+      {typeof document !== 'undefined' ? createPortal(lightbox, document.body) : lightbox}
+    </>
   );
 };
