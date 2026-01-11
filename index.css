@@ -57,6 +57,62 @@ body {
   .shadow-\[20px_20px_0px_0px_rgba\(0\,0\,0\,1\)\] {
     box-shadow: 10px 10px 0px 0px rgba(0, 0, 0, 0.8) !important;
   }
+
+  /* =================================
+     VIDEO GALLERY PERFORMANCE FIXES
+     ================================= */
+
+  /* Remove heavy backdrop-blur on mobile for lightbox */
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: rgba(0, 0, 0, 0.97) !important;
+  }
+
+  /* Reduce backdrop-blur-sm to solid color on mobile */
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Disable will-change on mobile to save memory */
+  .photo-card-3d {
+    will-change: auto !important;
+  }
+
+  /* Simplify video container shadows */
+  .group-hover\:shadow-\[0_0_30px_rgba\(var\(--color-accent-rgb\)\,0\.2\)\] {
+    box-shadow: none !important;
+  }
+}
+
+/* =================================
+   PHOTO CARD PERFORMANCE OPTIMIZATIONS  
+   ================================= */
+
+/* Desktop: Enable will-change for smooth animations */
+@media (min-width: 768px) {
+  .photo-card-3d {
+    will-change: transform, opacity;
+  }
+}
+
+/* Skeleton shimmer animation for lazy loading */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.video-skeleton {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 html {
