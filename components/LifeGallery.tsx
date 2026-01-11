@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence, useMotionValue } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useReducedMotion } from 'framer-motion';
 import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { GlitchText } from './GlitchText';
 
@@ -67,6 +67,12 @@ const getVideoPlatform = (url: string): 'youtube' | 'googledrive' | 'direct' => 
   return 'direct';
 };
 
+
+const optimizeCloudinaryUrl = (url: string) => {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  if (url.includes('/q_auto') || url.includes('/vc_auto')) return url;
+  return url.replace('/upload/', '/upload/q_auto,vc_auto/');
+};
 
 // --- Types ---
 interface LifeMoment {
@@ -408,7 +414,8 @@ const PhotoCard3D: React.FC<{
   index: number;
   layout: 'scatter' | 'grid';
   onSelect: (photo: LifeMoment) => void;
-}> = React.memo(({ photo, index, layout, onSelect }) => {
+  motionEnabled: boolean;
+}> = React.memo(({ photo, index, layout, onSelect, motionEnabled }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -435,11 +442,18 @@ const PhotoCard3D: React.FC<{
   const rotateX = useTransform(y, [-100, 100], [10, -10]);
   const rotateY = useTransform(x, [-100, 100], [-10, 10]);
 
+  useEffect(() => {
+    if (!motionEnabled) {
+      x.set(0);
+      y.set(0);
+    }
+  }, [motionEnabled, x, y]);
+
   // Debounce mouse events để giảm rerender - chỉ update 60fps
   const lastUpdate = useRef(0);
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Skip trên mobile
-    if (isMobileDevice) return;
+    if (!motionEnabled || isMobileDevice) return;
 
     const now = Date.now();
     if (now - lastUpdate.current < 16) return; // ~60fps cap
@@ -454,6 +468,7 @@ const PhotoCard3D: React.FC<{
   };
 
   const handleMouseLeave = () => {
+    if (!motionEnabled || isMobileDevice) return;
     x.set(0);
     y.set(0);
   };
@@ -490,18 +505,18 @@ const PhotoCard3D: React.FC<{
         }`}
       style={{
         marginLeft: layout === 'scatter' ? (index % 2 === 0 ? '5%' : '50%') : 0,
-        y: layout === 'scatter' ? parallaxY : 0,
+        y: layout === 'scatter' && motionEnabled ? parallaxY : 0,
         zIndex: photo.zIndex
       }}
       onClick={() => onSelect(photo)}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseMove={motionEnabled ? handleMouseMove : undefined}
+      onMouseLeave={motionEnabled ? handleMouseLeave : undefined}
     >
       <motion.div
         style={{
           // Disable 3D transforms trên mobile để nhẹ hơn
-          rotateX: layout === 'scatter' && !isMobileDevice ? rotateX : 0,
-          rotateY: layout === 'scatter' && !isMobileDevice ? rotateY : 0,
+          rotateX: layout === 'scatter' && motionEnabled && !isMobileDevice ? rotateX : 0,
+          rotateY: layout === 'scatter' && motionEnabled && !isMobileDevice ? rotateY : 0,
           transformStyle: "preserve-3d",
         }}
         className="relative w-full h-full cursor-pointer"
@@ -513,7 +528,7 @@ const PhotoCard3D: React.FC<{
           <div className="relative aspect-[4/5] overflow-hidden">
             {/* Skeleton loader */}
             {!imageLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 bg-[length:200%_100%] animate-pulse" />
+              <div className={`absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 bg-[length:200%_100%] ${motionEnabled ? 'animate-pulse' : ''}`} />
             )}
             {/* Chỉ load image khi visible */}
             {isVisible && (
@@ -588,7 +603,11 @@ const PhotoCard3D: React.FC<{
 
 // --- Main Component ---
 
-export const LifeGallery: React.FC = () => {
+interface LifeGalleryProps {
+  onVideoOverlayChange?: (isOpen: boolean) => void;
+}
+
+export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }) => {
   const [layout, setLayout] = useState<'scatter' | 'grid'>('scatter');
   const [filter, setFilter] = useState<string>('all');
   const [selectedPhoto, setSelectedPhoto] = useState<LifeMoment | null>(null);
@@ -596,6 +615,9 @@ export const LifeGallery: React.FC = () => {
   const [videoLoading, setVideoLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const prefersReducedMotion = useReducedMotion();
+  const isVideoLightboxOpen = selectedPhoto?.type === 'video';
+  const motionEnabled = !prefersReducedMotion && !isVideoLightboxOpen;
 
   // Force grid on mobile
   useEffect(() => {
@@ -614,6 +636,12 @@ export const LifeGallery: React.FC = () => {
   useEffect(() => {
     setVideoLoading(true);
   }, [currentMediaIndex]);
+
+  useEffect(() => {
+    if (!onVideoOverlayChange) return;
+    onVideoOverlayChange(Boolean(isVideoLightboxOpen));
+    return () => onVideoOverlayChange(false);
+  }, [isVideoLightboxOpen, onVideoOverlayChange]);
 
   // Filter logic: Support multiple categories per moment
   // Uses .includes() to check if selected category exists in the moment's category array
@@ -687,8 +715,8 @@ export const LifeGallery: React.FC = () => {
 
       {/* Ambient Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-theme-accent/5 rounded-full blur-[100px] animate-pulse-slow" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
+        <div className={`absolute top-0 left-1/4 w-[500px] h-[500px] bg-theme-accent/5 rounded-full blur-[100px] ${motionEnabled ? 'animate-pulse-slow' : ''}`} />
+        <div className={`absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] ${motionEnabled ? 'animate-pulse-slow delay-1000' : ''}`} />
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
       </div>
 
@@ -702,7 +730,7 @@ export const LifeGallery: React.FC = () => {
             viewport={{ once: true }}
             className="flex items-center justify-center md:justify-start gap-2 text-theme-accent opacity-80 mb-4"
           >
-            <Aperture size={16} className="animate-spin-slow" />
+            <Aperture size={16} className={motionEnabled ? "animate-spin-slow" : ""} />
             <span className="font-mono text-xs uppercase tracking-[0.2em]">Chronosphere // Archive</span>
           </motion.div>
 
@@ -729,7 +757,7 @@ export const LifeGallery: React.FC = () => {
           className={`relative min-h-[80vh] transition-all duration-700 ${layout === 'grid'
             ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'
             : 'flex flex-wrap justify-center'
-            }`}
+            } ${isVideoLightboxOpen ? 'invisible' : ''}`}
         >
           <AnimatePresence mode="popLayout">
             {filteredPhotos.map((photo, index) => (
@@ -739,13 +767,14 @@ export const LifeGallery: React.FC = () => {
                 index={index}
                 layout={layout}
                 onSelect={setSelectedPhoto}
+                motionEnabled={motionEnabled}
               />
             ))}
           </AnimatePresence>
 
           {filteredPhotos.length === 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center opacity-50">
-              <Globe size={48} className="mb-4 text-theme-accent animate-pulse" />
+              <Globe size={48} className={`mb-4 text-theme-accent ${motionEnabled ? 'animate-pulse' : ''}`} />
               <p className="font-mono text-sm">NO_DATA_FOUND_IN_SECTOR</p>
             </div>
           )}
@@ -761,7 +790,7 @@ export const LifeGallery: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             // Bỏ backdrop-blur để giảm tải GPU khi xem video
-            className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-0 md:p-8"
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-0 md:p-8"
             onClick={() => setSelectedPhoto(null)}
           >
             {/* Close Button */}
@@ -807,7 +836,7 @@ export const LifeGallery: React.FC = () => {
                         {currentPlatform === 'direct' ? (
                           <video
                             key={currentVideoUrl}
-                            src={currentVideoUrl}
+                            src={optimizeCloudinaryUrl(currentVideoUrl)}
                             className="w-full h-full object-contain"
                             controls
                             playsInline

@@ -1,9 +1,13 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { Scan, Activity, Cpu, Zap } from 'lucide-react';
 
-export const AboutPortrait3D: React.FC = () => {
+interface AboutPortrait3DProps {
+    motionPaused?: boolean;
+}
+
+export const AboutPortrait3D: React.FC<AboutPortrait3DProps> = ({ motionPaused = false }) => {
     const { theme } = useTheme();
     const containerRef = useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -30,7 +34,13 @@ export const AboutPortrait3D: React.FC = () => {
     const bgX = useTransform(mouseX, [-0.5, 0.5], [10, -10]);
     const bgY = useTransform(mouseY, [-0.5, 0.5], [10, -10]);
 
+    const tagOneX = useTransform(mouseX, [-0.5, 0.5], [15, -15]);
+    const tagOneY = useTransform(mouseY, [-0.5, 0.5], [15, -15]);
+    const tagTwoX = useTransform(mouseX, [-0.5, 0.5], [10, -10]);
+    const tagTwoY = useTransform(mouseY, [-0.5, 0.5], [10, -10]);
+
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (motionPaused) return;
         if (!containerRef.current) return;
 
         const rect = containerRef.current.getBoundingClientRect();
@@ -47,12 +57,14 @@ export const AboutPortrait3D: React.FC = () => {
     };
 
     const handleMouseLeave = () => {
+        if (motionPaused) return;
         setIsHovered(false);
         x.set(0);
         y.set(0);
     };
 
     const handleMouseEnter = () => {
+        if (motionPaused) return;
         setIsHovered(true);
     };
 
@@ -67,6 +79,13 @@ export const AboutPortrait3D: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        if (!motionPaused) return;
+        setIsHovered(false);
+        x.set(0);
+        y.set(0);
+    }, [motionPaused, x, y]);
+
     return (
         <div
             ref={containerRef}
@@ -78,8 +97,8 @@ export const AboutPortrait3D: React.FC = () => {
             <motion.div
                 className="relative w-full max-w-md h-full preserve-3d"
                 style={{
-                    rotateX,
-                    rotateY,
+                    rotateX: motionPaused ? 0 : rotateX,
+                    rotateY: motionPaused ? 0 : rotateY,
                     transformStyle: "preserve-3d",
                 }}
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -89,16 +108,16 @@ export const AboutPortrait3D: React.FC = () => {
                 {/* LAYER 1: Back Shadow Plate / Neon Glow */}
                 <motion.div
                     className="absolute inset-0 rounded-xl bg-theme-accent/20 blur-2xl -z-20"
-                    style={{ x: bgX, y: bgY, scale: 0.9 }}
-                    animate={{ opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 4, repeat: Infinity }}
+                    style={{ x: motionPaused ? 0 : bgX, y: motionPaused ? 0 : bgY, scale: 0.9 }}
+                    animate={motionPaused ? { opacity: 0.3 } : { opacity: [0.3, 0.6, 0.3] }}
+                    transition={motionPaused ? { duration: 0 } : { duration: 4, repeat: Infinity }}
                 />
 
                 <motion.div
                     className="absolute inset-0 border border-theme-border/30 bg-theme-panel/10 backdrop-blur-sm rounded-lg -z-10"
                     style={{
-                        x: bgX,
-                        y: bgY,
+                        x: motionPaused ? 0 : bgX,
+                        y: motionPaused ? 0 : bgY,
                         translateZ: -40,
                         rotateZ: -2
                     }}
@@ -145,8 +164,8 @@ export const AboutPortrait3D: React.FC = () => {
                             alt="Portrait"
                             className="relative w-full h-[90%] object-cover object-top z-10 filter contrast-110"
                             style={{
-                                x: portraitX,
-                                y: portraitY,
+                                x: motionPaused ? 0 : portraitX,
+                                y: motionPaused ? 0 : portraitY,
                                 scale: 1.1,
                                 filter: isHovered ? 'grayscale(0%) contrast(1.2)' : 'grayscale(20%) contrast(1.1)'
                             }}
@@ -156,12 +175,12 @@ export const AboutPortrait3D: React.FC = () => {
                         {/* Scanline Sweep Effect */}
                         <motion.div
                             className="absolute inset-0 w-full h-[20%] bg-gradient-to-b from-transparent via-theme-accent/20 to-transparent z-20 pointer-events-none"
-                            animate={{ top: ['-20%', '120%'] }}
+                            animate={motionPaused ? { top: '120%' } : { top: ['-20%', '120%'] }}
                             transition={{
-                                duration: 3,
-                                repeat: Infinity,
+                                duration: motionPaused ? 0 : 3,
+                                repeat: motionPaused ? 0 : Infinity,
                                 ease: "linear",
-                                repeatDelay: 2
+                                repeatDelay: motionPaused ? 0 : 2
                             }}
                         />
                     </div>
@@ -191,10 +210,10 @@ export const AboutPortrait3D: React.FC = () => {
                     className="absolute bottom-12 -left-6 bg-theme-text text-theme-bg px-4 py-3 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] border border-theme-bg z-30"
                     style={{
                         translateZ: 60,
-                        x: badgeX,
-                        y: badgeY,
+                        x: motionPaused ? 0 : badgeX,
+                        y: motionPaused ? 0 : badgeY,
                     }}
-                    animate={floatingAnim}
+                    animate={motionPaused ? { y: 0, rotate: 0 } : floatingAnim}
                 >
                     <div className="flex items-center gap-3">
                         <Scan size={16} />
@@ -210,10 +229,10 @@ export const AboutPortrait3D: React.FC = () => {
                     className="absolute top-20 -right-8 bg-theme-panel border border-theme-accent/50 text-theme-text px-3 py-1 shadow-lg z-30 backdrop-blur-md"
                     style={{
                         translateZ: 40,
-                        x: useTransform(mouseX, [-0.5, 0.5], [15, -15]),
-                        y: useTransform(mouseY, [-0.5, 0.5], [15, -15]),
+                        x: motionPaused ? 0 : tagOneX,
+                        y: motionPaused ? 0 : tagOneY,
                     }}
-                    animate={{
+                    animate={motionPaused ? { y: 0 } : {
                         y: [0, 5, 0],
                         transition: { duration: 4, repeat: Infinity, delay: 1 }
                     }}
@@ -229,10 +248,10 @@ export const AboutPortrait3D: React.FC = () => {
                     className="absolute bottom-32 -right-4 bg-theme-panel border border-theme-border text-theme-text px-3 py-1 shadow-lg z-30"
                     style={{
                         translateZ: 30,
-                        x: useTransform(mouseX, [-0.5, 0.5], [10, -10]),
-                        y: useTransform(mouseY, [-0.5, 0.5], [10, -10]),
+                        x: motionPaused ? 0 : tagTwoX,
+                        y: motionPaused ? 0 : tagTwoY,
                     }}
-                    animate={{
+                    animate={motionPaused ? { y: 0 } : {
                         y: [0, -5, 0],
                         transition: { duration: 5, repeat: Infinity, delay: 0.5 }
                     }}

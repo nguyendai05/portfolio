@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { GenerativeArt } from '../components/GenerativeArt';
 import { GlitchText } from '../components/GlitchText';
@@ -13,6 +13,7 @@ import { ExecutionLog, TimelineEntry } from '../components/ExecutionLog';
 
 export const About: React.FC = () => {
   const { theme } = useTheme();
+  const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -59,9 +60,11 @@ export const About: React.FC = () => {
       exit={{ opacity: 0 }}
       className="min-h-screen bg-theme-bg text-theme-text pt-24 md:pt-32 pb-24"
     >
-      <div className="fixed inset-0 z-0 opacity-10 pointer-events-none">
-        <GenerativeArt variant="network" intensity={30} color={THEMES[theme].text} />
-      </div>
+      {!isVideoOverlayOpen && (
+        <div className="fixed inset-0 z-0 opacity-10 pointer-events-none">
+          <GenerativeArt variant="network" intensity={30} color={THEMES[theme].text} />
+        </div>
+      )}
 
       <div className="container mx-auto px-4 md:px-32 relative z-10">
         {/* Header */}
@@ -99,7 +102,7 @@ export const About: React.FC = () => {
 
           {/* Enhanced 3D Image Section */}
           <div className="md:col-span-7">
-            <AboutPortrait3D />
+            <AboutPortrait3D motionPaused={isVideoOverlayOpen} />
           </div>
         </div>
 
@@ -108,7 +111,7 @@ export const About: React.FC = () => {
       </div>
 
       {/* FULL WIDTH GALLERY SECTION */}
-      <LifeGallery />
+      <LifeGallery onVideoOverlayChange={setIsVideoOverlayOpen} />
 
       <div className="container mx-auto px-8 md:px-32 relative z-10">
         {/* Team / Me */}
