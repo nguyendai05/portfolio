@@ -159,6 +159,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                                     value={intensity}
                                     onChange={(e) => setIntensity(parseInt(e.target.value))}
                                     className="w-full absolute z-20 opacity-0 cursor-pointer h-full"
+                                    aria-label="Density / Force intensity slider"
                                 />
                                 {/* Custom Track */}
                                 <div className={`w-full h-1 rounded-full overflow-hidden relative z-10 ${isMatrix ? 'bg-white/20' : 'bg-theme-border/20'}`}>
@@ -190,6 +191,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                                     value={speed}
                                     onChange={(e) => setSpeed(parseFloat(e.target.value))}
                                     className="w-full absolute z-20 opacity-0 cursor-pointer h-full"
+                                    aria-label="Simulation speed slider"
                                 />
                                 <div className={`w-full h-1 rounded-full overflow-hidden relative z-10 ${isMatrix ? 'bg-white/20' : 'bg-theme-border/20'}`}>
                                     <motion.div

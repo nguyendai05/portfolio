@@ -223,7 +223,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
     id: '8',
     type: 'image',
     url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763789051/photo_1_2025-11-22_11-47-29_pqvonx.jpg',
-    mediaUrls:[
+    mediaUrls: [
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743477/photo_9_2025-11-21_00-26-09_r07kyy.jpg',
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763743475/photo_8_2025-11-21_00-26-09_pdcvmh.jpg',
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763789063/photo_10_2025-11-22_11-47-29_ckauas.jpg',
@@ -249,7 +249,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
     id: '9',
     type: 'image',
     url: 'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763785567/480186068_1361160138577373_1279055105002201592_n_gj2ikr.jpg',
-    mediaUrls:[
+    mediaUrls: [
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763793275/photo_1_2025-11-22_13-34-14_iey6ij.jpg',
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763785566/479942686_1361160108577376_6000743401496633100_n_onibdy.jpg',
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763785566/479723965_1361160191910701_266770874178017985_n_zz5fvz.jpg',
@@ -291,7 +291,7 @@ const LIFE_MOMENTS: LifeMoment[] = [
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763785614/480253542_1361160265244027_1339390487126838392_n_g9zrda.jpg',
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763785615/480033731_1361159951910725_1003295322069401841_n_aaahjg.jpg',
       'https://res.cloudinary.com/dak4x4d7u/image/upload/v1763785616/480188150_1361160038577383_3174455203150196381_n_p3tbzm.jpg'
-      
+
     ],
     category: ['Thpt', 'memories'],
     caption: 'Khép lại hành trình THPT tràn đầy kỷ niệm.',
@@ -351,6 +351,7 @@ const ControlDeck: React.FC<{
               <input
                 type="text"
                 placeholder="Search archives..."
+                aria-label="Search archives"
                 className="w-full bg-black/20 border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-xs text-white focus:outline-none focus:border-theme-accent/50 transition-colors"
               />
             </div>
@@ -537,8 +538,7 @@ const PhotoCard3D: React.FC<{
 
         {/* 3D Depth Layers (Decorative) */}
         <div
-          className="absolute -inset-1 bg-theme-accent/20 rounded-xl blur-xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{ transform: "translateZ(-20px)" }}
+          className="absolute -inset-1 bg-theme-accent/20 rounded-xl blur-xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 life-gallery-depth-layer"
         />
       </motion.div>
     </motion.div>
@@ -703,21 +703,21 @@ export const LifeGallery: React.FC = () => {
 
       </div>
 
-            {/* Immersive Lightbox Overlay */}
-        <AnimatePresence>
-          {selectedPhoto && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              // Desktop giữ blur, mobile bỏ blur để video nhẹ hơn
-              className={`fixed inset-0 z-[100] bg-black/95 ${
-                isMobile ? '' : 'backdrop-blur-2xl'
+      {/* Immersive Lightbox Overlay */}
+      <AnimatePresence>
+        {selectedPhoto && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            // Desktop giữ blur, mobile bỏ blur để video nhẹ hơn
+            className={`fixed inset-0 z-[100] bg-black/95 ${isMobile ? '' : 'backdrop-blur-2xl'
               } flex items-center justify-center p-0 md:p-8`}
-              onClick={() => setSelectedPhoto(null)}
-            >
+            onClick={() => setSelectedPhoto(null)}
+          >
             {/* Close Button */}
             <button
+              aria-label="Close lightbox"
               className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-theme-accent hover:text-black transition-all"
               onClick={() => setSelectedPhoto(null)}
             >
@@ -766,6 +766,7 @@ export const LifeGallery: React.FC = () => {
                             key={currentVideoUrl} // Force re-render on change
                             src={getEmbedUrl(currentVideoUrl, currentPlatform)}
                             className="w-full h-full"
+                            title={selectedPhoto.caption || "Embedded video player"}
                             // Mobile: lazy để giảm gánh network & CPU khi mở lightbox
                             loading={isMobile ? 'lazy' : 'eager'}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -776,10 +777,10 @@ export const LifeGallery: React.FC = () => {
                         {/* Navigation for multiple videos */}
                         {selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 1 && (
                           <>
-                            <button onClick={handlePrevMedia} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                            <button onClick={handlePrevMedia} aria-label="Previous video" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                               <ChevronLeft size={24} />
                             </button>
-                            <button onClick={handleNextMedia} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                            <button onClick={handleNextMedia} aria-label="Next video" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                               <ChevronRight size={24} />
                             </button>
                             {/* Video Counter */}
@@ -800,10 +801,10 @@ export const LifeGallery: React.FC = () => {
                     />
                     {selectedPhoto.mediaUrls && selectedPhoto.mediaUrls.length > 1 && (
                       <>
-                        <button onClick={handlePrevMedia} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                        <button onClick={handlePrevMedia} aria-label="Previous image" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                           <ChevronLeft size={24} />
                         </button>
-                        <button onClick={handleNextMedia} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                        <button onClick={handleNextMedia} aria-label="Next image" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                           <ChevronRight size={24} />
                         </button>
                         {/* Image Counter */}

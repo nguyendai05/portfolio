@@ -262,7 +262,7 @@ export const Collaboration: React.FC = () => {
           <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
             <AlertCircle size={16} className="text-yellow-500" />
             <span className="font-mono text-xs">{error}</span>
-            <button onClick={loadIdeas} className="ml-auto hover:text-theme-accent">
+            <button onClick={loadIdeas} className="ml-auto hover:text-theme-accent" aria-label="Làm mới danh sách" title="Làm mới danh sách">
               <RefreshCw size={14} />
             </button>
           </div>
@@ -346,6 +346,8 @@ export const Collaboration: React.FC = () => {
                       <button
                         onClick={() => openCommentModal(idea.id)}
                         className="bg-theme-text text-theme-bg p-2 hover:bg-mantis-green hover:text-black transition-colors flex items-center gap-1"
+                        aria-label="Xem bình luận"
+                        title="Xem bình luận"
                       >
                         <MessageSquare size={14} />
                         {(commentCounts[idea.id] || 0) > 0 && (
@@ -380,7 +382,7 @@ export const Collaboration: React.FC = () => {
             >
               <div className="bg-theme-text text-theme-bg p-4 flex justify-between items-center border-b border-theme-text">
                 <span className="font-mono text-xs uppercase tracking-widest">New_Proposal.exe</span>
-                <button onClick={() => setIsModalOpen(false)} className="hover:text-mantis-green"><X size={18} /></button>
+                <button onClick={() => setIsModalOpen(false)} className="hover:text-mantis-green" aria-label="Đóng modal" title="Đóng modal"><X size={18} /></button>
               </div>
 
               <form onSubmit={handleSubmit} className="p-8 space-y-6">
@@ -419,8 +421,9 @@ export const Collaboration: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block font-mono text-xs uppercase tracking-widest mb-2">Difficulty</label>
+                    <label htmlFor="difficulty-select" className="block font-mono text-xs uppercase tracking-widest mb-2">Difficulty</label>
                     <select
+                      id="difficulty-select"
                       value={newIdea.difficulty}
                       onChange={e => setNewIdea({ ...newIdea, difficulty: e.target.value })}
                       className="w-full bg-theme-bg p-3 border border-theme-border focus:border-mantis-green outline-none"
@@ -470,7 +473,7 @@ export const Collaboration: React.FC = () => {
                   <MessageSquare size={14} />
                   Comments ({comments.length})
                 </span>
-                <button onClick={closeCommentModal} className="hover:text-mantis-green">
+                <button onClick={closeCommentModal} className="hover:text-mantis-green" aria-label="Đóng bình luận" title="Đóng bình luận">
                   <X size={18} />
                 </button>
               </div>
@@ -569,6 +572,8 @@ export const Collaboration: React.FC = () => {
                     type="submit"
                     disabled={submittingComment || !newComment.trim()}
                     className="bg-theme-text text-theme-bg px-4 hover:bg-mantis-green hover:text-black transition-colors disabled:opacity-50 flex items-center gap-2"
+                    aria-label="Gửi bình luận"
+                    title="Gửi bình luận"
                   >
                     {submittingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>

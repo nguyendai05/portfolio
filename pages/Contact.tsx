@@ -382,9 +382,9 @@ export const Contact: React.FC = () => {
                                              <>
                                                 <span className="animate-pulse">Transmitting</span>
                                                 <span className="flex gap-1">
-                                                   <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                                   <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                                   <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                   <span className="w-1 h-1 bg-current rounded-full animate-bounce" />
+                                                   <span className="w-1 h-1 bg-current rounded-full animate-bounce animation-delay-150" />
+                                                   <span className="w-1 h-1 bg-current rounded-full animate-bounce animation-delay-300" />
                                                 </span>
                                              </>
                                           ) : (

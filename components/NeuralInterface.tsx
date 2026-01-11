@@ -496,6 +496,7 @@ export const NeuralInterface: React.FC = () => {
                       }
                     }}
                     placeholder="Input command..."
+                    aria-label="Chat message input"
                     disabled={isThinking}
                     className="flex-1 bg-theme-bg/60 border border-theme-border/60 rounded-lg px-3 py-2 text-xs
                       focus:outline-none focus:border-theme-accent/70 font-mono placeholder:text-theme-text/30 text-theme-text

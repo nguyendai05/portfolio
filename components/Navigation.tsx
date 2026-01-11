@@ -182,7 +182,7 @@ export const Navigation: React.FC = () => {
 
             <div className="flex items-center gap-4">
               <ThemeSwitcher />
-              <button onClick={toggleTrophyCase} className="relative">
+              <button onClick={toggleTrophyCase} className="relative" aria-label="Open achievements">
                 <Trophy size={20} />
                 {unlockedCount > 0 && (
                   <span className="absolute -top-2 -right-2 w-4 h-4 bg-theme-accent text-theme-bg text-[9px] rounded-full flex items-center justify-center font-bold">

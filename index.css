@@ -18,7 +18,10 @@ body {
 
 /* Reduce motion for users who prefer it + mobile optimization */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -27,30 +30,32 @@ body {
 
 /* Mobile-specific performance optimizations */
 @media (max-width: 767px) {
+
   /* Disable heavy blur effects on mobile */
-  .blur-\[100px\], .blur-\[120px\] {
+  .blur-\[100px\],
+  .blur-\[120px\] {
     filter: blur(40px) !important;
   }
-  
+
   /* Reduce animation complexity */
   .animate-blob {
     animation-duration: 14s !important;
   }
-  
+
   /* Optimize paint performance */
   section {
     content-visibility: auto;
     contain-intrinsic-size: auto 100vh;
   }
-  
+
   /* Reduce repaints for animated elements */
   [class*="animate-"] {
     will-change: transform, opacity;
   }
-  
+
   /* Simplify shadows on mobile */
   .shadow-\[20px_20px_0px_0px_rgba\(0\,0\,0\,1\)\] {
-    box-shadow: 10px 10px 0px 0px rgba(0,0,0,0.8) !important;
+    box-shadow: 10px 10px 0px 0px rgba(0, 0, 0, 0.8) !important;
   }
 }
 
@@ -112,6 +117,10 @@ body {
 
   .perspective-1000 {
     perspective: 1000px;
+  }
+
+  .perspective-1200 {
+    perspective: 1200px;
   }
 
   .transform-style-3d {
@@ -186,4 +195,82 @@ body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Animation delay utilities for Contact page bounce effect */
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+/* GenerativeArt opacity classes */
+.generative-art-network {
+  opacity: 0.6;
+}
+
+.generative-art-matrix {
+  opacity: 1;
+}
+
+.generative-art-default {
+  opacity: 0.8;
+}
+
+/* LifeGallery 3D depth layer effect */
+.life-gallery-depth-layer {
+  transform: translateZ(-20px);
+}
+
+/* Preloader noise background effect */
+.preloader-noise-bg {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* WorkDeepDiveStrip phase progress bar with dynamic transition delay */
+.phase-progress-bar {
+  transition-delay: 0ms;
+}
+
+.phase-progress-bar[data-delay-index="1"] {
+  transition-delay: 100ms;
+}
+
+.phase-progress-bar[data-delay-index="2"] {
+  transition-delay: 200ms;
+}
+
+/* Home page hero title 3D effect */
+.hero-title-3d {
+  text-shadow:
+    2px 2px 0 var(--color-accent),
+    4px 4px 0 rgba(0, 0, 0, 0.1),
+    6px 6px 20px rgba(0, 0, 0, 0.2),
+    0 0 40px var(--color-accent-rgb, 0.3);
+  transform: translateZ(50px);
+  transform-style: preserve-3d;
+}
+
+/* Home page hero inner glow 3D effect */
+.hero-inner-glow-3d {
+  transform: translateZ(45px);
+}
+
+/* Floating 3D decorative elements */
+.floating-3d-square {
+  transform: translateZ(100px);
+  transform-style: preserve-3d;
+}
+
+/* Floating 3D circle element */
+.floating-3d-circle {
+  transform: translateZ(80px);
+  transform-style: preserve-3d;
+}
+
+/* Animated text badge 3D effect */
+.animated-badge-3d {
+  transform: translateZ(100px);
 }

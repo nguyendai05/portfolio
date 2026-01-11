@@ -121,8 +121,7 @@ export const Home: React.FC = () => {
 
           {/* 3D Parallax Hi with Advanced Effects */}
           <div
-            className="relative select-none z-20 perspective-[1000px]"
-            style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
+            className="relative select-none z-20 perspective-1200 transform-style-3d"
           >
             {/* Animated Background Particles - reduced on mobile */}
             {!isMobile && (
@@ -264,17 +263,7 @@ export const Home: React.FC = () => {
               }}
             >
               <h1
-                className="relative text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-text"
-                style={{
-                  textShadow: `
-                     2px 2px 0 var(--color-accent),
-                     4px 4px 0 rgba(0,0,0,0.1),
-                     6px 6px 20px rgba(0,0,0,0.2),
-                     0 0 40px var(--color-accent-rgb, 0.3)
-                   `,
-                  transform: 'translateZ(50px)',
-                  transformStyle: 'preserve-3d',
-                }}
+                className="relative text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-text hero-title-3d"
               >
                 Hi
                 <motion.span
@@ -296,10 +285,7 @@ export const Home: React.FC = () => {
 
               {/* Inner Glow Effect */}
               <h1
-                className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-accent/30 blur-sm pointer-events-none"
-                style={{
-                  transform: 'translateZ(45px)',
-                }}
+                className="absolute top-0 left-0 w-full text-[35vw] md:text-[25vw] leading-[0.8] font-black tracking-tighter text-theme-accent/30 blur-sm pointer-events-none hero-inner-glow-3d"
               >
                 Hi.
               </h1>
@@ -323,11 +309,7 @@ export const Home: React.FC = () => {
                   }}
                 >
                   <div
-                    className="w-10 h-10 md:w-16 md:h-16 border-4 border-theme-accent/50"
-                    style={{
-                      transform: 'translateZ(100px)',
-                      transformStyle: 'preserve-3d',
-                    }}
+                    className="w-10 h-10 md:w-16 md:h-16 border-4 border-theme-accent/50 floating-3d-square"
                   />
                 </motion.div>
 
@@ -346,11 +328,7 @@ export const Home: React.FC = () => {
                   }}
                 >
                   <div
-                    className="w-8 h-8 md:w-12 md:h-12 rounded-full border-4 border-theme-text/30"
-                    style={{
-                      transform: 'translateZ(80px)',
-                      transformStyle: 'preserve-3d',
-                    }}
+                    className="w-8 h-8 md:w-12 md:h-12 rounded-full border-4 border-theme-text/30 floating-3d-circle"
                   />
                 </motion.div>
 
@@ -373,10 +351,7 @@ export const Home: React.FC = () => {
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   <div
-                    className="bg-theme-text text-theme-bg px-2 py-1 md:px-4 md:py-2 font-mono text-[10px] md:text-xs font-bold border-2 border-theme-accent shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
-                    style={{
-                      transform: 'translateZ(100px)',
-                    }}
+                    className="bg-theme-text text-theme-bg px-2 py-1 md:px-4 md:py-2 font-mono text-[10px] md:text-xs font-bold border-2 border-theme-accent shadow-[0_10px_30px_rgba(0,0,0,0.3)] animated-badge-3d"
                   >
                     INITIALIZING...
                   </div>
@@ -731,7 +706,7 @@ export const Home: React.FC = () => {
                   <Link to="/contact" className="bg-theme-text text-theme-bg px-6 py-3 font-mono uppercase tracking-widest hover:bg-theme-accent hover:text-black transition-colors">
                     Say Hello
                   </Link>
-                  <a href="https://github.com/Xuni-Dizan" target="_blank" rel="noreferrer" className="px-6 py-3 font-mono uppercase tracking-widest border border-theme-text hover:bg-theme-text hover:text-theme-bg transition-colors flex items-center gap-2">
+                  <a href="https://github.com/Xuni-Dizan" target="_blank" rel="noopener noreferrer" className="px-6 py-3 font-mono uppercase tracking-widest border border-theme-text hover:bg-theme-text hover:text-theme-bg transition-colors flex items-center gap-2">
                     <Code2 size={14} /> GitHub
                   </a>
                 </div>

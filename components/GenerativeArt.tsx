@@ -467,5 +467,7 @@ export const GenerativeArt: React.FC<GenerativeArtProps> = React.memo(({
     };
   }, [effectiveIntensity, speed, color, variant]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none mix-blend-multiply" style={{ opacity: variant === 'network' ? 0.6 : (variant === 'matrix' ? 1 : 0.8) }} />;
+  const opacityClass = variant === 'network' ? 'generative-art-network' : (variant === 'matrix' ? 'generative-art-matrix' : 'generative-art-default');
+
+  return <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-multiply ${opacityClass}`} />;
 });

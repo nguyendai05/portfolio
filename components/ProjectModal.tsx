@@ -234,6 +234,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                   {/* Mobile Close Button (Visible only on small screens) */}
                   <button
                      onClick={onClose}
+                     aria-label="Close modal"
                      className="absolute top-4 right-4 md:hidden bg-theme-panel text-theme-text p-2 rounded-full z-50 shadow-lg border border-theme-border/20 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                   >
                      <X size={20} />
@@ -256,6 +257,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                         </button>
                         <button
                            onClick={onClose}
+                           aria-label="Close modal"
                            className="bg-theme-panel text-theme-text border border-theme-border/40 p-2 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                         >
                            <X size={20} />

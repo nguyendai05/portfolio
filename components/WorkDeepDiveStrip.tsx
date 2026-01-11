@@ -168,7 +168,7 @@ export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, 
                                         {project.phases.slice(0, 3).map((phase, index) => (
                                             <div key={index} className="flex-1 min-w-0">
                                                 <div className="h-0.5 w-full bg-theme-border/30 rounded-full mb-2 overflow-hidden">
-                                                    <div className="h-full bg-mantis-green w-0 group-hover:w-full transition-all duration-700 ease-out" style={{ transitionDelay: `${index * 100}ms` }} />
+                                                    <div className="h-full bg-mantis-green w-0 group-hover:w-full transition-all duration-700 ease-out phase-progress-bar" data-delay-index={index} />
                                                 </div>
                                                 <p className="text-[10px] text-theme-text/60 truncate font-mono">
                                                     {phase}
