@@ -218,7 +218,7 @@ export const Contact: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.2 }}
-                        className="mt-12 lg:mt-0 pt-8 border-t border-theme-border/20"
+                        className="mt-12 lg:mt-0 pt-8 border-t border-theme-border/20 mb-8 lg:mb-0"
                      >
                         <div className="flex items-start gap-4 opacity-70 hover:opacity-100 transition-opacity">
                            <div className="p-3 bg-theme-panel border border-theme-border rounded-full relative">
