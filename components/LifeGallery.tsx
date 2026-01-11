@@ -593,6 +593,7 @@ export const LifeGallery: React.FC = () => {
   const [filter, setFilter] = useState<string>('all');
   const [selectedPhoto, setSelectedPhoto] = useState<LifeMoment | null>(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [videoLoading, setVideoLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -601,10 +602,18 @@ export const LifeGallery: React.FC = () => {
     if (isMobile) setLayout('grid');
   }, [isMobile]);
 
-  // Reset media index
+  // Reset media index and video loading state
   useEffect(() => {
-    if (selectedPhoto) setCurrentMediaIndex(0);
+    if (selectedPhoto) {
+      setCurrentMediaIndex(0);
+      setVideoLoading(true);
+    }
   }, [selectedPhoto]);
+
+  // Reset video loading when changing media index
+  useEffect(() => {
+    setVideoLoading(true);
+  }, [currentMediaIndex]);
 
   // Filter logic: Support multiple categories per moment
   // Uses .includes() to check if selected category exists in the moment's category array
@@ -751,9 +760,8 @@ export const LifeGallery: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            // Desktop giữ blur, mobile bỏ blur để video nhẹ hơn
-            className={`fixed inset-0 z-[100] bg-black/95 ${isMobile ? '' : 'backdrop-blur-2xl'
-              } flex items-center justify-center p-0 md:p-8`}
+            // Bỏ backdrop-blur để giảm tải GPU khi xem video
+            className="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-0 md:p-8"
             onClick={() => setSelectedPhoto(null)}
           >
             {/* Close Button */}
@@ -766,7 +774,10 @@ export const LifeGallery: React.FC = () => {
             </button>
 
             <motion.div
-              layoutId={`photo-${selectedPhoto.id}`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
               className="relative w-full h-full md:max-w-7xl md:h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-none md:rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
@@ -787,20 +798,21 @@ export const LifeGallery: React.FC = () => {
 
                     return (
                       <>
+                        {/* Video Loading Spinner */}
+                        {videoLoading && currentPlatform === 'direct' && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+                            <div className="w-12 h-12 border-4 border-theme-accent/30 border-t-theme-accent rounded-full animate-spin" />
+                          </div>
+                        )}
                         {currentPlatform === 'direct' ? (
                           <video
-                            key={currentVideoUrl} // Force re-render on change
+                            key={currentVideoUrl}
                             src={currentVideoUrl}
                             className="w-full h-full object-contain"
                             controls
-                            // Giúp video phát trực tiếp trong trang trên iOS
                             playsInline
-                            // Mobile: chỉ load metadata, khi user bấm play mới tải mạnh
-                            preload={isMobile ? 'metadata' : 'auto'}
-                            // Desktop: vẫn autoplay như cũ; Mobile: không autoplay để giảm giật/đơ
-                            autoPlay={!isMobile}
-                            // Desktop: loop như cũ; Mobile: tắt loop để giảm CPU
-                            loop={!isMobile}
+                            preload="metadata"
+                            onLoadedData={() => setVideoLoading(false)}
                           />
                         ) : (
                           <iframe
