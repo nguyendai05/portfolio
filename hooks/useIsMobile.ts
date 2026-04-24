@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react';
 
 const MOBILE_BREAKPOINT = 768;
 
-const getInitial = () =>
-  typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false;
-
 /**
  * Shared mobile-breakpoint hook backed by `matchMedia` so every component
  * subscribes to a single browser event instead of attaching its own
  * `resize` listener and re-rendering on every resize frame.
  */
 export const useIsMobile = (breakpoint: number = MOBILE_BREAKPOINT): boolean => {
-  const [isMobile, setIsMobile] = useState<boolean>(getInitial);
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
