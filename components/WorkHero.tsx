@@ -2,8 +2,10 @@ import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { GlitchText } from './GlitchText';
 import { PROJECTS } from '../data/mockData';
+import { useLanguage } from '../context/LanguageContext';
 
 export const WorkHero: React.FC = () => {
+    const { t } = useLanguage();
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 300], [1, 0]);
     const scale = useTransform(scrollY, [0, 300], [1, 0.9]);
@@ -23,39 +25,37 @@ export const WorkHero: React.FC = () => {
             <div className="mb-8">
                 <div className="flex items-center justify-center gap-4 mb-6 opacity-60">
                     <div className="w-2 h-2 bg-mantis-green rounded-full animate-pulse"></div>
-                    <span className="font-mono text-xs uppercase tracking-widest">Experimental Archive</span>
+                    <span className="font-mono text-xs uppercase tracking-widest">{t('work.hero.badge')}</span>
                 </div>
 
                 <GlitchText
-                    text="Work. Experiments. The Labs."
+                    text={t('work.hero.headline')}
                     className="text-4xl md:text-[6vw] leading-[0.8] font-black tracking-tighter mb-8"
-                    highlightWord="Labs."
+                    highlightWord={t('work.hero.highlight')}
                 />
 
                 <p className="font-mono text-sm md:text-base max-w-2xl mx-auto opacity-70 leading-relaxed">
-                    An ongoing exploration of code, design, and interaction.
-                    Here lies a collection of student projects, late-night commits,
-                    and brutalist experiments.
+                    {t('work.hero.copy')}
                 </p>
             </div>
 
             {/* Stats Strip */}
             <div className="flex flex-wrap justify-center gap-8 md:gap-16 border-t border-b border-theme-border py-6 px-12 bg-theme-bg/50 backdrop-blur-sm">
                 <div className="text-center">
-                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">Projects</div>
+                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statProjects')}</div>
                     <div className="text-2xl font-bold font-mono">0{totalProjects}</div>
                 </div>
                 <div className="text-center">
-                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">Categories</div>
+                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statCategories')}</div>
                     <div className="text-2xl font-bold font-mono">0{uniqueCategories}</div>
                 </div>
                 <div className="text-center">
-                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">Commits</div>
+                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statCommits')}</div>
                     <div className="text-2xl font-bold font-mono">404</div>
                 </div>
                 <div className="text-center hidden md:block">
-                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">Status</div>
-                    <div className="text-2xl font-bold font-mono text-mantis-green">ONLINE</div>
+                    <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statStatus')}</div>
+                    <div className="text-2xl font-bold font-mono text-mantis-green">{t('work.hero.online')}</div>
                 </div>
             </div>
         </motion.section>

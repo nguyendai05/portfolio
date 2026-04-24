@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Maximize2, Film, Wifi, MonitorPlay, HardDrive, Video } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export interface VideoData {
   type: 'video';
@@ -20,6 +21,7 @@ interface VideoTimelineItemProps {
 }
 
 export const VideoTimelineItem: React.FC<VideoTimelineItemProps> = ({ data, index }) => {
+  const { t } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const isEven = index % 2 === 0;
@@ -165,7 +167,7 @@ export const VideoTimelineItem: React.FC<VideoTimelineItemProps> = ({ data, inde
                               <HardDrive className="text-blue-400 w-16 h-16" />
                             </motion.div>
                             <div className="flex flex-col items-center gap-2">
-                              <span className="font-mono text-sm text-blue-400 font-bold">Loading from Google Drive</span>
+                              <span className="font-mono text-sm text-blue-400 font-bold">{t('about.video.loading')}</span>
                               <div className="flex gap-1">
                                 {[0, 1, 2].map((i) => (
                                   <motion.div
@@ -238,7 +240,7 @@ export const VideoTimelineItem: React.FC<VideoTimelineItemProps> = ({ data, inde
                       {/* HUD Elements */}
                       <div className="absolute top-4 right-4 font-mono text-[10px] text-theme-accent bg-black/80 px-2 py-1 border border-theme-accent/30 flex items-center gap-2 backdrop-blur-sm">
                         <Wifi size={12} className="animate-pulse" />
-                        LIVE FEED
+                        {t('about.video.liveFeed')}
                       </div>
 
                       <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/80 to-transparent p-4 pt-16">
@@ -274,7 +276,7 @@ export const VideoTimelineItem: React.FC<VideoTimelineItemProps> = ({ data, inde
              <div className={`mt-4 font-mono text-xs opacity-70 max-w-xs ${isEven ? 'ml-auto' : ''}`}>
                 <div className="flex items-center gap-2 mb-1 text-theme-accent opacity-50">
                   <Maximize2 size={12} />
-                  <span>Video Log Entry</span>
+                  <span>{t('about.video.logEntry')}</span>
                 </div>
                 <p>{data.description}</p>
              </div>

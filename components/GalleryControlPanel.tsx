@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Sliders, Zap, Activity, Cpu, Grid, Layers, Radio, Maximize2, RotateCcw } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 type ArtVariant = 'network' | 'particles' | 'matrix' | 'flow';
 
@@ -29,6 +30,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
     isFullscreen
 }) => {
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const panelRef = useRef<HTMLDivElement>(null);
 
     // 3D Tilt Logic
@@ -92,7 +94,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                     <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${isMatrix ? 'bg-green-500' : 'bg-theme-accent'} animate-pulse`} />
                         <span className={`text-[10px] font-mono uppercase tracking-widest ${textColor} opacity-70`}>
-                            Control_Deck_v2.0
+                            {t('gallery.panel.controlDeck')}
                         </span>
                     </div>
                     <div className="flex gap-1">
@@ -108,7 +110,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h3 className={`text-xs font-mono uppercase tracking-widest flex items-center gap-2 ${textColor}`}>
-                                <Layers size={12} /> Algorithm
+                                <Layers size={12} /> {t('gallery.panel.algorithm')}
                             </h3>
                             <span className={`text-[10px] font-mono ${accentColor}`}>
                                 {activeVariant.toUpperCase()}
@@ -142,13 +144,13 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                     {/* Parameters Section */}
                     <div className="space-y-6">
                         <h3 className={`text-xs font-mono uppercase tracking-widest flex items-center gap-2 ${textColor}`}>
-                            <Sliders size={12} /> Parameters
+                            <Sliders size={12} /> {t('gallery.panel.parameters')}
                         </h3>
 
                         {/* Intensity Slider */}
                         <div className="group">
                             <div className="flex justify-between text-xs font-mono mb-2">
-                                <span className={`${textColor} opacity-70`}>Density / Force</span>
+                                <span className={`${textColor} opacity-70`}>{t('gallery.panel.density')}</span>
                                 <span className={accentColor}>{intensity}%</span>
                             </div>
                             <div className="relative h-6 flex items-center">
@@ -179,7 +181,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                         {/* Speed Slider */}
                         <div className="group">
                             <div className="flex justify-between text-xs font-mono mb-2">
-                                <span className={`${textColor} opacity-70`}>Simulation Speed</span>
+                                <span className={`${textColor} opacity-70`}>{t('gallery.panel.speed')}</span>
                                 <span className={accentColor}>{speed.toFixed(1)}x</span>
                             </div>
                             <div className="relative h-6 flex items-center">
@@ -219,7 +221,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                  ${isMatrix ? 'border-white/30 text-white hover:bg-white/10' : 'border-theme-border/30 text-theme-text hover:bg-theme-text/5'}
                `}
                         >
-                            <RotateCcw size={12} /> Reset
+                            <RotateCcw size={12} /> {t('gallery.panel.reset')}
                         </button>
                         <button
                             onClick={onToggleFullscreen}
@@ -231,7 +233,7 @@ export const GalleryControlPanel: React.FC<GalleryControlPanelProps> = ({
                                 }
                `}
                         >
-                            <Maximize2 size={12} /> {isFullscreen ? 'Exit' : 'Full'}
+                            <Maximize2 size={12} /> {isFullscreen ? t('gallery.panel.exitFullscreen') : t('gallery.panel.fullscreen')}
                         </button>
                     </div>
 

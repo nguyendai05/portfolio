@@ -4,8 +4,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Cloud, Trophy, Clock, MapPin, Home, Briefcase, User, Mail, Image as ImageIcon, GraduationCap, Users } from 'lucide-react';
 import { useGamification } from '../context/GamificationContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { TrophyCase } from './TrophyCase';
 
 const formatClock = () => new Date().toLocaleTimeString('en-US', { hour12: false });
@@ -26,19 +28,20 @@ const LiveClock: React.FC = () => {
 export const Navigation: React.FC = () => {
   const location = useLocation();
   const { achievements, unlockAchievement, toggleTrophyCase } = useGamification();
+  const { t } = useLanguage();
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   const isMobile = useIsMobile();
 
   const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
-    { path: '/', label: 'Home', index: '01', icon: <Home size={18} /> },
-    { path: '/work', label: 'Work', index: '02', icon: <Briefcase size={18} /> },
-    { path: '/about', label: 'About', index: '03', icon: <User size={18} /> },
-    { path: '/contact', label: 'Contact', index: '04', icon: <Mail size={18} /> },
-    { path: '/gallery', label: 'Gallery', index: '05', icon: <ImageIcon size={18} /> },
-    { path: '/mentorship', label: 'Mentorship', index: '06', icon: <GraduationCap size={18} /> },
-    { path: '/collaboration', label: 'Collab', index: '07', icon: <Users size={18} /> },
+    { path: '/', label: t('nav.home'), index: '01', icon: <Home size={18} /> },
+    { path: '/work', label: t('nav.work'), index: '02', icon: <Briefcase size={18} /> },
+    { path: '/about', label: t('nav.about'), index: '03', icon: <User size={18} /> },
+    { path: '/contact', label: t('nav.contact'), index: '04', icon: <Mail size={18} /> },
+    { path: '/gallery', label: t('nav.gallery'), index: '05', icon: <ImageIcon size={18} /> },
+    { path: '/mentorship', label: t('nav.mentorship'), index: '06', icon: <GraduationCap size={18} /> },
+    { path: '/collaboration', label: t('nav.collaboration'), index: '07', icon: <Users size={18} /> },
   ];
 
   // Triple click logo logic
@@ -87,12 +90,14 @@ export const Navigation: React.FC = () => {
 
             {/* Controls Row */}
             <div className="flex items-center gap-3 pointer-events-auto bg-theme-bg/80 backdrop-blur-md p-2 rounded-xl border border-theme-border/10 shadow-sm">
+              <LanguageSwitcher />
+              <div className="w-[1px] h-4 bg-theme-border/20"></div>
               <ThemeSwitcher />
               <div className="w-[1px] h-4 bg-theme-border/20"></div>
               <button
                 onClick={toggleTrophyCase}
                 className="relative group p-2 hover:bg-theme-accent/10 rounded-lg transition-colors"
-                title="Achievements"
+                title={t('nav.achievements')}
               >
                 <Trophy size={18} className="text-theme-text group-hover:text-theme-accent transition-colors" />
                 {unlockedCount > 0 && (
@@ -183,8 +188,9 @@ export const Navigation: React.FC = () => {
             </Link>
 
             <div className="flex items-center gap-4">
+              <LanguageSwitcher />
               <ThemeSwitcher />
-              <button onClick={toggleTrophyCase} className="relative" aria-label="Open achievements">
+              <button onClick={toggleTrophyCase} className="relative" aria-label={t('nav.achievements')}>
                 <Trophy size={20} />
                 {unlockedCount > 0 && (
                   <span className="absolute -top-2 -right-2 w-4 h-4 bg-theme-accent text-theme-bg text-[9px] rounded-full flex items-center justify-center font-bold">

@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useRe
 import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { GlitchText } from './GlitchText';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../context/LanguageContext';
 
 // --- Helper Functions ---
 /**
@@ -336,6 +337,7 @@ const ControlDeck: React.FC<{
   motionEnabled: boolean;
   isMobile: boolean;
 }> = ({ filter, setFilter, layout, setLayout, categories, totalCount, motionEnabled, isMobile }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={motionEnabled ? { y: -50, opacity: 0 } : false}
@@ -354,14 +356,14 @@ const ControlDeck: React.FC<{
           <div className="flex items-center gap-4 w-full md:w-auto">
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
               <Sparkles size={14} className="text-theme-accent" />
-              <span className="text-[10px] font-mono text-white/60">MEMORIES: {totalCount.toString().padStart(2, '0')}</span>
+              <span className="text-[10px] font-mono text-white/60">{t('about.life.memories')}: {totalCount.toString().padStart(2, '0')}</span>
             </div>
             <div className="relative flex-1 md:w-48">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
               <input
                 type="text"
-                placeholder="Search archives..."
-                aria-label="Search archives"
+                placeholder={t('about.life.searchPlaceholder')}
+                aria-label={t('about.life.searchAria')}
                 className="w-full bg-black/20 border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-xs text-white focus:outline-none focus:border-theme-accent/50 transition-colors"
               />
             </div>
@@ -395,14 +397,14 @@ const ControlDeck: React.FC<{
               onClick={() => setLayout('scatter')}
               disabled={isMobile}
               className={`p-1.5 rounded-md transition-all ${layout === 'scatter' ? 'bg-white/10 text-theme-accent shadow-inner' : 'text-white/40 hover:text-white'} ${isMobile ? 'opacity-40 cursor-not-allowed' : ''}`}
-              title="3D Scatter"
+              title={t('about.life.scatterTitle')}
             >
               <Shuffle size={16} />
             </button>
             <button
               onClick={() => setLayout('grid')}
               className={`p-1.5 rounded-md transition-all ${layout === 'grid' ? 'bg-white/10 text-theme-accent shadow-inner' : 'text-white/40 hover:text-white'}`}
-              title="Grid View"
+              title={t('about.life.gridTitle')}
             >
               <Grid size={16} />
             </button>
@@ -616,6 +618,7 @@ interface LifeGalleryProps {
 }
 
 export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }) => {
+  const { t } = useLanguage();
   const isMobile = useIsMobile();
   const [layout, setLayout] = useState<'scatter' | 'grid'>(() => (isMobile ? 'grid' : 'scatter'));
   const [filter, setFilter] = useState<string>('all');
@@ -758,7 +761,7 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
         >
           {/* Close Button */}
           <button
-            aria-label="Close lightbox"
+            aria-label={t('about.life.closeLightbox')}
             className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-theme-accent hover:text-black transition-all"
             onClick={() => setSelectedPhoto(null)}
           >
@@ -811,7 +814,7 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
                           key={currentVideoUrl} // Force re-render on change
                           src={getEmbedUrl(currentVideoUrl, currentPlatform)}
                           className="w-full h-full"
-                          title={selectedPhoto.caption || "Embedded video player"}
+                          title={selectedPhoto.caption || t('about.life.embeddedVideo')}
                           // Mobile: lazy để giảm gánh network & CPU khi mở lightbox
                           loading={isMobile ? 'lazy' : 'eager'}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -822,10 +825,10 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
                       {/* Navigation for multiple videos */}
                       {selectedPhoto.videoUrls && selectedPhoto.videoUrls.length > 1 && (
                         <>
-                          <button onClick={handlePrevMedia} aria-label="Previous video" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                          <button onClick={handlePrevMedia} aria-label={t('about.life.prevVideo')} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                             <ChevronLeft size={24} />
                           </button>
-                          <button onClick={handleNextMedia} aria-label="Next video" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                          <button onClick={handleNextMedia} aria-label={t('about.life.nextVideo')} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                             <ChevronRight size={24} />
                           </button>
                           {/* Video Counter */}
@@ -848,10 +851,10 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
                   />
                   {selectedPhoto.mediaUrls && selectedPhoto.mediaUrls.length > 1 && (
                     <>
-                      <button onClick={handlePrevMedia} aria-label="Previous image" className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                      <button onClick={handlePrevMedia} aria-label={t('about.life.prevImage')} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                         <ChevronLeft size={24} />
                       </button>
-                      <button onClick={handleNextMedia} aria-label="Next image" className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
+                      <button onClick={handleNextMedia} aria-label={t('about.life.nextImage')} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-theme-accent hover:text-black transition-all opacity-0 group-hover:opacity-100">
                         <ChevronRight size={24} />
                       </button>
                       {/* Image Counter */}
@@ -868,22 +871,22 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
             <div className="w-full md:w-1/4 flex-1 md:flex-none md:h-full bg-[#111] border-t border-white/5 md:border-t-0 md:border-l p-6 md:p-8 flex flex-col overflow-y-auto">
               <div className="flex items-center gap-2 mb-6 opacity-50">
                 <Globe size={14} />
-                <span className="text-[10px] font-mono uppercase tracking-widest">Data Log #{selectedPhoto.id}</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest">{t('about.life.dataLog').replace('{id}', selectedPhoto.id)}</span>
               </div>
 
               <h2 className="text-2xl font-bold text-white mb-4 leading-tight">{selectedPhoto.caption}</h2>
 
               <div className="space-y-6 mt-4">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-mono text-white/40 uppercase">Date</span>
+                  <span className="text-[10px] font-mono text-white/40 uppercase">{t('about.life.date')}</span>
                   <span className="text-sm text-white/80 flex items-center gap-2"><Calendar size={14} /> {selectedPhoto.date}</span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-mono text-white/40 uppercase">Location</span>
+                  <span className="text-[10px] font-mono text-white/40 uppercase">{t('about.life.location')}</span>
                   <span className="text-sm text-white/80 flex items-center gap-2"><MapPin size={14} /> {selectedPhoto.location}</span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-mono text-white/40 uppercase">Category</span>
+                  <span className="text-[10px] font-mono text-white/40 uppercase">{t('about.life.category')}</span>
                   <div className="flex flex-wrap gap-2">
                     {selectedPhoto.category.map((cat, i) => (
                       <span key={i} className="inline-flex self-start items-center px-2 py-1 rounded bg-theme-accent/10 text-theme-accent text-xs font-bold border border-theme-accent/20">
@@ -897,7 +900,7 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
               <div className="mt-auto pt-8">
                 <button className="w-full py-3 rounded border border-white/10 hover:bg-white/5 flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest transition-all group">
                   <Heart size={16} className="group-hover:text-red-500 transition-colors" />
-                  Add to Favorites
+                  {t('about.life.addToFav')}
                 </button>
               </div>
             </div>
@@ -929,13 +932,13 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
               className="flex items-center justify-center md:justify-start gap-2 text-theme-accent opacity-80 mb-4"
             >
               <Aperture size={16} className={motionEnabled ? "animate-spin-slow" : ""} />
-              <span className="font-mono text-xs uppercase tracking-[0.2em]">Chronosphere // Archive</span>
+              <span className="font-mono text-xs uppercase tracking-[0.2em]">{t('about.life.chronosphere')}</span>
             </motion.div>
 
             <GlitchText
-              text="Visual Memories."
+              text={t('about.life.visualMemories')}
               className="text-[12vw] md:text-[7vw] leading-[0.8] font-black tracking-tighter text-center md:text-left"
-              highlightWord="Memories"
+              highlightWord={t('about.life.highlight')}
             />
           </div>
 
@@ -976,7 +979,7 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
             {filteredPhotos.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center opacity-50">
                 <Globe size={48} className={`mb-4 text-theme-accent ${motionEnabled ? 'animate-pulse' : ''}`} />
-                <p className="font-mono text-sm">NO_DATA_FOUND_IN_SECTOR</p>
+                <p className="font-mono text-sm">{t('about.life.noData')}</p>
               </div>
             )}
           </div>

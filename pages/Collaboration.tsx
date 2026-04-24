@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GlitchText } from '../components/GlitchText';
 import { Users, Plus, ThumbsUp, Filter, MessageSquare, X, Zap, Loader2, AlertCircle, RefreshCw, Send, Trash2 } from 'lucide-react';
 import { fetchIdeas, createIdea, upvoteIdea, fetchComments, createComment, deleteComment, ApiError, type Idea, type Comment } from '../services/ideasService';
+import { useLanguage } from '../context/LanguageContext';
+import { TranslationKey } from '../data/translations';
 
 // Fallback mock data khi API không khả dụng
 const MOCK_IDEAS: Idea[] = [
@@ -49,6 +51,7 @@ const MOCK_IDEAS: Idea[] = [
 ];
 
 export const Collaboration: React.FC = () => {
+  const { t } = useLanguage();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [filter, setFilter] = useState<'All' | 'Team' | 'Easy' | 'Hard'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,9 +101,9 @@ export const Collaboration: React.FC = () => {
       setIdeas(MOCK_IDEAS);
       if (err instanceof ApiError && err.hint) {
         const label = err.code ? `[${err.code}] ` : '';
-        setError(`Đang dùng dữ liệu mẫu — ${label}${err.hint}`);
+        setError(`${t('collab.usingMockDataPrefix')}${label}${err.hint}`);
       } else {
-        setError('Đang dùng dữ liệu mẫu (API chưa kết nối)');
+        setError(t('collab.usingMockData'));
       }
     } finally {
       setLoading(false);
@@ -216,13 +219,13 @@ export const Collaboration: React.FC = () => {
     const now = new Date();
     const date = new Date(dateStr);
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    if (seconds < 60) return 'vừa xong';
+    if (seconds < 60) return t('collab.time.justNow');
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} phút trước`;
+    if (minutes < 60) return t('collab.time.minutesAgo').replace('{n}', String(minutes));
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} giờ trước`;
+    if (hours < 24) return t('collab.time.hoursAgo').replace('{n}', String(hours));
     const days = Math.floor(hours / 24);
-    return `${days} ngày trước`;
+    return t('collab.time.daysAgo').replace('{n}', String(days));
   };
 
   const filteredIdeas = ideas.filter(idea => {
@@ -245,12 +248,12 @@ export const Collaboration: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-theme-accent opacity-60 mb-4">
               <Users size={14} />
-              <span className="font-mono text-xs uppercase tracking-widest">Community Hive</span>
+              <span className="font-mono text-xs uppercase tracking-widest">{t('collab.badge')}</span>
             </div>
             <GlitchText
-              text="Collaboration Board."
+              text={t('collab.headline')}
               className="text-4xl md:text-[6vw] leading-[0.9] font-black tracking-tighter"
-              highlightWord="Board."
+              highlightWord={t('collab.highlight')}
             />
           </div>
           <button
@@ -258,7 +261,7 @@ export const Collaboration: React.FC = () => {
             className="bg-theme-text text-theme-bg px-6 py-4 font-mono uppercase tracking-widest hover:bg-mantis-green hover:text-black transition-colors flex items-center gap-2 group shadow-[8px_8px_0px_0px_var(--color-accent)] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
           >
             <Plus size={16} />
-            Propose Idea
+            {t('collab.propose')}
           </button>
         </div>
 
@@ -267,7 +270,7 @@ export const Collaboration: React.FC = () => {
           <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
             <AlertCircle size={16} className="text-yellow-500" />
             <span className="font-mono text-xs">{error}</span>
-            <button onClick={loadIdeas} className="ml-auto hover:text-theme-accent" aria-label="Làm mới danh sách" title="Làm mới danh sách">
+            <button onClick={loadIdeas} className="ml-auto hover:text-theme-accent" aria-label={t('collab.refresh')} title={t('collab.refresh')}>
               <RefreshCw size={14} />
             </button>
           </div>
@@ -276,20 +279,20 @@ export const Collaboration: React.FC = () => {
         {/* Controls */}
         <div className="sticky top-24 z-30 bg-theme-bg/90 backdrop-blur-sm py-4 mb-12 border-b border-theme-border flex flex-wrap gap-4 items-center">
           <Filter size={16} className="mr-2 opacity-50" />
-          {['All', 'Team', 'Easy', 'Hard'].map(f => (
+          {(['All', 'Team', 'Easy', 'Hard'] as const).map(f => (
             <button
               key={f}
-              onClick={() => setFilter(f as any)}
+              onClick={() => setFilter(f)}
               className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-all ${filter === f
                 ? 'bg-theme-text text-theme-bg border-theme-text'
                 : 'bg-transparent text-theme-text border-transparent hover:border-theme-border'
                 }`}
             >
-              {f === 'Team' ? 'Looking for Team' : f}
+              {t(`collab.filter.${f.toLowerCase()}` as TranslationKey)}
             </button>
           ))}
           <div className="ml-auto font-mono text-xs opacity-50 hidden md:block">
-            {filteredIdeas.length} PROJECTS FOUND
+            {t('collab.filter.countFound').replace('{n}', String(filteredIdeas.length))}
           </div>
         </div>
 
@@ -345,14 +348,14 @@ export const Collaboration: React.FC = () => {
                       {idea.lookingForTeam && (
                         <div className="flex items-center gap-1 text-[10px] font-bold text-theme-accent animate-pulse">
                           <Zap size={12} className="fill-current" />
-                          TEAM
+                          {t('collab.team.badge')}
                         </div>
                       )}
                       <button
                         onClick={() => openCommentModal(idea.id)}
                         className="bg-theme-text text-theme-bg p-2 hover:bg-mantis-green hover:text-black transition-colors flex items-center gap-1"
-                        aria-label="Xem bình luận"
-                        title="Xem bình luận"
+                        aria-label={t('collab.comment.title')}
+                        title={t('collab.comment.title')}
                       >
                         <MessageSquare size={14} />
                         {(commentCounts[idea.id] || 0) > 0 && (
@@ -386,47 +389,47 @@ export const Collaboration: React.FC = () => {
               className="bg-theme-panel w-full max-w-lg border-2 border-theme-text shadow-2xl overflow-hidden"
             >
               <div className="bg-theme-text text-theme-bg p-4 flex justify-between items-center border-b border-theme-text">
-                <span className="font-mono text-xs uppercase tracking-widest">New_Proposal.exe</span>
-                <button onClick={() => setIsModalOpen(false)} className="hover:text-mantis-green" aria-label="Đóng modal" title="Đóng modal"><X size={18} /></button>
+                <span className="font-mono text-xs uppercase tracking-widest">{t('collab.modal.title')}</span>
+                <button onClick={() => setIsModalOpen(false)} className="hover:text-mantis-green" aria-label={t('collab.modal.close')} title={t('collab.modal.close')}><X size={18} /></button>
               </div>
 
               <form onSubmit={handleSubmit} className="p-8 space-y-6">
                 <div>
-                  <label className="block font-mono text-xs uppercase tracking-widest mb-2">Project Title</label>
+                  <label className="block font-mono text-xs uppercase tracking-widest mb-2">{t('collab.modal.projectTitle')}</label>
                   <input
                     type="text"
                     required
                     value={newIdea.title}
                     onChange={e => setNewIdea({ ...newIdea, title: e.target.value })}
                     className="w-full bg-theme-bg p-3 border border-theme-border focus:border-mantis-green outline-none transition-colors"
-                    placeholder="e.g., Quantum To-Do List"
+                    placeholder={t('collab.modal.titlePlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-xs uppercase tracking-widest mb-2">Description</label>
+                  <label className="block font-mono text-xs uppercase tracking-widest mb-2">{t('collab.modal.description')}</label>
                   <textarea
                     required
                     rows={3}
                     value={newIdea.description}
                     onChange={e => setNewIdea({ ...newIdea, description: e.target.value })}
                     className="w-full bg-theme-bg p-3 border border-theme-border focus:border-mantis-green outline-none transition-colors"
-                    placeholder="Briefly explain your idea..."
+                    placeholder={t('collab.modal.descPlaceholder')}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-mono text-xs uppercase tracking-widest mb-2">Tags (comma sep)</label>
+                    <label className="block font-mono text-xs uppercase tracking-widest mb-2">{t('collab.modal.tags')}</label>
                     <input
                       type="text"
                       required
                       value={newIdea.tags}
                       onChange={e => setNewIdea({ ...newIdea, tags: e.target.value })}
                       className="w-full bg-theme-bg p-3 border border-theme-border focus:border-mantis-green outline-none transition-colors"
-                      placeholder="React, IoT, Web3"
+                      placeholder={t('collab.modal.tagsPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label htmlFor="difficulty-select" className="block font-mono text-xs uppercase tracking-widest mb-2">Difficulty</label>
+                    <label htmlFor="difficulty-select" className="block font-mono text-xs uppercase tracking-widest mb-2">{t('collab.modal.difficulty')}</label>
                     <select
                       id="difficulty-select"
                       value={newIdea.difficulty}
@@ -447,7 +450,7 @@ export const Collaboration: React.FC = () => {
                   className="w-full bg-theme-text text-theme-bg py-4 font-mono uppercase tracking-widest hover:bg-mantis-green hover:text-black transition-colors font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting && <Loader2 size={16} className="animate-spin" />}
-                  {submitting ? 'Submitting...' : 'Submit to Board'}
+                  {submitting ? t('collab.modal.submitting') : t('collab.modal.submit')}
                 </button>
               </form>
             </motion.div>
@@ -476,9 +479,9 @@ export const Collaboration: React.FC = () => {
               <div className="bg-theme-text text-theme-bg p-4 flex justify-between items-center border-b border-theme-text flex-shrink-0">
                 <span className="font-mono text-xs uppercase tracking-widest flex items-center gap-2">
                   <MessageSquare size={14} />
-                  Comments ({comments.length})
+                  {t('collab.comment.title')} ({comments.length})
                 </span>
-                <button onClick={closeCommentModal} className="hover:text-mantis-green" aria-label="Đóng bình luận" title="Đóng bình luận">
+                <button onClick={closeCommentModal} className="hover:text-mantis-green" aria-label={t('collab.comment.close')} title={t('collab.comment.close')}>
                   <X size={18} />
                 </button>
               </div>
@@ -492,8 +495,8 @@ export const Collaboration: React.FC = () => {
                 ) : comments.length === 0 ? (
                   <div className="text-center py-8 opacity-50">
                     <MessageSquare size={32} className="mx-auto mb-2 opacity-30" />
-                    <p className="font-mono text-xs">Chưa có bình luận nào</p>
-                    <p className="font-mono text-[10px] mt-1">Hãy là người đầu tiên!</p>
+                    <p className="font-mono text-xs">{t('collab.comment.empty')}</p>
+                    <p className="font-mono text-[10px] mt-1">{t('collab.comment.beFirst')}</p>
                   </div>
                 ) : (
                   comments.map(comment => (
@@ -511,7 +514,7 @@ export const Collaboration: React.FC = () => {
                         <button
                           onClick={() => handleDeleteComment(comment.id)}
                           className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-400 transition-opacity p-1"
-                          title="Xóa bình luận"
+                          title={t('collab.comment.delete')}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -526,14 +529,14 @@ export const Collaboration: React.FC = () => {
               <form onSubmit={handleAddComment} className="p-4 border-t border-theme-border/30 flex-shrink-0 space-y-3">
                 {/* Author name section */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider opacity-50">Đăng với tên:</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider opacity-50">{t('collab.comment.postAs')}</span>
                   {isEditingAuthor ? (
                     <div className="flex items-center gap-2 flex-1">
                       <input
                         type="text"
                         value={commentAuthor}
                         onChange={e => setCommentAuthor(e.target.value)}
-                        placeholder="Nhập tên của bạn..."
+                        placeholder={t('collab.comment.namePlaceholder')}
                         className="flex-1 bg-theme-bg px-2 py-1 border border-mantis-green text-sm outline-none"
                         autoFocus
                         onKeyDown={e => {
@@ -548,7 +551,7 @@ export const Collaboration: React.FC = () => {
                         onClick={() => setIsEditingAuthor(false)}
                         className="text-mantis-green text-xs font-mono hover:underline"
                       >
-                        OK
+                        {t('collab.comment.ok')}
                       </button>
                     </div>
                   ) : (
@@ -558,7 +561,7 @@ export const Collaboration: React.FC = () => {
                       className="text-theme-accent font-bold text-sm hover:underline flex items-center gap-1"
                     >
                       @{commentAuthor || 'Anonymous'}
-                      <span className="text-[10px] opacity-50">(sửa)</span>
+                      <span className="text-[10px] opacity-50">{t('collab.comment.edit')}</span>
                     </button>
                   )}
                 </div>
@@ -569,7 +572,7 @@ export const Collaboration: React.FC = () => {
                     type="text"
                     value={newComment}
                     onChange={e => setNewComment(e.target.value)}
-                    placeholder="Viết bình luận..."
+                    placeholder={t('collab.comment.placeholder')}
                     className="flex-1 bg-theme-bg p-3 border border-theme-border focus:border-mantis-green outline-none transition-colors text-sm"
                     disabled={submittingComment}
                   />
@@ -577,8 +580,8 @@ export const Collaboration: React.FC = () => {
                     type="submit"
                     disabled={submittingComment || !newComment.trim()}
                     className="bg-theme-text text-theme-bg px-4 hover:bg-mantis-green hover:text-black transition-colors disabled:opacity-50 flex items-center gap-2"
-                    aria-label="Gửi bình luận"
-                    title="Gửi bình luận"
+                    aria-label={t('collab.comment.send')}
+                    title={t('collab.comment.send')}
                   >
                     {submittingComment ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>

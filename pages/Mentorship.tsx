@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle, AlertCircle, FileCode, Cpu, Loader, Shield } from 'lucide-react';
 import { GlitchText } from '../components/GlitchText';
+import { useLanguage } from '../context/LanguageContext';
 
 export const Mentorship: React.FC = () => {
+  const { t } = useLanguage();
   const [form, setForm] = useState({
     name: '',
     url: '',
@@ -13,7 +15,13 @@ export const Mentorship: React.FC = () => {
   const [aiReport, setAiReport] = useState<string>('');
   const [ticketId, setTicketId] = useState<string>('');
 
-  const focusAreas = ['UI/UX Design', 'Code Quality', 'Performance', 'Accessibility', 'Career Advice'];
+  const focusAreas: { id: string; label: string }[] = [
+    { id: 'UI/UX Design', label: t('mentorship.focus.uiux') },
+    { id: 'Code Quality', label: t('mentorship.focus.code') },
+    { id: 'Performance', label: t('mentorship.focus.perf') },
+    { id: 'Accessibility', label: t('mentorship.focus.a11y') },
+    { id: 'Career Advice', label: t('mentorship.focus.career') },
+  ];
 
   const toggleFocus = (area: string) => {
     setForm(prev => ({
@@ -55,7 +63,7 @@ export const Mentorship: React.FC = () => {
       setAiReport(response);
       setStatus('complete');
     } catch (error) {
-      setAiReport("Error establishing neural link. Please try again later.");
+      setAiReport(t('mentorship.error.neuralLink'));
       setStatus('idle');
     }
   };
@@ -75,29 +83,28 @@ export const Mentorship: React.FC = () => {
             <div className="mb-12">
               <div className="flex items-center gap-2 text-theme-accent opacity-60 mb-4">
                 <Shield size={14} />
-                <span className="font-mono text-xs uppercase tracking-widest">Community Link</span>
+                <span className="font-mono text-xs uppercase tracking-widest">{t('mentorship.badge')}</span>
               </div>
               <GlitchText
-                text="Code Review Protocol."
+                text={t('mentorship.headline')}
                 className="text-4xl md:text-[5vw] lg:text-[4vw] leading-[0.9] font-black tracking-tighter mb-8"
-                highlightWord="Protocol."
+                highlightWord={t('mentorship.highlight')}
               />
               <p className="font-mono text-sm opacity-80 leading-relaxed mb-8">
-                Building a portfolio is hard. Doing it alone is harder.
-                Submit your work for a constructive roast (mentorship) session.
+                {t('mentorship.intro')}
               </p>
               <ul className="space-y-4 font-mono text-xs border-l-2 border-theme-text pl-6">
                 <li className="flex items-center gap-3">
                   <CheckCircle size={14} className="text-theme-accent" />
-                  <span>Automated pre-analysis (AI)</span>
+                  <span>{t('mentorship.feature1')}</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle size={14} className="text-theme-accent" />
-                  <span>Manual code inspection</span>
+                  <span>{t('mentorship.feature2')}</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle size={14} className="text-theme-accent" />
-                  <span>Actionable roadmap</span>
+                  <span>{t('mentorship.feature3')}</span>
                 </li>
               </ul>
             </div>
@@ -111,7 +118,7 @@ export const Mentorship: React.FC = () => {
               <div className="bg-theme-text text-theme-bg p-4 flex justify-between items-center">
                 <div className="flex items-center gap-2 font-mono text-xs">
                   <FileCode size={14} className="text-mantis-green" />
-                  <span>MENTORSHIP_REQ_FORM_V2</span>
+                  <span>{t('mentorship.console.header')}</span>
                 </div>
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -124,7 +131,7 @@ export const Mentorship: React.FC = () => {
                 {status === 'idle' && (
                   <form onSubmit={handleSubmit} className="space-y-8">
                     <div>
-                      <label className="block font-mono text-xs uppercase tracking-widest mb-2 opacity-60">Target URL</label>
+                      <label className="block font-mono text-xs uppercase tracking-widest mb-2 opacity-60">{t('mentorship.form.targetUrl')}</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-mono text-sm opacity-40">https://</span>
                         <input
@@ -133,38 +140,38 @@ export const Mentorship: React.FC = () => {
                           value={form.url}
                           onChange={e => setForm({ ...form, url: e.target.value })}
                           className="w-full bg-theme-bg p-4 pl-20 border-b-2 border-theme-border/10 focus:border-mantis-green outline-none font-mono transition-colors text-theme-text placeholder:text-theme-text/30"
-                          placeholder="your-portfolio.dev"
+                          placeholder={t('mentorship.form.urlPlaceholder')}
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div>
-                        <label className="block font-mono text-xs uppercase tracking-widest mb-2 opacity-60">Developer Name</label>
+                        <label className="block font-mono text-xs uppercase tracking-widest mb-2 opacity-60">{t('mentorship.form.devName')}</label>
                         <input
                           type="text"
                           value={form.name}
                           onChange={e => setForm({ ...form, name: e.target.value })}
                           className="w-full bg-theme-bg p-4 border-b-2 border-theme-border/10 focus:border-mantis-green outline-none font-mono transition-colors text-theme-text placeholder:text-theme-text/30"
-                          placeholder="Anon"
+                          placeholder={t('mentorship.form.devNamePlaceholder')}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block font-mono text-xs uppercase tracking-widest mb-4 opacity-60">Request Audit For:</label>
+                      <label className="block font-mono text-xs uppercase tracking-widest mb-4 opacity-60">{t('mentorship.form.requestAudit')}</label>
                       <div className="flex flex-wrap gap-3">
                         {focusAreas.map(area => (
                           <button
-                            key={area}
+                            key={area.id}
                             type="button"
-                            onClick={() => toggleFocus(area)}
-                            className={`px-4 py-2 font-mono text-xs border transition-all ${form.focus.includes(area)
+                            onClick={() => toggleFocus(area.id)}
+                            className={`px-4 py-2 font-mono text-xs border transition-all ${form.focus.includes(area.id)
                                 ? 'bg-theme-text text-theme-bg border-theme-text'
                                 : 'bg-transparent border-theme-border/20 text-theme-text hover:border-theme-border'
                               }`}
                           >
-                            {area}
+                            {area.label}
                           </button>
                         ))}
                       </div>
@@ -174,7 +181,7 @@ export const Mentorship: React.FC = () => {
                       type="submit"
                       className="w-full bg-theme-text text-theme-bg hover:bg-mantis-green hover:text-black py-4 font-mono uppercase tracking-widest transition-colors flex items-center justify-center gap-2 group"
                     >
-                      <span>Initialize Scan</span>
+                      <span>{t('mentorship.form.submit')}</span>
                       <Send size={14} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   </form>
@@ -186,8 +193,8 @@ export const Mentorship: React.FC = () => {
                       <div className="w-16 h-16 border-4 border-theme-border/10 border-t-mantis-green rounded-full animate-spin"></div>
                       <Cpu size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-50" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 animate-pulse">Analyzing Metadata...</h3>
-                    <p className="font-mono text-xs opacity-50">Establishing link with Neural Interface.</p>
+                    <h3 className="text-xl font-bold mb-2 animate-pulse">{t('mentorship.analyzing.title')}</h3>
+                    <p className="font-mono text-xs opacity-50">{t('mentorship.analyzing.subtitle')}</p>
                   </div>
                 )}
 
@@ -195,17 +202,17 @@ export const Mentorship: React.FC = () => {
                   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="flex items-center justify-between border-b border-theme-border/10 pb-4 mb-6">
                       <div>
-                        <div className="font-mono text-xs text-theme-accent opacity-50">TICKET ID</div>
+                        <div className="font-mono text-xs text-theme-accent opacity-50">{t('mentorship.complete.ticketId')}</div>
                         <div className="text-xl font-bold font-mono">{ticketId}</div>
                       </div>
                       <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
-                        <CheckCircle size={12} /> QUEUED
+                        <CheckCircle size={12} /> {t('mentorship.complete.queued')}
                       </div>
                     </div>
 
                     <div className="bg-theme-bg p-6 border-l-4 border-mantis-green mb-8">
                       <h4 className="font-bold text-sm uppercase mb-4 flex items-center gap-2">
-                        <AlertCircle size={14} /> Automated Pre-Flight Check
+                        <AlertCircle size={14} /> {t('mentorship.complete.heading')}
                       </h4>
                       <div className="font-mono text-xs leading-relaxed whitespace-pre-wrap">
                         {aiReport}
@@ -213,12 +220,12 @@ export const Mentorship: React.FC = () => {
                     </div>
 
                     <div className="text-center">
-                      <p className="mb-4 font-sans text-sm">Your request has been logged. A human will review it shortly.</p>
+                      <p className="mb-4 font-sans text-sm">{t('mentorship.complete.logged')}</p>
                       <button
                         onClick={() => { setStatus('idle'); setForm({ name: '', url: '', focus: [] }); }}
                         className="text-xs font-mono underline hover:text-mantis-green"
                       >
-                        Submit Another Request
+                        {t('mentorship.complete.another')}
                       </button>
                     </div>
                   </div>

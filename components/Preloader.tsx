@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../context/LanguageContext';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -19,6 +20,7 @@ interface PreloaderProps {
  */
 export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [count, setCount] = useState(0);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Shorter duration to improve FCP/LCP on both mobile and desktop
@@ -91,7 +93,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
               <div className="flex items-center gap-3 mt-2 ml-1">
                 <span className="w-2 h-2 bg-mantis-green rounded-full animate-pulse shadow-[0_0_10px_rgba(57,255,20,0.6)]" />
                 <span className="text-[10px] md:text-xs font-mono uppercase tracking-[0.2em] opacity-60">
-                  Dev Portfolio
+                  {t('preloader.tagline')}
                 </span>
               </div>
             </motion.div>
@@ -122,7 +124,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
         {/* Bottom Meta Data */}
         <div className="flex justify-between mt-3 text-[9px] md:text-[10px] font-mono uppercase tracking-widest opacity-40 mix-blend-difference text-black">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-            Initializing Student Profile...
+            {t('preloader.initializing')}
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
             10.8231° N, 106.6297° E

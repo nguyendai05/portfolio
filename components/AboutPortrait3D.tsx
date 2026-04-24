@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { Scan, Activity, Cpu, Zap } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AboutPortrait3DProps {
     motionPaused?: boolean;
@@ -9,6 +10,7 @@ interface AboutPortrait3DProps {
 
 export const AboutPortrait3D: React.FC<AboutPortrait3DProps> = ({ motionPaused = false }) => {
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const containerRef = useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -189,14 +191,14 @@ export const AboutPortrait3D: React.FC<AboutPortrait3DProps> = ({ motionPaused =
                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-theme-bg to-transparent z-20">
                         <div className="flex justify-between items-end border-t border-theme-border/30 pt-2">
                             <div className="font-mono text-xs">
-                                <div className="opacity-50 text-[10px] uppercase">Status</div>
+                                <div className="opacity-50 text-[10px] uppercase">{t('about.portrait.status')}</div>
                                 <div className="flex items-center gap-2 text-theme-accent">
                                     <Activity size={12} />
-                                    <span>ONLINE</span>
+                                    <span>{t('about.portrait.online')}</span>
                                 </div>
                             </div>
                             <div className="font-mono text-xs text-right">
-                                <div className="opacity-50 text-[10px] uppercase">System</div>
+                                <div className="opacity-50 text-[10px] uppercase">{t('about.portrait.system')}</div>
                                 <div>V.2.0.25</div>
                             </div>
                         </div>
@@ -218,7 +220,7 @@ export const AboutPortrait3D: React.FC<AboutPortrait3DProps> = ({ motionPaused =
                     <div className="flex items-center gap-3">
                         <Scan size={16} />
                         <div>
-                            <div className="text-[10px] uppercase leading-none opacity-80">Operator</div>
+                            <div className="text-[10px] uppercase leading-none opacity-80">{t('about.portrait.operator')}</div>
                             <div className="font-bold font-mono text-sm tracking-wider">XUNI-DIZAN</div>
                         </div>
                     </div>

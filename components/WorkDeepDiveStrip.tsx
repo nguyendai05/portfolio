@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowRight, Layers, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface WorkDeepDiveStripProps {
     projects: Project[];
@@ -9,6 +10,7 @@ interface WorkDeepDiveStripProps {
 }
 
 export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, onProjectClick }) => {
+    const { t } = useLanguage();
     const prefersReducedMotion = useReducedMotion();
 
     // Featured projects are promoted to the top of Flagship Cases.
@@ -30,7 +32,7 @@ export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, 
 
     return (
         <section
-            aria-label="Flagship case studies"
+            aria-label={t('work.deepdive.aria')}
             className="py-20 md:py-28 relative group/section"
         >
             {/* Background accents */}
@@ -42,20 +44,20 @@ export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, 
                 <div className="space-y-3">
                     <div className="flex items-center gap-3 text-mantis-green">
                         <Layers size={18} />
-                        <span className="font-mono text-xs uppercase tracking-[0.2em]">Deep Dives</span>
+                        <span className="font-mono text-xs uppercase tracking-[0.2em]">{t('work.deepdive.deepDives')}</span>
                     </div>
                     <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-theme-text">
-                        FLAGSHIP CASES
+                        {t('work.deepdive.flagshipCases')}
                     </h2>
                     <p className="max-w-xl text-sm text-theme-text/60 leading-relaxed">
-                        Hand-picked, shipped products — click any card to open the full case study with stack, phases, and live link.
+                        {t('work.deepdive.intro')}
                     </p>
                 </div>
 
                 <div className="flex items-center gap-2 font-mono text-xs text-theme-text/50 uppercase tracking-widest self-start sm:self-end">
                     <Sparkles size={14} className="text-mantis-green" />
-                    <span>{featuredProjects.length} case{featuredProjects.length === 1 ? '' : 's'}</span>
-                    {!useGrid && <span className="ml-2 md:hidden">· swipe →</span>}
+                    <span>{t('work.deepdive.cases').replace('{n}', String(featuredProjects.length)).replace('{s}', featuredProjects.length === 1 ? '' : 's')}</span>
+                    {!useGrid && <span className="ml-2 md:hidden">{t('work.deepdive.swipe')}</span>}
                 </div>
             </div>
 
@@ -104,6 +106,7 @@ interface FlagshipCardProps {
 }
 
 const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, shouldAnimate, scrollVariant }) => {
+    const { t } = useLanguage();
     const widthClass = scrollVariant
         ? 'w-[85vw] sm:w-[420px] md:w-[460px] shrink-0 snap-start'
         : 'w-full';
@@ -147,7 +150,7 @@ const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, sh
                 <div className="absolute top-3 left-3 flex items-center gap-2">
                     <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest bg-theme-bg/90 text-theme-text border border-theme-border/40 backdrop-blur-md shadow-lg">
                         <span className="w-1.5 h-1.5 rounded-full bg-mantis-green mr-2 animate-pulse" />
-                        Case Study
+                        {t('work.deepdive.caseStudy')}
                     </span>
                 </div>
             </div>
@@ -188,10 +191,10 @@ const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, sh
                     <div className="mt-auto pt-3 border-t border-theme-border/20">
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-theme-text/50">
-                                Process
+                                {t('work.deepdive.process')}
                             </span>
                             <span className="font-mono text-[10px] text-theme-text/40">
-                                {project.phases.length} steps
+                                {t('work.deepdive.steps').replace('{n}', String(project.phases.length))}
                             </span>
                         </div>
                         <div className="grid grid-cols-3 gap-1.5">
@@ -215,10 +218,10 @@ const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, sh
                 {/* CTA */}
                 <div className="flex items-center justify-between pt-3 border-t border-theme-border/20">
                     <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-theme-text/40 group-hover:text-theme-text/60 transition-colors">
-                        Explore
+                        {t('work.deepdive.explore')}
                     </span>
                     <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-mantis-green group-hover:translate-x-1 transition-transform duration-300">
-                        <span>View Case</span>
+                        <span>{t('work.deepdive.viewCase')}</span>
                         <ArrowRight size={14} />
                     </div>
                 </div>
