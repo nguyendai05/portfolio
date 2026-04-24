@@ -7,19 +7,17 @@ import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
 import { PROJECTS as MOCK_PROJECTS, CLIENTS as MOCK_CLIENTS, AWARDS as MOCK_AWARDS, EXPERIMENTS as MOCK_EXPERIMENTS } from '../data/mockData';
 import { fetchProjects, fetchSkillNames, fetchAwards, fetchExperiments, Award, Experiment } from '../services/portfolioService';
 import { Project } from '../types';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
 const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
-
-// Check if mobile for conditional rendering
-const isMobileDevice = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
 
 export const Home: React.FC = () => {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showHeroArt, setShowHeroArt] = useState(false);
-  const [isMobile, setIsMobile] = useState(isMobileDevice);
+  const isMobile = useIsMobile();
   const containerRef = useRef(null);
 
   // Data states - fetch from API, fallback to mockData
@@ -60,21 +58,11 @@ export const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Detect mobile on mount and resize
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    // Delay GenerativeArt: longer on mobile to prioritize LCP, immediate on desktop
-    // Desktop: show art immediately (0ms) for better UX, mobile: defer more (1500ms) for LCP
-    const delay = isMobile ? 1500 : 0; // Desktop: immediate, no delay
+    // Delay GenerativeArt on mobile to prioritize LCP; show immediately on desktop.
+    const delay = isMobile ? 1500 : 0;
     const timer = setTimeout(() => setShowHeroArt(true), delay);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
+    return () => clearTimeout(timer);
+  }, [isMobile]);
 
 
   // Display only first 3 projects on Home
