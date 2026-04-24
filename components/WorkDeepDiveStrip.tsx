@@ -1,8 +1,7 @@
-import React, { useRef, useMemo } from 'react';
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Project } from '../types';
-import { ArrowRight, Layers } from 'lucide-react';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { ArrowRight, Layers, Sparkles } from 'lucide-react';
 
 interface WorkDeepDiveStripProps {
     projects: Project[];
@@ -10,44 +9,37 @@ interface WorkDeepDiveStripProps {
 }
 
 export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, onProjectClick }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const isMobile = useIsMobile();
     const prefersReducedMotion = useReducedMotion();
 
-    // Featured projects logic
+    // Featured projects are promoted to the top of Flagship Cases.
+    // When there are no explicit featured ones, show up to 6 recent projects.
     const featuredProjects = useMemo(() => {
         const featured = projects.filter(p => p.featured);
         const base = featured.length > 0 ? featured : projects;
-        return base.slice(0, 4);
+        return base.slice(0, 6);
     }, [projects]);
 
-    // Scroll-driven motion hooks
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"]
-    });
-
-    // Desktop rail transforms
-    const railX = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
-
-    // If no projects to show, return null
     if (!featuredProjects || featuredProjects.length === 0) return null;
 
-    // Determine if we should apply motion
-    const shouldAnimate = !isMobile && !prefersReducedMotion;
+    const shouldAnimate = !prefersReducedMotion;
+
+    // Layout rule: if there are 3 or fewer items, use a responsive grid so
+    // every flagship card is fully visible side-by-side on desktop. Beyond
+    // that, fall back to a horizontal scroll rail (native scrollbar, snap).
+    const useGrid = featuredProjects.length <= 3;
 
     return (
-        <div
-            ref={containerRef}
-            className="py-24 md:py-32 relative overflow-x-auto md:overflow-hidden no-scrollbar group/section"
+        <section
+            aria-label="Flagship case studies"
+            className="py-20 md:py-28 relative group/section"
         >
-            {/* Background Layer */}
+            {/* Background accents */}
             <div className="absolute inset-0 bg-theme-panel/30 backdrop-blur-[2px] -z-10" />
             <div className="absolute inset-0 bg-gradient-to-b from-theme-bg via-transparent to-theme-bg opacity-80 -z-10" />
 
-            {/* Header Row */}
-            <div className="container mx-auto px-6 md:px-8 mb-12 md:mb-16 flex items-end justify-between gap-6">
-                <div className="space-y-4">
+            {/* Header */}
+            <div className="container mx-auto px-6 md:px-8 mb-10 md:mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                <div className="space-y-3">
                     <div className="flex items-center gap-3 text-mantis-green">
                         <Layers size={18} />
                         <span className="font-mono text-xs uppercase tracking-[0.2em]">Deep Dives</span>
@@ -55,137 +47,182 @@ export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, 
                     <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-theme-text">
                         FLAGSHIP CASES
                     </h2>
+                    <p className="max-w-xl text-sm text-theme-text/60 leading-relaxed">
+                        Hand-picked, shipped products — click any card to open the full case study with stack, phases, and live link.
+                    </p>
                 </div>
 
-                <div className="hidden md:flex items-center gap-2 font-mono text-xs text-theme-text/50 uppercase tracking-widest">
-                    <motion.span
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                        Scroll to Explore
-                    </motion.span>
-                    <span>&rarr;</span>
-                </div>
-                <div className="md:hidden font-mono text-xs text-theme-text/50 uppercase tracking-widest">
-                    Swipe to explore
+                <div className="flex items-center gap-2 font-mono text-xs text-theme-text/50 uppercase tracking-widest self-start sm:self-end">
+                    <Sparkles size={14} className="text-mantis-green" />
+                    <span>{featuredProjects.length} case{featuredProjects.length === 1 ? '' : 's'}</span>
+                    {!useGrid && <span className="ml-2 md:hidden">· swipe →</span>}
                 </div>
             </div>
 
-            {/* Horizontal Rail */}
-            <motion.div
-                className={`flex gap-6 md:gap-10 px-6 md:px-8 w-max ${!isMobile ? 'mask-linear-fade' : 'snap-x snap-mandatory'}`}
-                style={shouldAnimate ? { x: railX } : {}}
-            >
-                {featuredProjects.map((project) => (
-                    <motion.button
-                        key={project.id}
-                        onClick={() => onProjectClick(project)}
-                        className="group relative shrink-0 w-[85vw] sm:w-[70vw] md:w-[480px] lg:w-[520px] text-left
-                                 bg-theme-panel/80 border border-theme-border/40 rounded-3xl
-                                 overflow-hidden flex flex-col justify-between
-                                 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)]
-                                 hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)]
-                                 transition-all duration-500 snap-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mantis-green focus-visible:ring-offset-2 focus-visible:ring-offset-theme-bg"
-                        whileHover={shouldAnimate ? { y: -10, scale: 1.01 } : undefined}
-                        whileTap={{ scale: 0.98 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-10%" }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        {/* Image Layer */}
-                        <div className="relative h-48 md:h-64 overflow-hidden">
-                            <motion.img
-                                src={project.image}
-                                alt={project.title}
-                                className="w-full h-full object-cover"
-                                initial={{ scale: 1.05 }}
-                                whileHover={shouldAnimate ? { scale: 1.1 } : undefined}
-                                transition={{ duration: 0.7, ease: "easeOut" }}
+            {/* Cards */}
+            <div className="container mx-auto px-6 md:px-8">
+                {useGrid ? (
+                    <div className="grid gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                        {featuredProjects.map((project, index) => (
+                            <FlagshipCard
+                                key={project.id}
+                                project={project}
+                                index={index}
+                                onClick={() => onProjectClick(project)}
+                                shouldAnimate={shouldAnimate}
                             />
+                        ))}
+                    </div>
+                ) : (
+                    <div
+                        className="flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 md:-mx-8 px-6 md:px-8 scroll-smooth"
+                        style={{ scrollbarWidth: 'thin' }}
+                    >
+                        {featuredProjects.map((project, index) => (
+                            <FlagshipCard
+                                key={project.id}
+                                project={project}
+                                index={index}
+                                onClick={() => onProjectClick(project)}
+                                shouldAnimate={shouldAnimate}
+                                scrollVariant
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+};
 
-                            {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-theme-panel via-theme-panel/20 to-transparent opacity-90" />
+interface FlagshipCardProps {
+    project: Project;
+    index: number;
+    onClick: () => void;
+    shouldAnimate: boolean;
+    scrollVariant?: boolean;
+}
 
-                            {/* Accent Bar */}
-                            <div className="absolute left-0 bottom-0 h-1 w-0 group-hover:w-full bg-mantis-green transition-all duration-700 ease-out" />
+const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, shouldAnimate, scrollVariant }) => {
+    const widthClass = scrollVariant
+        ? 'w-[85vw] sm:w-[420px] md:w-[460px] shrink-0 snap-start'
+        : 'w-full';
 
-                            {/* Top Metadata Chip */}
-                            <div className="absolute top-4 left-4 flex items-center gap-2">
-                                <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest bg-theme-bg/90 text-theme-text border border-theme-border/40 backdrop-blur-md shadow-lg">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-mantis-green mr-2 animate-pulse" />
-                                    Case Study
-                                </span>
-                            </div>
+    return (
+        <motion.button
+            onClick={onClick}
+            type="button"
+            className={`group relative text-left bg-theme-panel/80 border border-theme-border/40 rounded-3xl
+                overflow-hidden flex flex-col
+                shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)]
+                hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)]
+                hover:border-mantis-green/60
+                transition-all duration-500
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mantis-green focus-visible:ring-offset-2 focus-visible:ring-offset-theme-bg
+                ${widthClass}`}
+            whileHover={shouldAnimate ? { y: -8 } : undefined}
+            whileTap={{ scale: 0.98 }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-10%' }}
+            transition={{ duration: 0.45, delay: index * 0.08 }}
+        >
+            {/* Image */}
+            <div className="relative aspect-[16/10] overflow-hidden">
+                <img
+                    src={project.image}
+                    alt={project.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-theme-panel via-theme-panel/10 to-transparent opacity-90" />
+
+                {/* Accent bar */}
+                <div className="absolute left-0 bottom-0 h-1 w-0 group-hover:w-full bg-mantis-green transition-all duration-700 ease-out" />
+
+                {/* Case-study chip */}
+                <div className="absolute top-3 left-3 flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest bg-theme-bg/90 text-theme-text border border-theme-border/40 backdrop-blur-md shadow-lg">
+                        <span className="w-1.5 h-1.5 rounded-full bg-mantis-green mr-2 animate-pulse" />
+                        Case Study
+                    </span>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 flex flex-col p-6 md:p-7 gap-5">
+                <div className="space-y-2">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-mantis-green/80">
+                        {project.category}
+                    </p>
+                    <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight text-theme-text group-hover:text-mantis-green transition-colors duration-300">
+                        {project.title}
+                    </h3>
+                    <p className="text-sm text-theme-text/70 line-clamp-3 leading-relaxed">
+                        {project.description}
+                    </p>
+                </div>
+
+                {/* Tech stack */}
+                <div className="flex flex-wrap gap-1.5">
+                    {project.technologies.slice(0, 5).map((tech) => (
+                        <span
+                            key={tech}
+                            className="text-[10px] font-mono px-2 py-0.5 rounded-md border border-theme-border/40 text-theme-text/70 bg-theme-bg/50"
+                        >
+                            {tech}
+                        </span>
+                    ))}
+                    {project.technologies.length > 5 && (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md text-theme-text/50">
+                            +{project.technologies.length - 5}
+                        </span>
+                    )}
+                </div>
+
+                {/* Phases */}
+                {project.phases && project.phases.length > 0 && (
+                    <div className="mt-auto pt-3 border-t border-theme-border/20">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-theme-text/50">
+                                Process
+                            </span>
+                            <span className="font-mono text-[10px] text-theme-text/40">
+                                {project.phases.length} steps
+                            </span>
                         </div>
-
-                        {/* Content Layer */}
-                        <div className="flex-1 flex flex-col p-6 md:p-8 gap-6">
-                            {/* Header Info */}
-                            <div className="space-y-3">
-                                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-mantis-green/80">
-                                    {project.category}
-                                </p>
-                                <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-none text-theme-text group-hover:text-mantis-green transition-colors duration-300">
-                                    {project.title}
-                                </h3>
-                                <p className="text-sm text-theme-text/70 line-clamp-2 leading-relaxed">
-                                    {project.description}
-                                </p>
-                            </div>
-
-                            {/* Tech Stack */}
-                            <div className="flex flex-wrap gap-2">
-                                {project.technologies.slice(0, 4).map((tech) => (
-                                    <span
-                                        key={tech}
-                                        className="text-[10px] font-mono px-2.5 py-1 rounded-md border border-theme-border/40 text-theme-text/60 bg-theme-bg/50"
-                                    >
-                                        {tech}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {/* Phases Timeline */}
-                            {project.phases && project.phases.length > 0 && (
-                                <div className="mt-auto pt-4 border-t border-theme-border/20">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-theme-text/50">
-                                            Process
-                                        </span>
-                                        <span className="font-mono text-[10px] text-theme-text/40">
-                                            {project.phases.length} Steps
-                                        </span>
+                        <div className="grid grid-cols-3 gap-1.5">
+                            {project.phases.slice(0, 3).map((phase, i) => (
+                                <div key={i} className="min-w-0">
+                                    <div className="h-0.5 w-full bg-theme-border/30 rounded-full mb-1.5 overflow-hidden">
+                                        <div
+                                            className="h-full bg-mantis-green w-0 group-hover:w-full transition-all duration-700 ease-out phase-progress-bar"
+                                            data-delay-index={i}
+                                        />
                                     </div>
-                                    <div className="flex items-start gap-2 overflow-hidden">
-                                        {project.phases.slice(0, 3).map((phase, index) => (
-                                            <div key={index} className="flex-1 min-w-0">
-                                                <div className="h-0.5 w-full bg-theme-border/30 rounded-full mb-2 overflow-hidden">
-                                                    <div className="h-full bg-mantis-green w-0 group-hover:w-full transition-all duration-700 ease-out phase-progress-bar" data-delay-index={index} />
-                                                </div>
-                                                <p className="text-[10px] text-theme-text/60 truncate font-mono">
-                                                    {phase}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <p className="text-[10px] text-theme-text/60 truncate font-mono">
+                                        {phase}
+                                    </p>
                                 </div>
-                            )}
-
-                            {/* CTA */}
-                            <div className="flex items-center justify-between pt-4 mt-2 border-t border-theme-border/20">
-                                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-theme-text/40 group-hover:text-theme-text/60 transition-colors">
-                                    Explore
-                                </span>
-                                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-mantis-green group-hover:translate-x-1 transition-transform duration-300">
-                                    <span>View Case</span>
-                                    <ArrowRight size={14} />
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    </motion.button>
-                ))}
-            </motion.div>
-        </div>
+                    </div>
+                )}
+
+                {/* CTA */}
+                <div className="flex items-center justify-between pt-3 border-t border-theme-border/20">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-theme-text/40 group-hover:text-theme-text/60 transition-colors">
+                        Explore
+                    </span>
+                    <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-mantis-green group-hover:translate-x-1 transition-transform duration-300">
+                        <span>View Case</span>
+                        <ArrowRight size={14} />
+                    </div>
+                </div>
+            </div>
+        </motion.button>
     );
 };
