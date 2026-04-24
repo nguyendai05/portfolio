@@ -23,10 +23,42 @@ export interface CreateIdeaInput {
 
 const API_BASE = '/api/ideas';
 
+export class ApiError extends Error {
+  code?: string;
+  hint?: string;
+  status?: number;
+  constructor(message: string, opts: { code?: string; hint?: string; status?: number } = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = opts.code;
+    this.hint = opts.hint;
+    this.status = opts.status;
+  }
+}
+
 export async function fetchIdeas(): Promise<Idea[]> {
-  const res = await fetch(API_BASE);
-  const json = await res.json();
-  if (!json.success) throw new Error(json.error || 'Failed to fetch ideas');
+  let res: Response;
+  try {
+    res = await fetch(API_BASE);
+  } catch (e: any) {
+    throw new ApiError('Không kết nối được tới API.', {
+      code: 'NETWORK_ERROR',
+      hint: 'Kiểm tra kết nối mạng hoặc thử lại sau.',
+    });
+  }
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError('Phản hồi API không hợp lệ.', { code: 'BAD_JSON', status: res.status });
+  }
+  if (!json.success) {
+    throw new ApiError(json.error || 'Failed to fetch ideas', {
+      code: json.code,
+      hint: json.hint,
+      status: res.status,
+    });
+  }
   return json.data;
 }
 

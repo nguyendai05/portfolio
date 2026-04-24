@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlitchText } from '../components/GlitchText';
 import { Users, Plus, ThumbsUp, Filter, MessageSquare, X, Zap, Loader2, AlertCircle, RefreshCw, Send, Trash2 } from 'lucide-react';
-import { fetchIdeas, createIdea, upvoteIdea, fetchComments, createComment, deleteComment, type Idea, type Comment } from '../services/ideasService';
+import { fetchIdeas, createIdea, upvoteIdea, fetchComments, createComment, deleteComment, ApiError, type Idea, type Comment } from '../services/ideasService';
 
 // Fallback mock data khi API không khả dụng
 const MOCK_IDEAS: Idea[] = [
@@ -96,7 +96,12 @@ export const Collaboration: React.FC = () => {
     } catch (err) {
       console.warn('API unavailable, using mock data:', err);
       setIdeas(MOCK_IDEAS);
-      setError('Đang dùng dữ liệu mẫu (API chưa kết nối)');
+      if (err instanceof ApiError && err.hint) {
+        const label = err.code ? `[${err.code}] ` : '';
+        setError(`Đang dùng dữ liệu mẫu — ${label}${err.hint}`);
+      } else {
+        setError('Đang dùng dữ liệu mẫu (API chưa kết nối)');
+      }
     } finally {
       setLoading(false);
     }

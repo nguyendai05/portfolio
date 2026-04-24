@@ -2,7 +2,7 @@
 import React, { lazy, Suspense, useState } from 'react';
 import { motion } from 'framer-motion';
 import { GlitchText } from '../components/GlitchText';
-import { Terminal, GitBranch, Code2, Cpu } from 'lucide-react';
+import { Terminal, GitBranch, Code2, Cpu, Rocket } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import type { TimelineEntry } from '../components/ExecutionLog';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -57,6 +57,13 @@ export const About: React.FC = () => {
       title: "Modern Stack",
       desc: "Adopting React, TypeScript, and Tailwind. Moving from 'making it work' to 'making it scale'.",
       icon: <GitBranch size={20} />
+    },
+    {
+      type: "text",
+      year: "2026",
+      title: "Flagship Launch",
+      desc: "Shipped three flagship products: the Xuni Dizan resource hub, Mù Phim streaming platform, and Nuôi Xuân Đại donation system. Operating a full-stack toolchain across React, Next.js, Express, TiDB, and Supabase.",
+      icon: <Rocket size={20} />
     },
   ];
 

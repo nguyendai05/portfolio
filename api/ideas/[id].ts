@@ -1,22 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import mysql from 'mysql2/promise';
-
-// --- Database Connection ---
-async function getConnection() {
-  const config: any = {
-    host: process.env.MYSQL_HOST,
-    port: parseInt(process.env.MYSQL_PORT || '3306'),
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  };
-
-  if (process.env.MYSQL_SSL === 'true') {
-    config.ssl = { rejectUnauthorized: true };
-  }
-
-  return mysql.createConnection(config);
-}
+import { getConnection, formatDbError } from '../_lib/db';
 
 // --- Handlers ---
 async function upvoteIdea(id: string, res: VercelResponse) {
@@ -70,7 +53,6 @@ async function getIdea(id: string, res: VercelResponse) {
 
 // --- Main Handler ---
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -85,18 +67,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (req.method === 'GET') {
-      return await getIdea(id, res);
-    }
-    if (req.method === 'PATCH') {
-      return await upvoteIdea(id, res);
-    }
-    if (req.method === 'DELETE') {
-      return await deleteIdea(id, res);
-    }
+    if (req.method === 'GET') return await getIdea(id, res);
+    if (req.method === 'PATCH') return await upvoteIdea(id, res);
+    if (req.method === 'DELETE') return await deleteIdea(id, res);
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ success: false, error: 'Database error' });
+    const formatted = formatDbError(error);
+    console.error('Database error in /api/ideas/[id]:', formatted);
+    return res.status(500).json({ success: false, error: 'Database error', code: formatted.code, hint: formatted.hint });
   }
 }

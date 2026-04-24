@@ -37,10 +37,9 @@ const LogNode = ({
 
     useEffect(() => {
         if (isInView) {
-            console.log('Item in view:', index, 'Year:', item.year);
             onActivate(index);
         }
-    }, [isInView, index, onActivate, item.year]);
+    }, [isInView, index, onActivate]);
 
     const isEven = index % 2 === 0;
 

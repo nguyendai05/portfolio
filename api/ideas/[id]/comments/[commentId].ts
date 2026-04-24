@@ -1,21 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import mysql from 'mysql2/promise';
-
-async function getConnection() {
-    const config: any = {
-        host: process.env.MYSQL_HOST,
-        port: parseInt(process.env.MYSQL_PORT || '3306'),
-        user: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD,
-        database: process.env.MYSQL_DATABASE,
-    };
-
-    if (process.env.MYSQL_SSL === 'true') {
-        config.ssl = { rejectUnauthorized: true };
-    }
-
-    return mysql.createConnection(config);
-}
+import { getConnection, formatDbError } from '../../../_lib/db';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -47,7 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         return res.status(405).json({ success: false, error: 'Method not allowed' });
     } catch (error) {
-        console.error('Database error:', error);
-        return res.status(500).json({ success: false, error: 'Database error' });
+        const formatted = formatDbError(error);
+        console.error('Database error in /api/ideas/[id]/comments/[commentId]:', formatted);
+        return res.status(500).json({ success: false, error: 'Database error', code: formatted.code, hint: formatted.hint });
     }
 }
