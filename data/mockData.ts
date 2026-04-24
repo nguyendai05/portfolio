@@ -5,7 +5,100 @@ import { Project } from '../types';
 export const TOOLS: Project[] = [];
 
 // PROJECTS: Real personal and team web projects from GitHub + latest Next.js portfolio
+// Featured flagship sites are listed first so they surface at the top of /work,
+// the deep-dive strip, and the project modal.
+// TODO(image): swap the thum.io placeholders below for Cloudinary uploads of the
+// real screenshots once they are available on the dak4x4d7u account.
 export const PROJECTS: Project[] = [
+  {
+    id: 7,
+    title: "Xuni Dizan Resource Hub",
+    category: "Full-Stack Platform",
+    image: "https://image.thum.io/get/width/1200/noanimate/https://hub.nguyenxuandai.com/",
+    description:
+      "A centralized resource hub for FIT (Nong Lam University) students to access course materials, study articles, and shared AI credentials (ChatGPT, Claude, Gemini). Full-stack platform with an Express API, MySQL/TiDB database, secure credential rotation, an AI-powered article generator with web grounding, TOTP previews, SMTP verification-code fetching, VietQR-based private account ordering, overload middleware for high traffic, and a brutalist glass-morphism UI with seasonal themes.",
+    technologies: [
+      "React",
+      "TypeScript",
+      "Node.js",
+      "Express",
+      "MySQL / TiDB",
+      "Tailwind CSS",
+      "Framer Motion",
+      "Gemini AI",
+      "Cloudinary",
+      "i18next",
+    ],
+    link: "https://hub.nguyenxuandai.com/",
+    featured: true,
+    phases: [
+      "Architecture",
+      "Backend API",
+      "Credential System",
+      "AI Integration",
+      "UI / Theming",
+      "Deployment",
+    ],
+  },
+  {
+    id: 8,
+    title: "Mù Phim – Multi-Catalog Streaming",
+    category: "Streaming Platform",
+    image: "https://image.thum.io/get/width/1200/noanimate/https://muphim.online/",
+    description:
+      "A multi-catalog movie streaming aggregator that unifies three external providers (KK, OPhim, NguonC) into a single cinematic UI. Built with Next.js App Router and Supabase, featuring HLS playback behind a signed stream proxy, multi-server fallback, search/filter/browse across providers, an RBAC admin panel with audit logs, three theme variants (Cinematic, Minimal, Neo Noir), plus a native Android shell via Capacitor that ships the same experience as a mobile app.",
+    technologies: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Supabase",
+      "TiDB",
+      "HLS.js",
+      "Capacitor",
+      "Cloudinary",
+      "next-intl",
+    ],
+    link: "https://muphim.nguyenxuandai.com/",
+    featured: true,
+    phases: [
+      "Research",
+      "Catalog Integration",
+      "Streaming Pipeline",
+      "Admin & RBAC",
+      "Android Shell",
+      "Deployment",
+    ],
+  },
+  {
+    id: 9,
+    title: "Nuôi Xuân Đại – Donation Landing",
+    category: "Fundraising / Full-Stack",
+    image: "https://image.thum.io/get/width/1200/noanimate/https://nuoi.nguyenxuandai.com/",
+    description:
+      "A personal donation landing page styled as a cyber / brutalist system log where supporters can \"nuôi\" (feed) the author through tiered options (15.000đ – 1.000.000đ) or a custom amount. Each donation generates a unique order code and a VNPAY QR payment URL. A public transparent statement page shows every paid order in real time, and supporters of 1.000.000đ or more receive an auto-generated VIP certificate PDF.",
+    technologies: [
+      "React",
+      "TypeScript",
+      "Vite",
+      "Tailwind CSS",
+      "Express",
+      "MySQL",
+      "VNPAY",
+      "PDFKit",
+      "Framer Motion",
+    ],
+    link: "https://nuoi.nguyenxuandai.com/",
+    featured: true,
+    phases: [
+      "Concept",
+      "Payment Flow",
+      "Public Statement",
+      "VIP Certificate",
+      "UI Polish",
+      "Deployment",
+    ],
+  },
   {
     id: 1,
     title: "Personal Portfolio – DIZAN",
@@ -15,7 +108,6 @@ export const PROJECTS: Project[] = [
       "My first personal website branded as DIZAN, featuring an introduction, skills, project highlights, and a playful lab page for experiments. Built as a foundation for practicing semantic HTML, responsive layouts, and personal branding on the web.",
     technologies: ["HTML5", "CSS3", "JavaScript", "Responsive Design", "Video Integration"],
     link: "https://xuni-dizan.github.io/Trang_ca_nhan/",
-    featured: true,
     phases: ["Concept", "Design", "Development", "Deployment"],
   },
   {
@@ -38,7 +130,6 @@ export const PROJECTS: Project[] = [
       "A responsive movie-browsing interface inspired by modern streaming platforms. Features hero banners, categorized sections, hover cards, and clean typography. Built to practice complex grid/flex layouts, card design, and basic search/filter UX patterns.",
     technologies: ["HTML5", "CSS3", "JavaScript", "Responsive Design", "Grid Layout", "UI/UX"],
     link: "https://xuni-dizan.github.io/WebPhim/",
-    featured: true,
     phases: ["Research", "Wireframing", "Implementation", "Testing"],
   },
   {
@@ -61,7 +152,6 @@ export const PROJECTS: Project[] = [
       "A collaborative e-commerce website for a handmade craft shop, with hero banners, category sections, detailed product cards, and a simple cart UI (static). We focused on clean product catalog layout, consistent pricing displays, and responsive behavior on both mobile and desktop.",
     technologies: ["HTML5", "CSS3", "JavaScript", "Responsive Design", "Flexbox", "E-commerce UI"],
     link: "https://dhphuc211.github.io/WebShop-Handmake-Group10/",
-    featured: true,
     phases: ["Planning", "Team Collaboration", "Implementation", "Deployment"],
   },
   {
@@ -74,7 +164,6 @@ export const PROJECTS: Project[] = [
       "The latest version of my personal portfolio, Dizan – Experience Studio, built with Next.js, TypeScript, Tailwind CSS, and Framer Motion. It showcases my services, recent projects, and contact information with a clean, responsive layout. Deployed on Vercel as the central hub for my full-stack work.",
     technologies: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel"],
     link: "https://my-portfolio-gamma-two-84.vercel.app/",
-    featured: true,
     phases: ["Information Architecture", "UI Design", "Implementation", "Animation Polish", "Deployment"],
   },
 ];

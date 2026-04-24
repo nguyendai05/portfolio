@@ -201,9 +201,22 @@ INSERT INTO phases (name) VALUES
   ('Wireframing'),
   ('Design'),
   ('UI Design'),
+  ('UI / Theming'),
+  ('UI Polish'),
   ('Animation Design'),
   ('Planning'),
   ('Information Architecture'),
+  ('Architecture'),
+  ('Backend API'),
+  ('Credential System'),
+  ('AI Integration'),
+  ('Catalog Integration'),
+  ('Streaming Pipeline'),
+  ('Admin & RBAC'),
+  ('Android Shell'),
+  ('Payment Flow'),
+  ('Public Statement'),
+  ('VIP Certificate'),
   ('Core Development'),
   ('Development'),
   ('Implementation'),
@@ -250,7 +263,21 @@ INSERT INTO technologies (name, category) VALUES
   ('Tesseract OCR', 'tool'),
   ('OpenCV', 'tool'),
   ('Pillow', 'tool'),
-  ('PyQt5', 'tool')
+  ('PyQt5', 'tool'),
+  -- Flagship sites (Xuni Dizan Hub / Mù Phim / Nuôi Xuân Đại)
+  ('Express', 'backend'),
+  ('MySQL / TiDB', 'database'),
+  ('TiDB', 'database'),
+  ('Gemini AI', 'tool'),
+  ('Cloudinary', 'tool'),
+  ('i18next', 'frontend'),
+  ('Supabase', 'backend'),
+  ('HLS.js', 'frontend'),
+  ('Capacitor', 'tool'),
+  ('next-intl', 'frontend'),
+  ('Vite', 'tool'),
+  ('VNPAY', 'backend'),
+  ('PDFKit', 'backend')
 ON DUPLICATE KEY UPDATE category = VALUES(category);
 
 -- 4.3 Seed skills (marquee tech stack - CLIENTS trong mockData)
@@ -289,7 +316,44 @@ INSERT INTO experiments (code, name, description) VALUES
 ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description);
 
 -- 4.6 Seed projects (PROJECTS từ mockData)
+-- The three flagship sites (hub/muphim/nuoi) are stored with featured=1 so they
+-- surface first in /work, the deep-dive strip, and the project modal.
+-- NOTE(image): replace the thum.io placeholder URLs below once real Cloudinary
+-- screenshots of the flagship sites are available on the dak4x4d7u account.
 INSERT INTO projects (slug, title, summary, description, category, project_type, image_url, link, featured) VALUES 
+  (
+    'xuni-dizan-resource-hub',
+    'Xuni Dizan Resource Hub',
+    'Centralized resource hub for FIT students with shared AI credentials',
+    'A centralized resource hub for FIT (Nong Lam University) students to access course materials, study articles, and shared AI credentials (ChatGPT, Claude, Gemini). Full-stack platform with an Express API, MySQL/TiDB database, secure credential rotation, an AI-powered article generator with web grounding, TOTP previews, SMTP verification-code fetching, VietQR-based private account ordering, overload middleware for high traffic, and a brutalist glass-morphism UI with seasonal themes.',
+    'Full-Stack Platform',
+    'project',
+    'https://image.thum.io/get/width/1200/noanimate/https://hub.nguyenxuandai.com/',
+    'https://hub.nguyenxuandai.com/',
+    1
+  ),
+  (
+    'mu-phim-multi-catalog-streaming',
+    'Mù Phim – Multi-Catalog Streaming',
+    'Multi-catalog movie streaming aggregator with Android shell',
+    'A multi-catalog movie streaming aggregator that unifies three external providers (KK, OPhim, NguonC) into a single cinematic UI. Built with Next.js App Router and Supabase, featuring HLS playback behind a signed stream proxy, multi-server fallback, search/filter/browse across providers, an RBAC admin panel with audit logs, three theme variants (Cinematic, Minimal, Neo Noir), plus a native Android shell via Capacitor that ships the same experience as a mobile app.',
+    'Streaming Platform',
+    'project',
+    'https://image.thum.io/get/width/1200/noanimate/https://muphim.online/',
+    'https://muphim.nguyenxuandai.com/',
+    1
+  ),
+  (
+    'nuoi-xuan-dai-donation-landing',
+    'Nuôi Xuân Đại – Donation Landing',
+    'Cyber/brutalist donation landing with VNPAY QR and VIP PDF certificates',
+    'A personal donation landing page styled as a cyber / brutalist system log where supporters can "nuôi" (feed) the author through tiered options (15.000đ – 1.000.000đ) or a custom amount. Each donation generates a unique order code and a VNPAY QR payment URL. A public transparent statement page shows every paid order in real time, and supporters of 1.000.000đ or more receive an auto-generated VIP certificate PDF.',
+    'Fundraising / Full-Stack',
+    'project',
+    'https://image.thum.io/get/width/1200/noanimate/https://nuoi.nguyenxuandai.com/',
+    'https://nuoi.nguyenxuandai.com/',
+    1
+  ),
   (
     'personal-portfolio-dizan',
     'Personal Portfolio – DIZAN',
@@ -299,7 +363,7 @@ INSERT INTO projects (slug, title, summary, description, category, project_type,
     'project',
     'https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799129/Screenshot_2025-11-22_113653_ex7oun.png',
     'https://xuni-dizan.github.io/Trang_ca_nhan/',
-    1
+    0
   ),
   (
     'christmas-gift-for-crush',
@@ -321,7 +385,7 @@ INSERT INTO projects (slug, title, summary, description, category, project_type,
     'project',
     'https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799127/Screenshot_2025-11-22_150710_ceku1x.png',
     'https://xuni-dizan.github.io/WebPhim/',
-    1
+    0
   ),
   (
     'hci-group-10-course-portal',
@@ -343,7 +407,7 @@ INSERT INTO projects (slug, title, summary, description, category, project_type,
     'project',
     'https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799127/Screenshot_2025-11-22_151116_af4prv.png',
     'https://dhphuc211.github.io/WebShop-Handmake-Group10/',
-    1
+    0
   ),
   (
     'dizan-experience-studio',
@@ -354,9 +418,9 @@ INSERT INTO projects (slug, title, summary, description, category, project_type,
     'project',
     'https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763802953/Screenshot_2025-11-22_161516_l9sn2e.png',
     'https://my-portfolio-gamma-two-84.vercel.app/',
-    1
+    0
   )
-ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description), image_url = VALUES(image_url);
+ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description), image_url = VALUES(image_url), featured = VALUES(featured);
 
 -- 4.7 Seed tools (TOOLS từ mockData)
 INSERT INTO projects (slug, title, summary, description, category, project_type, image_url, link, featured) VALUES 
@@ -375,6 +439,24 @@ ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description)
 
 -- 4.8 Seed project_technologies (liên kết projects với technologies)
 -- Cần chạy sau khi đã có projects và technologies
+
+-- Xuni Dizan Resource Hub (flagship)
+INSERT INTO project_technologies (project_id, technology_id)
+SELECT p.id, t.id FROM projects p, technologies t
+WHERE p.slug = 'xuni-dizan-resource-hub' AND t.name IN ('React', 'TypeScript', 'Node.js', 'Express', 'MySQL / TiDB', 'Tailwind CSS', 'Framer Motion', 'Gemini AI', 'Cloudinary', 'i18next')
+ON DUPLICATE KEY UPDATE project_id = project_id;
+
+-- Mù Phim – Multi-Catalog Streaming (flagship)
+INSERT INTO project_technologies (project_id, technology_id)
+SELECT p.id, t.id FROM projects p, technologies t
+WHERE p.slug = 'mu-phim-multi-catalog-streaming' AND t.name IN ('Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Supabase', 'TiDB', 'HLS.js', 'Capacitor', 'Cloudinary', 'next-intl')
+ON DUPLICATE KEY UPDATE project_id = project_id;
+
+-- Nuôi Xuân Đại – Donation Landing (flagship)
+INSERT INTO project_technologies (project_id, technology_id)
+SELECT p.id, t.id FROM projects p, technologies t
+WHERE p.slug = 'nuoi-xuan-dai-donation-landing' AND t.name IN ('React', 'TypeScript', 'Vite', 'Tailwind CSS', 'Express', 'MySQL', 'VNPAY', 'PDFKit', 'Framer Motion')
+ON DUPLICATE KEY UPDATE project_id = project_id;
 
 -- Personal Portfolio – DIZAN
 INSERT INTO project_technologies (project_id, technology_id)
@@ -419,6 +501,51 @@ WHERE p.slug = 'image-to-text-extractor' AND t.name IN ('Python', 'Tesseract OCR
 ON DUPLICATE KEY UPDATE project_id = project_id;
 
 -- 4.9 Seed project_phases (liên kết projects với phases)
+-- Xuni Dizan Resource Hub (flagship)
+INSERT INTO project_phases (project_id, phase_id, phase_order)
+SELECT p.id, ph.id,
+  CASE ph.name
+    WHEN 'Architecture' THEN 1
+    WHEN 'Backend API' THEN 2
+    WHEN 'Credential System' THEN 3
+    WHEN 'AI Integration' THEN 4
+    WHEN 'UI / Theming' THEN 5
+    WHEN 'Deployment' THEN 6
+  END
+FROM projects p, phases ph
+WHERE p.slug = 'xuni-dizan-resource-hub' AND ph.name IN ('Architecture', 'Backend API', 'Credential System', 'AI Integration', 'UI / Theming', 'Deployment')
+ON DUPLICATE KEY UPDATE phase_order = VALUES(phase_order);
+
+-- Mù Phim – Multi-Catalog Streaming (flagship)
+INSERT INTO project_phases (project_id, phase_id, phase_order)
+SELECT p.id, ph.id,
+  CASE ph.name
+    WHEN 'Research' THEN 1
+    WHEN 'Catalog Integration' THEN 2
+    WHEN 'Streaming Pipeline' THEN 3
+    WHEN 'Admin & RBAC' THEN 4
+    WHEN 'Android Shell' THEN 5
+    WHEN 'Deployment' THEN 6
+  END
+FROM projects p, phases ph
+WHERE p.slug = 'mu-phim-multi-catalog-streaming' AND ph.name IN ('Research', 'Catalog Integration', 'Streaming Pipeline', 'Admin & RBAC', 'Android Shell', 'Deployment')
+ON DUPLICATE KEY UPDATE phase_order = VALUES(phase_order);
+
+-- Nuôi Xuân Đại – Donation Landing (flagship)
+INSERT INTO project_phases (project_id, phase_id, phase_order)
+SELECT p.id, ph.id,
+  CASE ph.name
+    WHEN 'Concept' THEN 1
+    WHEN 'Payment Flow' THEN 2
+    WHEN 'Public Statement' THEN 3
+    WHEN 'VIP Certificate' THEN 4
+    WHEN 'UI Polish' THEN 5
+    WHEN 'Deployment' THEN 6
+  END
+FROM projects p, phases ph
+WHERE p.slug = 'nuoi-xuan-dai-donation-landing' AND ph.name IN ('Concept', 'Payment Flow', 'Public Statement', 'VIP Certificate', 'UI Polish', 'Deployment')
+ON DUPLICATE KEY UPDATE phase_order = VALUES(phase_order);
+
 -- Personal Portfolio – DIZAN: Concept, Design, Development, Deployment
 INSERT INTO project_phases (project_id, phase_id, phase_order)
 SELECT p.id, ph.id, 
