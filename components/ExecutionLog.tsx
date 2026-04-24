@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from 'framer-motion';
 import { VideoData } from './VideoTimelineItem';
 import { Activity, ChevronRight, Terminal, Cpu, Zap, Hash } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 // --- Types ---
 
@@ -181,6 +182,7 @@ const LogNode = ({
 };
 
 const FutureNode = () => {
+    const { t } = useLanguage();
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -197,22 +199,22 @@ const FutureNode = () => {
             </div>
 
             <div className="mt-8 text-center max-w-md px-4">
-                <div className="font-mono text-xs text-theme-accent mb-2 tracking-[0.2em] uppercase">System Status</div>
-                <h3 className="text-3xl font-black mb-4">Awaiting Next Input...</h3>
+                <div className="font-mono text-xs text-theme-accent mb-2 tracking-[0.2em] uppercase">{t('about.log.systemStatus')}</div>
+                <h3 className="text-3xl font-black mb-4">{t('about.log.awaitingInput')}</h3>
                 <p className="opacity-60 font-mono text-sm">
-                    The log is open. The next entry is being written right now.
+                    {t('about.log.logOpen')}
                 </p>
             </div>
 
             <div className="mt-12 p-4 border border-theme-border/30 bg-theme-panel/30 backdrop-blur-sm rounded-lg max-w-sm w-full">
                 <div className="flex items-center gap-2 border-b border-theme-border/20 pb-2 mb-2">
                     <Terminal size={14} className="opacity-50" />
-                    <span className="font-mono text-xs opacity-50">future_goals.json</span>
+                    <span className="font-mono text-xs opacity-50">{t('about.log.futureFile')}</span>
                 </div>
                 <div className="font-mono text-xs space-y-1 opacity-80">
-                    <div className="flex gap-2"><span className="text-theme-accent">➜</span> <span>Mastering WebGL / Three.js</span></div>
-                    <div className="flex gap-2"><span className="text-theme-accent">➜</span> <span>Building Scalable Systems</span></div>
-                    <div className="flex gap-2"><span className="text-theme-accent">➜</span> <span>Contributing to Open Source</span></div>
+                    <div className="flex gap-2"><span className="text-theme-accent">➜</span> <span>{t('about.log.future1')}</span></div>
+                    <div className="flex gap-2"><span className="text-theme-accent">➜</span> <span>{t('about.log.future2')}</span></div>
+                    <div className="flex gap-2"><span className="text-theme-accent">➜</span> <span>{t('about.log.future3')}</span></div>
                 </div>
             </div>
         </motion.div>
@@ -220,6 +222,7 @@ const FutureNode = () => {
 }
 
 const SignatureCard = () => {
+    const { t } = useLanguage();
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -231,7 +234,7 @@ const SignatureCard = () => {
                 <div className="relative px-8 py-6 bg-theme-bg ring-1 ring-theme-border leading-none flex items-center space-x-6 rounded-lg">
                     <div className="space-y-2">
                         <p className="text-theme-text font-bold text-lg">Nguyễn Xuân Đại</p>
-                        <p className="text-theme-text/60 font-mono text-xs">Xuni-Dizan // Operator</p>
+                        <p className="text-theme-text/60 font-mono text-xs">{t('about.log.operator')}</p>
                     </div>
                     <div className="h-12 w-[1px] bg-theme-border/50" />
                     <div className="text-2xl font-black tracking-tighter">XD</div>
@@ -242,6 +245,7 @@ const SignatureCard = () => {
 }
 
 export const ExecutionLog: React.FC<ExecutionLogProps> = ({ items }) => {
+    const { t } = useLanguage();
     const containerRef = useRef<HTMLDivElement>(null);
     const [activeIdx, setActiveIdx] = useState(0);
 
@@ -313,7 +317,7 @@ export const ExecutionLog: React.FC<ExecutionLogProps> = ({ items }) => {
                 {/* Status Bar at bottom of screen */}
                 <div className="absolute bottom-12 left-8 right-8 flex justify-between items-end font-mono text-xs opacity-60">
                     <div className="flex flex-col gap-1">
-                        <span className="uppercase tracking-widest">System Log</span>
+                        <span className="uppercase tracking-widest">{t('about.log.systemLog')}</span>
                         <span className="text-theme-accent">
                             ID: {items[activeIdx]?.year} // {activeIdx + 1} of {items.length}
                         </span>
@@ -321,7 +325,7 @@ export const ExecutionLog: React.FC<ExecutionLogProps> = ({ items }) => {
                     <div className="flex gap-4">
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${activeIdx === items.length - 1 ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
-                            <span>{activeIdx === items.length - 1 ? 'ONLINE' : 'EXECUTING'}</span>
+                            <span>{activeIdx === items.length - 1 ? t('about.log.online') : t('about.log.executing')}</span>
                         </div>
                     </div>
                 </div>
@@ -334,13 +338,13 @@ export const ExecutionLog: React.FC<ExecutionLogProps> = ({ items }) => {
                 <div className="text-center mb-32 pt-32">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-theme-border/50 bg-theme-bg/50 backdrop-blur mb-4">
                         <Hash size={12} className="text-theme-accent" />
-                        <span className="font-mono text-xs uppercase tracking-wider">Execution Log</span>
+                        <span className="font-mono text-xs uppercase tracking-wider">{t('about.log.executionLog')}</span>
                     </div>
                     <h3 className="text-4xl md:text-6xl font-black tracking-tighter mb-4">
-                        Journey Protocol
+                        {t('about.log.journey')}
                     </h3>
                     <p className="max-w-lg mx-auto opacity-60 font-mono text-sm">
-                        Initializing timeline sequence. Tracking progress from origin to current state.
+                        {t('about.log.journeyCopy')}
                     </p>
                 </div>
 

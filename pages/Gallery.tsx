@@ -5,21 +5,23 @@ import { GlitchText } from '../components/GlitchText';
 import { GalleryControlPanel } from '../components/GalleryControlPanel';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { Monitor, Activity, Wifi, Box } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 type ArtVariant = 'network' | 'particles' | 'matrix' | 'flow';
 
 export const Gallery: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const [activeVariant, setActiveVariant] = useState<ArtVariant>('network');
   const [intensity, setIntensity] = useState(50);
   const [speed, setSpeed] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const variants: { id: ArtVariant; label: string; desc: string }[] = [
-    { id: 'network', label: 'Neural Network', desc: 'Simulated nodes with proximity connections.' },
-    { id: 'flow', label: 'Noise Field', desc: 'Perlin-like flow vectors visualizing data streams.' },
-    { id: 'particles', label: 'Atomic Dust', desc: 'Loose particles reactive to cursor gravity.' },
-    { id: 'matrix', label: 'System Rain', desc: 'Raw data visualization cascade.' },
+    { id: 'network', label: t('gallery.variant.network.label'), desc: t('gallery.variant.network.desc') },
+    { id: 'flow', label: t('gallery.variant.flow.label'), desc: t('gallery.variant.flow.desc') },
+    { id: 'particles', label: t('gallery.variant.particles.label'), desc: t('gallery.variant.particles.desc') },
+    { id: 'matrix', label: t('gallery.variant.matrix.label'), desc: t('gallery.variant.matrix.desc') },
   ];
 
   const toggleFullscreen = () => {
@@ -73,11 +75,11 @@ export const Gallery: React.FC = () => {
               <div className={`flex items-center gap-2 opacity-60 ${textClass}`}>
                 <Monitor size={14} className="animate-pulse" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.2em]">
-                  Visual_Lab // Exp_0{variants.findIndex(v => v.id === activeVariant) + 1}
+                  {t('gallery.lab')} // Exp_0{variants.findIndex(v => v.id === activeVariant) + 1}
                 </span>
               </div>
               <GlitchText
-                text="GENERATIVE_ENGINE"
+                text={t('gallery.title')}
                 className={`text-3xl md:text-5xl font-black tracking-tighter ${textClass}`}
               />
               <div className={`flex items-center gap-4 mt-2 text-[10px] font-mono ${textClass} opacity-50`}>

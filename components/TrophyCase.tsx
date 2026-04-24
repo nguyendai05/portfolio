@@ -1,10 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGamification } from '../context/GamificationContext';
+import { useLanguage } from '../context/LanguageContext';
+import { TranslationKey } from '../data/translations';
 import { X, Trophy, Lock, Star } from 'lucide-react';
 
 export const TrophyCase: React.FC = () => {
   const { achievements, isTrophyCaseOpen, toggleTrophyCase } = useGamification();
+  const { t } = useLanguage();
   const unlockedCount = achievements.filter(a => a.unlocked).length;
 
   return (
@@ -37,8 +40,8 @@ export const TrophyCase: React.FC = () => {
                   <Trophy size={24} className="text-theme-accent" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h3 className="font-mono text-base md:text-lg uppercase tracking-[0.25em] font-bold text-theme-text">Achievements</h3>
-                  <p className="text-[10px] md:text-xs font-mono text-theme-text/60 tracking-wider">NEURAL_REWARDS_SYSTEM_V2.0</p>
+                  <h3 className="font-mono text-base md:text-lg uppercase tracking-[0.25em] font-bold text-theme-text">{t('trophy.title')}</h3>
+                  <p className="text-[10px] md:text-xs font-mono text-theme-text/60 tracking-wider">{t('trophy.subtitle')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-6 md:gap-8">
@@ -46,11 +49,11 @@ export const TrophyCase: React.FC = () => {
                   <span className="font-mono text-2xl md:text-3xl font-bold text-theme-text">
                     {unlockedCount} <span className="text-theme-text/30">/</span> {achievements.length}
                   </span>
-                  <span className="text-[10px] md:text-xs font-mono text-theme-accent/80 uppercase tracking-wider">Unlocked</span>
+                  <span className="text-[10px] md:text-xs font-mono text-theme-accent/80 uppercase tracking-wider">{t('trophy.unlocked')}</span>
                 </div>
                 <button
                   onClick={toggleTrophyCase}
-                  aria-label="Close trophy case"
+                  aria-label={t('trophy.close')}
                   className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-theme-text/10 transition-all duration-300 text-theme-text/60 hover:text-theme-text border border-transparent hover:border-theme-border/40"
                 >
                   <X size={20} />
@@ -59,7 +62,14 @@ export const TrophyCase: React.FC = () => {
             </div>
 
             <div className="p-4 md:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 max-h-[60vh] md:max-h-[65vh] overflow-y-auto relative z-10">
-              {achievements.map((ach, index) => (
+              {achievements.map((ach, index) => {
+                const titleKey = `ach.${ach.id}.title` as TranslationKey;
+                const descKey = `ach.${ach.id}.desc` as TranslationKey;
+                const hintKey = `ach.${ach.id}.hint` as TranslationKey;
+                const title = t(titleKey);
+                const desc = t(descKey);
+                const hint = t(hintKey);
+                return (
                 <motion.div
                   key={ach.id}
                   initial={{ opacity: 0, y: 20, scale: 0.97 }}
@@ -90,16 +100,16 @@ export const TrophyCase: React.FC = () => {
                       <h4 className={`font-bold text-sm uppercase mb-2 tracking-wide transition-colors duration-300 ${
                         ach.unlocked ? 'text-theme-text' : 'text-theme-text/50'
                       }`}>
-                        {ach.title}
+                        {title}
                       </h4>
                       <p className={`font-mono text-xs leading-relaxed transition-colors duration-300 ${
                         ach.unlocked ? 'text-theme-text/80' : 'text-theme-text/40'
                       }`}>
-                        {ach.unlocked ? ach.description : 'Locked Achievement'}
+                        {ach.unlocked ? desc : t('trophy.lockedAch')}
                       </p>
-                      {!ach.unlocked && ach.hint && (
+                      {!ach.unlocked && hint && (
                         <p className="font-mono text-[10px] text-theme-text/40 italic mt-2 flex items-center gap-1">
-                          <span className="opacity-60">💡</span> {ach.hint}
+                          <span className="opacity-60">💡</span> {hint}
                         </p>
                       )}
                     </div>
@@ -108,7 +118,7 @@ export const TrophyCase: React.FC = () => {
                   {ach.unlocked && (
                     <div className="flex items-center gap-2 relative z-10">
                       <span className="text-[10px] font-mono px-3 py-1 rounded-full bg-theme-accent/15 text-theme-accent border border-theme-accent/40 uppercase tracking-wider">
-                        ✓ Unlocked
+                        {t('trophy.unlockedBadge')}
                       </span>
                     </div>
                   )}
@@ -117,7 +127,8 @@ export const TrophyCase: React.FC = () => {
                     <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-theme-accent/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   )}
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Footer accent bar (subtle, uses theme accent) */}

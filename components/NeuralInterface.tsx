@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, X, Trash2, Cpu, Minimize2 } from 'lucide-react';
 import { sendMessageToMantis } from '../services/geminiService';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Message {
   id: string;
@@ -186,6 +187,7 @@ const TypingDots: React.FC = () => (
 );
 
 const MessageItem: React.FC<{ msg: Message; isLatest?: boolean }> = ({ msg, isLatest = false }) => {
+  const { t } = useLanguage();
   const isUser = msg.role === 'user';
   // Only animate typewriter for the latest model message
   const shouldAnimate = !isUser && isLatest;
@@ -214,7 +216,7 @@ const MessageItem: React.FC<{ msg: Message; isLatest?: boolean }> = ({ msg, isLa
 
         {/* Label */}
         <div className={`text-[9px] uppercase tracking-wider mb-1.5 font-bold font-mono opacity-50 ${isUser ? 'text-right' : 'text-left pl-2'}`}>
-          {isUser ? 'YOU' : 'XUNI_CORE'}
+          {isUser ? t('chat.you') : t('chat.core')}
         </div>
 
         <div className={!isUser ? 'pl-2' : ''}>
@@ -232,7 +234,9 @@ const MessageItem: React.FC<{ msg: Message; isLatest?: boolean }> = ({ msg, isLa
   );
 };
 
-const LoadingIndicator: React.FC = () => (
+const LoadingIndicator: React.FC = () => {
+  const { t } = useLanguage();
+  return (
   <motion.div
     initial={{ opacity: 0, y: 5 }}
     animate={{ opacity: 1, y: 0 }}
@@ -251,22 +255,24 @@ const LoadingIndicator: React.FC = () => (
     </div>
     <div className="flex flex-col">
       <span className="text-[10px] font-mono text-theme-text/50 animate-pulse">
-        PROCESSING_NEURAL_PATHWAYS...
+        {t('chat.processing')}
       </span>
       <TypingDots />
     </div>
   </motion.div>
-);
+  );
+};
 
 
 export const NeuralInterface: React.FC = () => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'init',
       role: 'model',
-      text: 'Neural link online. Hỏi mình về project, code, hoặc cuộc đời IT sinh viên cũng được.',
+      text: t('chat.greeting'),
       timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -336,7 +342,7 @@ export const NeuralInterface: React.FC = () => {
         {
           id: (Date.now() + 1).toString(),
           role: 'model',
-          text: 'Neural link vừa bị giật lag. Kiểm tra mạng hoặc API key, rồi ping mình lại nhé.',
+          text: t('chat.error.network'),
           timestamp: getTimestamp()
         },
       ]);
@@ -351,7 +357,7 @@ export const NeuralInterface: React.FC = () => {
       setMessages([{
         id: Date.now().toString(),
         role: 'model',
-        text: 'Memory purged. Systems normal. Sẵn sàng cho câu hỏi mới.',
+        text: t('chat.cleared'),
         timestamp: getTimestamp()
       }]);
     }, 500);
@@ -390,7 +396,7 @@ export const NeuralInterface: React.FC = () => {
                 initial={{ x: 10 }}
                 whileHover={{ x: 0 }}
               >
-                NEURAL_LINK_OFFLINE
+                {t('chat.trigger')}
               </motion.div>
             )}
           </motion.button>
@@ -438,7 +444,7 @@ export const NeuralInterface: React.FC = () => {
                   <span className="font-mono text-xs font-bold tracking-widest text-theme-text">XUNI_NEURAL_DOCK</span>
                   {isRateLimited && (
                     <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold font-mono bg-amber-500/20 text-amber-500 border border-amber-500/50 rounded animate-pulse">
-                      API_COOLDOWN
+                      {t('chat.rateLimited')}
                     </span>
                   )}
                 </div>
@@ -446,14 +452,14 @@ export const NeuralInterface: React.FC = () => {
                   <button
                     onClick={handleClear}
                     className="text-theme-text/40 hover:text-theme-text transition-colors"
-                    title="Clear conversation"
+                    title={t('chat.clear')}
                   >
                     <Trash2 size={14} />
                   </button>
                   <button
                     onClick={() => setIsOpen(false)}
                     className="text-theme-text/60 hover:text-red-500 transition-colors"
-                    title={isMobile ? "Close" : "Minimize"}
+                    title={isMobile ? t('chat.close') : t('chat.minimize')}
                   >
                     {isMobile ? <X size={20} /> : <Minimize2 size={16} />}
                   </button>
@@ -490,8 +496,8 @@ export const NeuralInterface: React.FC = () => {
                         handleSend();
                       }
                     }}
-                    placeholder="Input command..."
-                    aria-label="Chat message input"
+                    placeholder={t('chat.inputPlaceholder')}
+                    aria-label={t('chat.inputAria')}
                     disabled={isThinking}
                     className="flex-1 bg-theme-bg/60 border border-theme-border/60 rounded-lg px-3 py-2 text-xs
                       focus:outline-none focus:border-theme-accent/70 font-mono placeholder:text-theme-text/30 text-theme-text
@@ -505,7 +511,7 @@ export const NeuralInterface: React.FC = () => {
                       hover:bg-theme-accent/10 hover:scale-105
                       disabled:opacity-30 disabled:hover:scale-100 disabled:cursor-not-allowed 
                       transition-all duration-200"
-                    title="Send message"
+                    title={t('chat.send')}
                   >
                     <Send size={14} />
                   </button>
@@ -513,9 +519,9 @@ export const NeuralInterface: React.FC = () => {
                 <div className="flex justify-between mt-2 px-1 text-[9px] font-mono text-theme-text/30">
                   <span>XUNI_CORE • V2.4.0</span>
                   {isThinking ? (
-                    <span className="animate-pulse text-theme-accent/60">PROCESSING_NEURAL_PATHWAYS...</span>
+                    <span className="animate-pulse text-theme-accent/60">{t('chat.processing')}</span>
                   ) : (
-                    <span>READY</span>
+                    <span>{t('chat.ready')}</span>
                   )}
                 </div>
               </div>

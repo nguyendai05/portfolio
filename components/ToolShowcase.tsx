@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Project } from '../types';
 import { Wrench, ExternalLink, Sparkles, Zap } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ToolShowcaseProps {
   tools: Project[];
@@ -9,6 +10,7 @@ interface ToolShowcaseProps {
 }
 
 export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }) => {
+  const { t } = useLanguage();
   if (tools.length === 0) return null;
 
   return (
@@ -31,17 +33,17 @@ export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }
             <div className="flex items-center gap-2 mb-1">
               <Sparkles size={12} className="text-mantis-green" />
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-mantis-green">
-                Featured
+                {t('work.tools.featured')}
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight">
-              Tools & Utilities
+              {t('work.tools.sectionTitle')}
             </h2>
           </div>
         </div>
         <div className="hidden md:flex items-center gap-2 text-theme-text/50 font-mono text-xs">
           <Zap size={14} className="text-mantis-green" />
-          <span>{tools.length} tools available</span>
+          <span>{t('work.tools.count').replace('{n}', String(tools.length))}</span>
         </div>
       </div>
 
@@ -62,7 +64,7 @@ export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }
       {tools.length === 0 && (
         <div className="text-center py-16 border border-dashed border-theme-border rounded-2xl">
           <Wrench className="w-12 h-12 mx-auto mb-4 text-theme-text/30" />
-          <p className="text-theme-text/50 font-mono text-sm">Tools coming soon...</p>
+          <p className="text-theme-text/50 font-mono text-sm">{t('work.tools.comingSoonTitle')}</p>
         </div>
       )}
     </section>
@@ -78,6 +80,7 @@ interface ToolCardProps {
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) => {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -115,7 +118,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) =>
           <div className="absolute top-4 left-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mantis-green/90 text-theme-bg text-[10px] font-mono uppercase tracking-wider font-bold shadow-lg">
               <Zap size={10} />
-              Tool
+              {t('work.tools.badge')}
             </span>
           </div>
 
@@ -166,7 +169,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) =>
         {/* Hover Arrow Indicator */}
         <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
           <div className="flex items-center gap-2 text-mantis-green font-mono text-xs">
-            <span>Explore</span>
+            <span>{t('work.tools.explore')}</span>
             <motion.span
               animate={{ x: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}

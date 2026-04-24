@@ -8,6 +8,8 @@ import {
 import { GlitchText } from '../components/GlitchText';
 import { GenerativeArt } from '../components/GenerativeArt';
 import { sendContactEmail, isEmailBlocked } from '../services/emailService';
+import { useLanguage } from '../context/LanguageContext';
+import { TranslationKey } from '../data/translations';
 
 // --- Types ---
 type ContactTopic = 'collaboration' | 'mentorship' | 'freelance' | 'other';
@@ -73,6 +75,7 @@ const StatusIndicator = ({ label, value, active = true }: { label: string, value
 );
 
 export const Contact: React.FC = () => {
+   const { t } = useLanguage();
    const [formState, setFormState] = useState<ContactFormState>({
       name: '',
       email: '',
@@ -110,7 +113,7 @@ export const Contact: React.FC = () => {
 
       // Kiểm tra email bị block trước khi submit
       if (isEmailBlocked(formState.email)) {
-         setError('This email has reached the maximum submission limit. Please use a different email or contact via social media.');
+         setError(t('contact.emailBlocked'));
          return;
       }
 
@@ -123,9 +126,9 @@ export const Contact: React.FC = () => {
          setIsSent(true);
          setFormState({ name: '', email: '', topic: 'collaboration', message: '' });
       } else if (result.blocked) {
-         setError('This email has reached the maximum submission limit. Please use a different email or contact via social media.');
+         setError(t('contact.emailBlocked'));
       } else {
-         setError(result.error || 'Failed to send message. Please try again.');
+         setError(result.error || t('contact.sendFailed'));
       }
    };
 
@@ -156,14 +159,14 @@ export const Contact: React.FC = () => {
                         >
                            <div className="flex items-center gap-2 mb-4 text-theme-accent font-mono text-xs tracking-[0.3em]">
                               <Radio size={14} className="animate-pulse" />
-                              <span>SIGNAL_STATUS: ONLINE</span>
+                              <span>{t('contact.signalStatus')}</span>
                            </div>
                            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] mb-6">
-                              <GlitchText text="OPEN A" /> <br />
-                              <span className="text-theme-accent">CHANNEL.</span>
+                              <GlitchText text={t('contact.openA')} /> <br />
+                              <span className="text-theme-accent">{t('contact.channel')}</span>
                            </h1>
                            <p className="text-base md:text-lg text-theme-text/70 max-w-md leading-relaxed">
-                              Initiate a secure connection. Whether for collaboration, inquiries, or just to say hello—my terminal is open.
+                              {t('contact.intro')}
                            </p>
                         </motion.div>
 
@@ -174,10 +177,10 @@ export const Contact: React.FC = () => {
                            transition={{ delay: 0.4 }}
                            className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 mb-12 border-y border-theme-border/20 py-8"
                         >
-                           <StatusIndicator label="Local Time" value={`${currentTime} ICT`} />
-                           <StatusIndicator label="Availability" value="Open for Work" />
-                           <StatusIndicator label="Response Time" value="< 24 Hours" active={false} />
-                           <StatusIndicator label="Location" value="Ho Chi Minh, VN" active={false} />
+                           <StatusIndicator label={t('contact.status.localTime')} value={`${currentTime} ICT`} />
+                           <StatusIndicator label={t('contact.status.availability')} value={t('contact.status.availabilityValue')} />
+                           <StatusIndicator label={t('contact.status.responseTime')} value={t('contact.status.responseTimeValue')} active={false} />
+                           <StatusIndicator label={t('contact.status.location')} value={t('contact.status.locationValue')} active={false} />
                         </motion.div>
 
                         {/* Social Capsules */}
@@ -185,28 +188,28 @@ export const Contact: React.FC = () => {
                            <SocialChip
                               icon={Github}
                               label="GitHub"
-                              subLabel="Explore my repositories"
+                              subLabel={t('contact.social.github')}
                               href="https://github.com/Xuni-Dizan"
                               delay={0.6}
                            />
                            <SocialChip
                               icon={Facebook}
                               label="Facebook"
-                              subLabel="Social updates"
+                              subLabel={t('contact.social.facebook')}
                               href="https://facebook.com/xuni.dizan"
                               delay={0.7}
                            />
                            <SocialChip
                               icon={Instagram}
                               label="Instagram"
-                              subLabel="Visual log"
+                              subLabel={t('contact.social.instagram')}
                               href="https://instagram.com/xuni.dizan"
                               delay={0.8}
                            />
                            <SocialChip
                               icon={Globe}
                               label="TikTok"
-                              subLabel="Short form content"
+                              subLabel={t('contact.social.tiktok')}
                               href="https://www.tiktok.com/@nxd.dizan.2005"
                               delay={0.9}
                            />
@@ -226,8 +229,8 @@ export const Contact: React.FC = () => {
                               <div className="absolute inset-0 border border-theme-accent rounded-full animate-ping opacity-20" />
                            </div>
                            <div className="font-mono text-sm">
-                              <p className="font-bold uppercase tracking-wider mb-1">Base of Operations</p>
-                              <p>Nong Lam University</p>
+                              <p className="font-bold uppercase tracking-wider mb-1">{t('contact.base.title')}</p>
+                              <p>{t('contact.base.school')}</p>
                               <p className="text-theme-accent">10.8231° N, 106.6297° E</p>
                            </div>
                         </div>
@@ -253,7 +256,7 @@ export const Contact: React.FC = () => {
                            <div className="flex justify-between items-center mb-8 pb-4 border-b border-theme-border/20">
                               <div className="flex items-center gap-2">
                                  <Terminal size={16} className="text-theme-accent" />
-                                 <span className="font-mono text-xs uppercase tracking-widest">Console // Channel_01</span>
+                                 <span className="font-mono text-xs uppercase tracking-widest">{t('contact.console.header')}</span>
                               </div>
                               <div className="hidden sm:flex gap-4 font-mono text-[10px] opacity-50">
                                  <span>UPTIME: 99.9%</span>
@@ -274,15 +277,15 @@ export const Contact: React.FC = () => {
                                        <div className="absolute inset-0 bg-theme-accent/20 rounded-full animate-pulse" />
                                        <CheckCircle2 size={48} className="text-theme-accent" />
                                     </div>
-                                    <h3 className="text-3xl font-bold mb-2">TRANSMISSION RECEIVED</h3>
+                                    <h3 className="text-3xl font-bold mb-2">{t('contact.success.title')}</h3>
                                     <p className="text-theme-text/60 max-w-xs mx-auto mb-8">
-                                       Your signal has been successfully logged in the system. I will decode and reply shortly.
+                                       {t('contact.success.desc')}
                                     </p>
                                     <button
                                        onClick={() => setIsSent(false)}
                                        className="font-mono text-xs uppercase tracking-widest hover:text-theme-accent underline decoration-theme-accent/50 underline-offset-4"
                                     >
-                                       Initialize New Transmission
+                                       {t('contact.success.again')}
                                     </button>
                                  </motion.div>
                               ) : (
@@ -303,15 +306,15 @@ export const Contact: React.FC = () => {
                                        >
                                           <div className="flex items-center gap-2">
                                              <span className="text-red-500">⚠</span>
-                                             <span>ERROR: {error}</span>
+                                             <span>{t('contact.error.prefix')} {error}</span>
                                           </div>
-                                          <p className="mt-2 text-xs opacity-70">Please check your connection and try again.</p>
+                                          <p className="mt-2 text-xs opacity-70">{t('contact.error.retry')}</p>
                                        </motion.div>
                                     )}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                        <div className="group">
                                           <label className="block font-mono text-[10px] uppercase tracking-widest mb-2 text-theme-text/50 group-focus-within:text-theme-accent transition-colors">
-                                             Identity // Name
+                                             {t('contact.form.identity')}
                                           </label>
                                           <input
                                              type="text"
@@ -319,12 +322,12 @@ export const Contact: React.FC = () => {
                                              value={formState.name}
                                              onChange={e => setFormState({ ...formState, name: e.target.value })}
                                              className="w-full bg-theme-bg/50 border border-theme-border/30 focus:border-theme-accent p-4 outline-none transition-all font-sans text-lg placeholder:text-theme-text/20 focus:bg-theme-bg focus:shadow-[0_0_20px_rgba(0,0,0,0.1)]"
-                                             placeholder="Enter ID..."
+                                             placeholder={t('contact.form.identityPlaceholder')}
                                           />
                                        </div>
                                        <div className="group">
                                           <label className="block font-mono text-[10px] uppercase tracking-widest mb-2 text-theme-text/50 group-focus-within:text-theme-accent transition-colors">
-                                             Contact // Email
+                                             {t('contact.form.contact')}
                                           </label>
                                           <input
                                              type="email"
@@ -332,27 +335,27 @@ export const Contact: React.FC = () => {
                                              value={formState.email}
                                              onChange={e => setFormState({ ...formState, email: e.target.value })}
                                              className="w-full bg-theme-bg/50 border border-theme-border/30 focus:border-theme-accent p-4 outline-none transition-all font-sans text-lg placeholder:text-theme-text/20 focus:bg-theme-bg focus:shadow-[0_0_20px_rgba(0,0,0,0.1)]"
-                                             placeholder="user@domain.com"
+                                             placeholder={t('contact.form.contactPlaceholder')}
                                           />
                                        </div>
                                     </div>
 
                                     <div className="group">
                                        <label className="block font-mono text-[10px] uppercase tracking-widest mb-2 text-theme-text/50 group-focus-within:text-theme-accent transition-colors">
-                                          Subject // Topic
+                                          {t('contact.form.subject')}
                                        </label>
                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                          {['collaboration', 'mentorship', 'freelance', 'other'].map((t) => (
+                                          {(['collaboration', 'mentorship', 'freelance', 'other'] as const).map((topicOpt) => (
                                              <button
-                                                key={t}
+                                                key={topicOpt}
                                                 type="button"
-                                                onClick={() => setFormState({ ...formState, topic: t as ContactTopic })}
-                                                className={`p-3 text-xs font-mono uppercase border transition-all ${formState.topic === t
+                                                onClick={() => setFormState({ ...formState, topic: topicOpt })}
+                                                className={`p-3 text-xs font-mono uppercase border transition-all ${formState.topic === topicOpt
                                                    ? 'border-theme-accent bg-theme-accent/10 text-theme-accent'
                                                    : 'border-theme-border/30 text-theme-text/50 hover:border-theme-border hover:text-theme-text'
                                                    }`}
                                              >
-                                                {t}
+                                                {t(`contact.form.topic.${topicOpt}` as TranslationKey)}
                                              </button>
                                           ))}
                                        </div>
@@ -360,7 +363,7 @@ export const Contact: React.FC = () => {
 
                                     <div className="group">
                                        <label className="block font-mono text-[10px] uppercase tracking-widest mb-2 text-theme-text/50 group-focus-within:text-theme-accent transition-colors">
-                                          Data // Message
+                                          {t('contact.form.data')}
                                        </label>
                                        <textarea
                                           rows={5}
@@ -368,7 +371,7 @@ export const Contact: React.FC = () => {
                                           value={formState.message}
                                           onChange={e => setFormState({ ...formState, message: e.target.value })}
                                           className="w-full bg-theme-bg/50 border border-theme-border/30 focus:border-theme-accent p-4 outline-none transition-all font-sans text-lg placeholder:text-theme-text/20 focus:bg-theme-bg focus:shadow-[0_0_20px_rgba(0,0,0,0.1)] resize-none"
-                                          placeholder="Input transmission data..."
+                                          placeholder={t('contact.form.dataPlaceholder')}
                                        />
                                     </div>
 
@@ -380,7 +383,7 @@ export const Contact: React.FC = () => {
                                        <span className="relative z-10 flex justify-center items-center gap-3">
                                           {isSubmitting ? (
                                              <>
-                                                <span className="animate-pulse">Transmitting</span>
+                                                <span className="animate-pulse">{t('contact.form.transmitting')}</span>
                                                 <span className="flex gap-1">
                                                    <span className="w-1 h-1 bg-current rounded-full animate-bounce" />
                                                    <span className="w-1 h-1 bg-current rounded-full animate-bounce animation-delay-150" />
@@ -389,7 +392,7 @@ export const Contact: React.FC = () => {
                                              </>
                                           ) : (
                                              <>
-                                                Send Signal <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                                {t('contact.form.send')} <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                              </>
                                           )}
                                        </span>

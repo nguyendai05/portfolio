@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useLanguage } from './LanguageContext';
+import { TranslationKey } from '../data/translations';
 
 interface Achievement {
   id: string;
@@ -97,6 +99,7 @@ const ACHIEVEMENTS_DATA: Achievement[] = [
 ];
 
 export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { t } = useLanguage();
   const [achievements, setAchievements] = useState<Achievement[]>(ACHIEVEMENTS_DATA);
   const [neoMode, setNeoMode] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
@@ -200,8 +203,8 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           >
             <div className="text-3xl">{achievement.icon}</div>
             <div className="flex-1">
-              <div className="font-bold text-sm uppercase tracking-wider">Achievement Unlocked!</div>
-              <div className="text-xs opacity-90 mt-0.5">{achievement.title}</div>
+              <div className="font-bold text-sm uppercase tracking-wider">{t('trophy.toast')}</div>
+              <div className="text-xs opacity-90 mt-0.5">{t(`ach.${achievement.id}.title` as TranslationKey)}</div>
             </div>
           </div>
         ))}

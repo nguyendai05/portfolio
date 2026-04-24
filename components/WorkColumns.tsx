@@ -2,6 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface WorkColumnsProps {
     projects: Project[];
@@ -61,6 +62,7 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
 };
 
 const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ project, onClick }) => {
+    const { t } = useLanguage();
     const isFeatured = !!project.featured;
 
     return (
@@ -93,7 +95,7 @@ const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ proj
                 {isFeatured && (
                     <div className="absolute top-3 left-3 z-30 flex items-center gap-1.5 bg-mantis-green text-theme-bg px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest shadow-lg">
                         <Sparkles size={12} />
-                        Featured
+                        {t('modal.featured')}
                     </div>
                 )}
 
@@ -126,7 +128,7 @@ const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ proj
                     </span>
                     {isFeatured && (
                         <span className="font-mono text-[10px] uppercase tracking-widest text-mantis-green">
-                            · Flagship
+                            · {t('work.projects.flagship')}
                         </span>
                     )}
                 </div>

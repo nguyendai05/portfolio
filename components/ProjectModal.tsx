@@ -7,6 +7,7 @@ import {
    GitBranch, Globe, Calendar, Hash
 } from 'lucide-react';
 import { Project } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 // --- Types & Interfaces ---
 
@@ -90,6 +91,7 @@ const TechMatrix: React.FC<{ technologies: string[] }> = ({ technologies }) => {
 };
 
 const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
+   const { t } = useLanguage();
    const mouseX = useMotionValue(0);
    const mouseY = useMotionValue(0);
    const containerRef = useRef<HTMLDivElement>(null);
@@ -137,7 +139,7 @@ const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
             >
                <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 bg-theme-accent rounded-full animate-pulse" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest">Live Feed</span>
+                  <span className="font-mono text-[10px] uppercase tracking-widest">{t('modal.liveFeed')}</span>
                </div>
                <div className="font-mono text-xs opacity-70">
                   IMG_SEQ_{project.id.toString().padStart(3, '0')}
@@ -159,13 +161,14 @@ const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
 };
 
 const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
+   const { t } = useLanguage();
    if (!phases || phases.length === 0) return null;
 
    return (
       <div className="mt-8 pt-8 border-t border-theme-border/10">
          <div className="flex items-center gap-2 mb-4 opacity-60 text-theme-text">
             <GitBranch size={14} />
-            <span className="font-mono text-xs uppercase tracking-widest">Development_Log</span>
+            <span className="font-mono text-xs uppercase tracking-widest">{t('modal.devLog')}</span>
          </div>
          <div className="relative flex justify-between items-center">
             {/* Connecting Line */}
@@ -192,6 +195,7 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
 // --- Main Component ---
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
+   const { t } = useLanguage();
    // Track project open
    useEffect(() => {
       track('project_open', { id: project.id, source: 'modal' });
@@ -234,7 +238,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                   {/* Mobile Close Button (Visible only on small screens) */}
                   <button
                      onClick={onClose}
-                     aria-label="Close modal"
+                     aria-label={t('modal.close')}
                      className="absolute top-4 right-4 md:hidden bg-theme-panel text-theme-text p-2 rounded-full z-50 shadow-lg border border-theme-border/20 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                   >
                      <X size={20} />
@@ -247,17 +251,17 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                   <div className="sticky top-0 z-20 bg-theme-panel/90 backdrop-blur-md border-b border-theme-border/10 p-6 flex justify-between items-center">
                      <div className="flex items-center gap-2 opacity-50 text-theme-text">
                         <Terminal size={14} />
-                        <span className="font-mono text-xs uppercase tracking-widest">System_ID: {project.id}</span>
+                        <span className="font-mono text-xs uppercase tracking-widest">{t('modal.systemId')} {project.id}</span>
                      </div>
 
                      {/* Desktop Close Button */}
                      <div className="hidden md:flex items-center gap-4">
-                        <button className="opacity-60 hover:opacity-100 transition-opacity text-theme-text hover:text-theme-accent p-2 rounded-md hover:bg-theme-panel/50" title="Share">
+                        <button className="opacity-60 hover:opacity-100 transition-opacity text-theme-text hover:text-theme-accent p-2 rounded-md hover:bg-theme-panel/50" title={t('modal.share')}>
                            <Share2 size={18} />
                         </button>
                         <button
                            onClick={onClose}
-                           aria-label="Close modal"
+                           aria-label={t('modal.close')}
                            className="bg-theme-panel text-theme-text border border-theme-border/40 p-2 hover:bg-theme-accent hover:text-theme-bg transition-colors"
                         >
                            <X size={20} />
@@ -279,7 +283,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                            </span>
                            {project.featured && (
                               <span className="px-3 py-1 bg-theme-accent text-theme-bg text-xs font-mono font-bold uppercase flex items-center gap-1">
-                                 <Activity size={12} /> Featured
+                                 <Activity size={12} /> {t('modal.featured')}
                               </span>
                            )}
                         </div>
@@ -296,7 +300,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                      <motion.div variants={itemVariants} className="mb-10">
                         <div className="flex items-center gap-2 mb-4 opacity-60 text-theme-text">
                            <Database size={14} />
-                           <span className="font-mono text-xs uppercase tracking-widest">Tech_Stack_Matrix</span>
+                           <span className="font-mono text-xs uppercase tracking-widest">{t('modal.techMatrix')}</span>
                         </div>
                         <TechMatrix technologies={project.technologies} />
                      </motion.div>
@@ -318,9 +322,9 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                               <div className="absolute inset-0 bg-theme-accent translate-x-2 translate-y-2 transition-transform group-hover:translate-x-3 group-hover:translate-y-3" />
                               <div className="relative bg-theme-bg text-theme-text p-5 flex items-center justify-between border border-theme-border group-hover:border-theme-accent transition-colors">
                                  <div className="flex flex-col">
-                                    <span className="font-mono text-xs text-theme-accent mb-1">Access_Terminal</span>
+                                    <span className="font-mono text-xs text-theme-accent mb-1">{t('modal.accessTerminal')}</span>
                                     <span className="font-bold text-xl uppercase tracking-wider flex items-center gap-2">
-                                       Launch Project
+                                       {t('modal.launchProject')}
                                     </span>
                                  </div>
                                  <ArrowRight className="transform group-hover:translate-x-2 transition-transform text-theme-accent" />
@@ -328,7 +332,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                            </a>
                         ) : (
                            <div className="p-4 border border-theme-border/20 bg-theme-bg/5 font-mono text-xs text-center uppercase opacity-60 text-theme-text">
-                              Project_Archived // No_Live_Link
+                              {t('modal.archived')}
                            </div>
                         )}
                      </motion.div>

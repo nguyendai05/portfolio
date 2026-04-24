@@ -8,12 +8,14 @@ import { PROJECTS as MOCK_PROJECTS, CLIENTS as MOCK_CLIENTS, AWARDS as MOCK_AWAR
 import { fetchProjects, fetchSkillNames, fetchAwards, fetchExperiments, Award, Experiment } from '../services/portfolioService';
 import { Project } from '../types';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../context/LanguageContext';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
 const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
 
 
 export const Home: React.FC = () => {
+  const { t } = useLanguage();
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showHeroArt, setShowHeroArt] = useState(false);
@@ -341,7 +343,7 @@ export const Home: React.FC = () => {
                   <div
                     className="bg-theme-text text-theme-bg px-2 py-1 md:px-4 md:py-2 font-mono text-[10px] md:text-xs font-bold border-2 border-theme-accent shadow-[0_10px_30px_rgba(0,0,0,0.3)] animated-badge-3d"
                   >
-                    INITIALIZING...
+                    {t('home.hero.badge')}
                   </div>
                 </motion.div>
 
@@ -363,7 +365,7 @@ export const Home: React.FC = () => {
 
           <div className="mt-8 opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
             <p className="font-mono text-sm md:text-base uppercase tracking-[0.2em] opacity-60">
-              Welcome to the void
+              {t('home.hero.welcome')}
             </p>
           </div>
 
@@ -380,7 +382,7 @@ export const Home: React.FC = () => {
 
           <div className="absolute bottom-[-20vh] left-1/2 -translate-x-1/2">
             <Link to="/work" className="px-6 py-2 border border-theme-text rounded-full flex items-center gap-2 bg-theme-panel/50 backdrop-blur-sm cursor-pointer hover:bg-theme-panel transition-colors text-theme-text">
-              <span className="text-sm font-mono uppercase">View Assignments</span>
+              <span className="text-sm font-mono uppercase">{t('home.hero.viewAssignments')}</span>
               <div className="w-2 h-2 bg-theme-text rounded-full animate-pulse"></div>
             </Link>
           </div>
@@ -389,8 +391,8 @@ export const Home: React.FC = () => {
         {/* Bottom Left Profile */}
         <div className="absolute bottom-8 left-8 md:left-32 z-20">
           <h2 className="text-2xl font-black tracking-tighter text-theme-text relative z-10">Xuni-Dizan</h2>
-          <p className="text-[10px] font-mono uppercase tracking-widest opacity-60 mb-2 relative z-10">IT Student <br /> Developer</p>
-          <p className="text-xs font-bold text-theme-accent max-w-[200px] mt-1 relative z-10">“Ngày ta đại thành Java kinh phổ, ắt sẽ danh chấn thiên hạ!”</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest opacity-60 mb-2 relative z-10">{t('home.profile.role')} <br /> {t('home.profile.subrole')}</p>
+          <p className="text-xs font-bold text-theme-accent max-w-[200px] mt-1 relative z-10">{t('home.profile.quote')}</p>
           <div className="w-12 h-12 bg-theme-accent absolute -left-4 -top-4 z-0 opacity-80"></div>
         </div>
       </section>
@@ -407,9 +409,9 @@ export const Home: React.FC = () => {
                 transition={{ duration: 0.8 }}
               >
                 <GlitchText
-                  text="I don't just write code. I try to fix it."
+                  text={t('home.philosophy.headline')}
                   className="text-[7vw] md:text-[5vw] leading-[0.9] font-medium tracking-tight text-theme-text"
-                  highlightWord="fix it."
+                  highlightWord={t('home.philosophy.highlight')}
                   highlightStyle="font-serif italic text-theme-accent"
                 />
               </motion.div>
@@ -422,18 +424,11 @@ export const Home: React.FC = () => {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-mono text-sm leading-relaxed opacity-80">
-                <p>
-                  I am Nguyễn Xuân Đại, an IT student at Nong Lam University.
-                  My journey is about bridging the gap between theory and practice,
-                  one console.log at a time.
-                </p>
+                <p>{t('home.philosophy.p1')}</p>
                 <div>
-                  <p className="mb-6">
-                    From simple HCI exercises to building personal digital spaces,
-                    I am exploring the raw potential of the web. It's messy, it's fun, and it's mine.
-                  </p>
+                  <p className="mb-6">{t('home.philosophy.p2')}</p>
                   <Link to="/about" className="inline-flex items-center gap-2 border-b border-theme-text pb-1 hover:text-theme-accent hover:border-theme-accent transition-colors">
-                    ABOUT ME <ArrowRight size={12} />
+                    {t('home.philosophy.aboutMe')} <ArrowRight size={12} />
                   </Link>
                 </div>
               </div>
@@ -477,8 +472,8 @@ export const Home: React.FC = () => {
 
         <div className="container mx-auto px-8 md:px-32 relative z-10">
           <div className="flex items-end justify-between mb-16 border-b border-theme-border pb-4">
-            <h2 className="text-[6vw] leading-none font-black tracking-tighter">Selected Labs</h2>
-            <Link to="/work" className="font-mono text-xs uppercase tracking-widest mb-2 hover:bg-theme-text hover:text-theme-bg px-2 transition-colors">View All</Link>
+            <h2 className="text-[6vw] leading-none font-black tracking-tighter">{t('home.featured.title')}</h2>
+            <Link to="/work" className="font-mono text-xs uppercase tracking-widest mb-2 hover:bg-theme-text hover:text-theme-bg px-2 transition-colors">{t('home.featured.viewAll')}</Link>
           </div>
 
           <div className="flex flex-col">
@@ -513,11 +508,11 @@ export const Home: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-16">
             <div className="md:w-1/3">
               <h2 className="text-4xl font-black tracking-tighter mb-6 flex items-center gap-4">
-                Milestones.
+                {t('home.milestones.title')}
                 <Trophy size={28} className="text-theme-text opacity-20" />
               </h2>
               <p className="font-mono text-sm opacity-60 leading-relaxed max-w-[280px]">
-                No Cannes Lions here (yet). Just the steady progress of learning, failing, and learning again.
+                {t('home.milestones.copy')}
               </p>
             </div>
             <div className="md:w-2/3 flex flex-col">
@@ -561,19 +556,19 @@ export const Home: React.FC = () => {
             transition={{ duration: 1 }}
           >
             <GlitchText
-              text="I. activate strict mode."
+              text={t('home.focus.headline')}
               className="text-[12vw] leading-[0.8] font-black tracking-tighter text-transparent stroke-text hover:text-theme-accent transition-colors duration-700 cursor-default block"
-              highlightWord="strict mode."
+              highlightWord={t('home.focus.highlight')}
             />
           </motion.div>
 
           <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-theme-bg/20 pt-8 font-mono">
-            {['FRONT-END DEV', 'HCI STUDY', 'UI EXPERIMENTS'].map((service, i) => (
+            {[t('home.focus.service1'), t('home.focus.service2'), t('home.focus.service3')].map((service, i) => (
               <div key={service} className="group cursor-pointer">
                 <div className="text-xs text-theme-accent mb-2">0{i + 1}</div>
                 <h3 className="text-2xl font-bold mb-4 group-hover:text-theme-accent transition-colors">{service}</h3>
                 <p className="text-xs opacity-50 leading-relaxed">
-                  Exploring the fundamentals of web development through coursework and self-directed chaos.
+                  {t('home.focus.serviceDesc')}
                 </p>
                 <ArrowRight className="mt-4 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-300 text-theme-accent" />
               </div>
@@ -611,16 +606,15 @@ export const Home: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 text-theme-accent mb-4">
                 <Star size={16} className="animate-spin-slow" />
-                <span className="font-mono text-xs uppercase tracking-widest">Learning Lab</span>
+                <span className="font-mono text-xs uppercase tracking-widest">{t('home.lab.badge')}</span>
               </div>
               <h2 className="text-[5vw] leading-none font-black tracking-tighter">
-                Research & <br /> <span className="text-theme-accent">Debugging</span>.
+                {t('home.lab.titleA')} <br /> <span className="text-theme-accent">{t('home.lab.titleB')}</span>.
               </h2>
             </div>
             <div className="text-right md:max-w-sm mt-8 md:mt-0">
               <p className="font-mono text-sm opacity-60 leading-relaxed">
-                My internal playground. Where I break things to see how they're made.
-                Uncommercial, unhinged, and educational.
+                {t('home.lab.copy')}
               </p>
             </div>
           </div>
@@ -673,26 +667,26 @@ export const Home: React.FC = () => {
         <div className="container mx-auto px-8 md:px-32 pt-[40vh] relative z-10">
           <div className="bg-theme-panel p-8 md:p-16 border border-theme-border shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] max-w-5xl mx-auto">
             <GlitchText
-              text="Connect."
+              text={t('home.connect.heading')}
               className="text-4xl md:text-5xl font-bold mb-12 tracking-tight block"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 font-sans text-lg">
               <div>
                 <p className="mb-8">
-                  I am currently a student and beginner front-end developer.
+                  {t('home.connect.p1')}
                 </p>
                 <p>
-                  I believe that <span className="bg-theme-accent text-black px-1">curiosity</span> is the best driver for clean code.
+                  {t('home.connect.p2Prefix')}<span className="bg-theme-accent text-black px-1">{t('home.connect.p2Highlight')}</span>{t('home.connect.p2Suffix')}
                 </p>
               </div>
               <div>
                 <p className="mb-8">
-                  Check out my social profiles or drop a message if you want to chat about tech, school, or debugging.
+                  {t('home.connect.p3')}
                 </p>
                 <div className="mt-8 flex gap-4">
                   <Link to="/contact" className="bg-theme-text text-theme-bg px-6 py-3 font-mono uppercase tracking-widest hover:bg-theme-accent hover:text-black transition-colors">
-                    Say Hello
+                    {t('home.connect.sayHello')}
                   </Link>
                   <a href="https://github.com/Xuni-Dizan" target="_blank" rel="noopener noreferrer" className="px-6 py-3 font-mono uppercase tracking-widest border border-theme-text hover:bg-theme-text hover:text-theme-bg transition-colors flex items-center gap-2">
                     <Code2 size={14} /> GitHub

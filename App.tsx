@@ -7,6 +7,7 @@ import { Navigation } from './components/Navigation';
 import { Preloader } from './components/Preloader';
 import { GamificationProvider, useGamification } from './context/GamificationContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Lazy‑load heavy components so chúng không nằm hết trong initial bundle
 const NeuralInterface = lazy(() =>
@@ -237,34 +238,36 @@ function getCurrentSpeedInsightsRoute(): string | null {
 
 function App() {
   return (
-    <ThemeProvider>
-      <GamificationProvider>
-        <Router>
-          <AppContent />
-        </Router>
-        <Analytics
-          mode={import.meta.env.DEV ? 'development' : 'production'}
-          debug={import.meta.env.DEV}
-          beforeSend={(event) => {
-            try {
-              const url = new URL(event.url);
-              // Nếu đang ở hash route (#/about) thì ghi đúng path để analytics/insights hiểu
-              if (typeof window !== 'undefined' && window.location.hash.startsWith('#/')) {
-                const hashPath = window.location.hash.slice(1);
-                url.pathname = hashPath || '/';
+    <LanguageProvider>
+      <ThemeProvider>
+        <GamificationProvider>
+          <Router>
+            <AppContent />
+          </Router>
+          <Analytics
+            mode={import.meta.env.DEV ? 'development' : 'production'}
+            debug={import.meta.env.DEV}
+            beforeSend={(event) => {
+              try {
+                const url = new URL(event.url);
+                // Nếu đang ở hash route (#/about) thì ghi đúng path để analytics/insights hiểu
+                if (typeof window !== 'undefined' && window.location.hash.startsWith('#/')) {
+                  const hashPath = window.location.hash.slice(1);
+                  url.pathname = hashPath || '/';
+                }
+                return {
+                  ...event,
+                  url: url.toString(),
+                };
+              } catch {
+                return event;
               }
-              return {
-                ...event,
-                url: url.toString(),
-              };
-            } catch {
-              return event;
-            }
-          }}
-        />
-        <SpeedInsights route={getCurrentSpeedInsightsRoute()} />
-      </GamificationProvider>
-    </ThemeProvider>
+            }}
+          />
+          <SpeedInsights route={getCurrentSpeedInsightsRoute()} />
+        </GamificationProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

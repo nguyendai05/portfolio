@@ -11,11 +11,13 @@ import { WorkDeepDiveStrip } from '../components/WorkDeepDiveStrip';
 import { WorkScrollProgress } from '../components/WorkScrollProgress';
 import { ToolShowcase } from '../components/ToolShowcase';
 import { useGamification } from '../context/GamificationContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export const Work: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const { unlockAchievement } = useGamification();
+  const { t } = useLanguage();
   const { scrollYProgress } = useScroll();
 
   const [activeSection, setActiveSection] = useState<'tools' | 'projects'>('tools');
@@ -85,7 +87,7 @@ export const Work: React.FC = () => {
                   }`}
               >
                 <Wrench size={16} />
-                <span>Tools</span>
+                <span>{t('work.tab.tools')}</span>
                 {TOOLS.length > 0 && (
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${activeSection === 'tools' ? 'bg-theme-bg/20' : 'bg-mantis-green/20 text-mantis-green'
                     }`}>
@@ -101,7 +103,7 @@ export const Work: React.FC = () => {
                   }`}
               >
                 <Globe size={16} />
-                <span>Web Projects</span>
+                <span>{t('work.tab.projects')}</span>
                 <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${activeSection === 'projects' ? 'bg-theme-bg/20' : 'bg-theme-text/10'
                   }`}>
                   {PROJECTS.length}
@@ -125,7 +127,7 @@ export const Work: React.FC = () => {
                       : 'text-theme-text/70 hover:text-theme-text hover:bg-theme-panel'
                     }`}
                 >
-                  {cat}
+                  {cat === 'All' ? t('work.filter.all') : cat}
                 </button>
               ))}
             </div>
@@ -146,9 +148,9 @@ export const Work: React.FC = () => {
             {TOOLS.length === 0 && (
               <div className="text-center py-24 border border-dashed border-theme-border/50 rounded-3xl bg-theme-panel/20">
                 <Wrench className="w-16 h-16 mx-auto mb-6 text-theme-text/20" />
-                <h3 className="text-2xl font-bold mb-2 text-theme-text/50">Tools Coming Soon</h3>
+                <h3 className="text-2xl font-bold mb-2 text-theme-text/50">{t('work.tools.comingSoonTitle')}</h3>
                 <p className="text-theme-text/40 font-mono text-sm max-w-md mx-auto">
-                  Đang phát triển các công cụ hữu ích. Quay lại sau nhé!
+                  {t('work.tools.comingSoonDesc')}
                 </p>
               </div>
             )}
@@ -165,13 +167,13 @@ export const Work: React.FC = () => {
               <div className="text-center py-16 border border-dashed border-theme-border/50 rounded-2xl">
                 <Globe className="w-12 h-12 mx-auto mb-4 text-theme-text/20" />
                 <p className="text-theme-text/50 font-mono text-sm">
-                  Không có project nào trong category "{filter}"
+                  {t('work.projects.emptyForCategory').replace('{category}', filter)}
                 </p>
                 <button
                   onClick={() => setFilter('All')}
                   className="mt-4 px-4 py-2 text-xs font-mono uppercase tracking-wider text-mantis-green border border-mantis-green/30 rounded-full hover:bg-mantis-green/10 transition-colors"
                 >
-                  Xem tất cả
+                  {t('work.projects.viewAll')}
                 </button>
               </div>
             )}
@@ -189,7 +191,7 @@ export const Work: React.FC = () => {
 
       {/* Footer Note */}
       <div className="text-center py-24 opacity-30 font-mono text-xs uppercase tracking-widest">
-        End of Archives
+        {t('work.footer.end')}
       </div>
     </motion.div>
   );

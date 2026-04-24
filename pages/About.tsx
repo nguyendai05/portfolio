@@ -6,6 +6,7 @@ import { Terminal, GitBranch, Code2, Cpu, Rocket } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import type { TimelineEntry } from '../components/ExecutionLog';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../context/LanguageContext';
 
 // Heavy sub-components are code-split so the initial About chunk stays small
 // (previously 55 kB gz). They stream in once the page is ready.
@@ -25,6 +26,7 @@ const ExecutionLog = lazy(() =>
 
 export const About: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -33,36 +35,36 @@ export const About: React.FC = () => {
     {
       type: "text",
       year: "2023",
-      title: "System Boot",
-      desc: "Entered Nong Lam University. Initialized core programming modules. First 'Hello World' printed to console.",
+      title: t('about.timeline.2023.title'),
+      desc: t('about.timeline.2023.desc'),
       icon: <Terminal size={20} />
     },
     {
       type: "text",
       year: "2024",
-      title: "Learning Curve",
-      desc: "Discovered the chaos of the DOM. Built first static sites. Started battling CSS specificity wars.",
+      title: t('about.timeline.2024.title'),
+      desc: t('about.timeline.2024.desc'),
       icon: <Code2 size={20} />
     },
     {
       type: "text",
-      year: "2024 - Late",
-      title: "HCI Experiments",
-      desc: "University coursework focused on user interaction. Realized that code must also feel good, not just work.",
+      year: t('about.timeline.2024late.year'),
+      title: t('about.timeline.2024late.title'),
+      desc: t('about.timeline.2024late.desc'),
       icon: <Cpu size={20} />
     },
     {
       type: "text",
       year: "2025",
-      title: "Modern Stack",
-      desc: "Adopting React, TypeScript, and Tailwind. Moving from 'making it work' to 'making it scale'.",
+      title: t('about.timeline.2025.title'),
+      desc: t('about.timeline.2025.desc'),
       icon: <GitBranch size={20} />
     },
     {
       type: "text",
       year: "2026",
-      title: "Flagship Launch",
-      desc: "Shipped three flagship products: the Xuni Dizan resource hub, Mù Phim streaming platform, and Nuôi Xuân Đại donation system. Operating a full-stack toolchain across React, Next.js, Express, TiDB, and Supabase.",
+      title: t('about.timeline.2026.title'),
+      desc: t('about.timeline.2026.desc'),
       icon: <Rocket size={20} />
     },
   ];
@@ -87,31 +89,26 @@ export const About: React.FC = () => {
         <div className="mb-32 max-w-4xl">
           <div className="font-mono text-xs uppercase tracking-widest mb-8 flex items-center gap-2">
             <span className="w-4 h-[1px] bg-theme-text"></span>
-            Manifesto
+            {t('about.manifesto')}
           </div>
           <GlitchText
-            text="I don't just use the browser. I explore it."
+            text={t('about.headline')}
             className="text-4xl md:text-[5vw] leading-[1.1] font-bold tracking-tight"
-            highlightWord="explore it."
+            highlightWord={t('about.headlineHighlight')}
           />
         </div>
 
         {/* Content Split */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-48">
           <div className="md:col-span-5 font-mono text-sm leading-relaxed opacity-80 space-y-8">
-            <p>
-              My name is Nguyễn Xuân Đại (Xuni-Dizan). I am an Information Technology student at Nong Lam University, Ho Chi Minh City.
-            </p>
-            <p>
-              In a world of frameworks and abstraction, I'm interested in the fundamentals.
-              This portfolio is my sandbox—brutalist, slightly glitchy, and honest about my level.
-            </p>
+            <p>{t('about.bio.p1')}</p>
+            <p>{t('about.bio.p2')}</p>
             <div className="p-6 border border-theme-border bg-theme-panel/50 backdrop-blur">
-              <h4 className="uppercase font-bold mb-4">My Focus</h4>
+              <h4 className="uppercase font-bold mb-4">{t('about.focus.title')}</h4>
               <ul className="space-y-2">
-                <li className="flex items-center gap-2">✦ Front-End Development</li>
-                <li className="flex items-center gap-2">✦ Human-Computer Interaction</li>
-                <li className="flex items-center gap-2">✦ Experimental UI</li>
+                <li className="flex items-center gap-2">✦ {t('about.focus.item1')}</li>
+                <li className="flex items-center gap-2">✦ {t('about.focus.item2')}</li>
+                <li className="flex items-center gap-2">✦ {t('about.focus.item3')}</li>
               </ul>
             </div>
           </div>
@@ -138,7 +135,7 @@ export const About: React.FC = () => {
       <div className="container mx-auto px-8 md:px-32 relative z-10">
         {/* Team / Me */}
         <div className="border-t border-theme-border pt-24 mt-32">
-          <h3 className="text-4xl font-black tracking-tighter mb-16">The Human.</h3>
+          <h3 className="text-4xl font-black tracking-tighter mb-16">{t('about.human.title')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -151,12 +148,11 @@ export const About: React.FC = () => {
               <h4 className="text-xl font-bold mb-2">Nguyễn Xuân Đại</h4>
               <div className="font-mono text-xs uppercase opacity-50 mb-4">Xuni-Dizan</div>
               <p className="text-sm opacity-80 group-hover:text-inherit mb-4">
-                "Ngày ta đại thành Java kinh phổ - ắt sẽ danh chấn thiên hạ!" <br />
-                Student, Developer, and Explorer.
+                {t('about.human.quote')}
               </p>
               <div className="flex gap-2 text-xs font-mono">
-                <span className="border border-current px-2 py-1">NLU Student</span>
-                <span className="border border-current px-2 py-1">Front-End</span>
+                <span className="border border-current px-2 py-1">{t('about.human.tag1')}</span>
+                <span className="border border-current px-2 py-1">{t('about.human.tag2')}</span>
               </div>
             </motion.div>
           </div>
