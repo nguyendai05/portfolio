@@ -1,7 +1,8 @@
-import React, { useRef, useMemo, useEffect, useState } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowRight, Layers } from 'lucide-react';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface WorkDeepDiveStripProps {
     projects: Project[];
@@ -10,16 +11,8 @@ interface WorkDeepDiveStripProps {
 
 export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, onProjectClick }) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [isMobile, setIsMobile] = useState(false);
+    const isMobile = useIsMobile();
     const prefersReducedMotion = useReducedMotion();
-
-    // Mobile detection
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
 
     // Featured projects logic
     const featuredProjects = useMemo(() => {

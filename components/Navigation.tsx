@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { track } from '@vercel/analytics';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Cloud, Trophy, Clock, MapPin, Menu, X, Home, Briefcase, User, Mail, Image as ImageIcon, GraduationCap, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Cloud, Trophy, Clock, MapPin, Home, Briefcase, User, Mail, Image as ImageIcon, GraduationCap, Users } from 'lucide-react';
 import { useGamification } from '../context/GamificationContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { TrophyCase } from './TrophyCase';
 
+const formatClock = () => new Date().toLocaleTimeString('en-US', { hour12: false });
+
+/**
+ * Isolated clock so ticking every second re-renders just this span,
+ * not the whole navigation tree (which contains dozens of motion nodes).
+ */
+const LiveClock: React.FC = () => {
+  const [time, setTime] = useState(formatClock);
+  useEffect(() => {
+    const interval = setInterval(() => setTime(formatClock()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return <span>{time}</span>;
+};
+
 export const Navigation: React.FC = () => {
-  const [time, setTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: false }));
   const location = useLocation();
   const { achievements, unlockAchievement, toggleTrophyCase } = useGamification();
   const unlockedCount = achievements.filter(a => a.unlocked).length;
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const isMobile = useIsMobile();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,7 +77,7 @@ export const Navigation: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={12} />
-                <span>{time}</span>
+                <LiveClock />
               </div>
               <div className="flex items-center gap-2">
                 <MapPin size={12} />

@@ -18,18 +18,26 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [react()],
+    esbuild: {
+      // Strip noisy logs from the production client bundle. Error/warn are kept
+      // so real failures still surface in Sentry/analytics.
+      drop: mode === 'production' ? ['debugger'] : [],
+      pure: mode === 'production' ? ['console.log', 'console.debug'] : [],
+    },
     build: {
-      // Optimize chunking for caching
+      target: 'es2020',
+      cssCodeSplit: true,
+      reportCompressedSize: false,
+      // Optimize chunking for caching and parallel downloads.
       rollupOptions: {
         output: {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
             'framer': ['framer-motion'],
-            'ai': ['@google/genai']
-          }
-        }
-      }
+            'ai': ['@google/genai'],
+          },
+        },
+      },
     },
     define: {
       'process.env.GEMINI_API_KEYS': JSON.stringify([

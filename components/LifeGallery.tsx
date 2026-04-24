@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useReducedMotion } from 'framer-motion';
 import { MapPin, Calendar, X, Grid, Shuffle, Aperture, Globe, Heart, Play, Layers, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { GlitchText } from './GlitchText';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // --- Helper Functions ---
 /**
@@ -615,15 +616,13 @@ interface LifeGalleryProps {
 }
 
 export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }) => {
-  const [layout, setLayout] = useState<'scatter' | 'grid'>(() => (
-    typeof window !== 'undefined' && window.innerWidth < 768 ? 'grid' : 'scatter'
-  ));
+  const isMobile = useIsMobile();
+  const [layout, setLayout] = useState<'scatter' | 'grid'>(() => (isMobile ? 'grid' : 'scatter'));
   const [filter, setFilter] = useState<string>('all');
   const [selectedPhoto, setSelectedPhoto] = useState<LifeMoment | null>(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [videoLoading, setVideoLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const prefersReducedMotion = useReducedMotion();
   const isVideoLightboxOpen = selectedPhoto?.type === 'video';
   const isLightboxOpen = Boolean(selectedPhoto);
@@ -633,13 +632,6 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
   useEffect(() => {
     if (isMobile) setLayout('grid');
   }, [isMobile]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Reset media index and video loading state
   useEffect(() => {
@@ -850,6 +842,8 @@ export const LifeGallery: React.FC<LifeGalleryProps> = ({ onVideoOverlayChange }
                   <img
                     src={selectedPhoto.mediaUrls ? convertGoogleDriveUrl(selectedPhoto.mediaUrls[currentMediaIndex]) : convertGoogleDriveUrl(selectedPhoto.url)}
                     alt={selectedPhoto.caption}
+                    loading="eager"
+                    decoding="async"
                     className="w-full h-full object-contain"
                   />
                   {selectedPhoto.mediaUrls && selectedPhoto.mediaUrls.length > 1 && (

@@ -2,10 +2,12 @@
 export default {
   content: [
     "./index.html",
-    "./*.{js,ts,jsx,tsx}",           // Matches App.tsx, index.tsx in root
+    "./*.{js,ts,jsx,tsx}",           // App.tsx, index.tsx in root
     "./components/**/*.{js,ts,jsx,tsx}",
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./context/**/*.{js,ts,jsx,tsx}",
+    "./hooks/**/*.{js,ts,jsx,tsx}",
+    "./data/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

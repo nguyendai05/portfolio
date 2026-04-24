@@ -195,7 +195,13 @@ export const VideoTimelineItem: React.FC<VideoTimelineItemProps> = ({ data, inde
                     >
                       {/* Thumbnail / Fallback Art */}
                       {data.thumbnail ? (
-                        <img src={data.thumbnail} alt={data.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
+                        <img
+                          src={data.thumbnail}
+                          alt={data.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                        />
                       ) : (
                         <div className="w-full h-full bg-[repeating-linear-gradient(45deg,#111,#111_10px,#1a1a1a_10px,#1a1a1a_20px)] opacity-50 flex items-center justify-center">
                            <Film className="text-theme-text/20 w-24 h-24" />

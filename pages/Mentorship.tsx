@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle, AlertCircle, FileCode, Cpu, Loader, Shield } from 'lucide-react';
 import { GlitchText } from '../components/GlitchText';
-import { sendMessageToMantis } from '../services/geminiService';
 
 export const Mentorship: React.FC = () => {
   const [form, setForm] = useState({
@@ -49,6 +48,9 @@ export const Mentorship: React.FC = () => {
     const history = [{ role: 'model', parts: [{ text: "Ready to analyze incoming requests." }] }];
 
     try {
+      // Dynamic import so the @google/genai SDK (≈220 kB / 39 kB gz) is only
+      // fetched when the user actually submits a mentorship request.
+      const { sendMessageToMantis } = await import('../services/geminiService');
       const response = await sendMessageToMantis(history, prompt);
       setAiReport(response);
       setStatus('complete');

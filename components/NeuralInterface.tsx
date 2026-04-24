@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, X, Trash2, Cpu, Minimize2 } from 'lucide-react';
 import { sendMessageToMantis } from '../services/geminiService';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface Message {
   id: string;
@@ -271,15 +272,9 @@ export const NeuralInterface: React.FC = () => {
   ]);
   const [isThinking, setIsThinking] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Auto-scroll
   useEffect(() => {

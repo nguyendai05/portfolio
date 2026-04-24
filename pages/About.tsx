@@ -1,32 +1,32 @@
 
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { GenerativeArt } from '../components/GenerativeArt';
+import React, { lazy, Suspense, useState } from 'react';
+import { motion } from 'framer-motion';
 import { GlitchText } from '../components/GlitchText';
 import { Terminal, GitBranch, Code2, Cpu } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
-import { LifeGallery } from '../components/LifeGallery';
-import { AboutPortrait3D } from '../components/AboutPortrait3D';
-import { ExecutionLog, TimelineEntry } from '../components/ExecutionLog';
+import type { TimelineEntry } from '../components/ExecutionLog';
+import { useIsMobile } from '../hooks/useIsMobile';
 
+// Heavy sub-components are code-split so the initial About chunk stays small
+// (previously 55 kB gz). They stream in once the page is ready.
+const GenerativeArt = lazy(() =>
+  import('../components/GenerativeArt').then((m) => ({ default: m.GenerativeArt }))
+);
+const LifeGallery = lazy(() =>
+  import('../components/LifeGallery').then((m) => ({ default: m.LifeGallery }))
+);
+const AboutPortrait3D = lazy(() =>
+  import('../components/AboutPortrait3D').then((m) => ({ default: m.AboutPortrait3D }))
+);
+const ExecutionLog = lazy(() =>
+  import('../components/ExecutionLog').then((m) => ({ default: m.ExecutionLog }))
+);
 
 
 export const About: React.FC = () => {
   const { theme } = useTheme();
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const isMobile = useIsMobile();
 
   // Combined Data: Text Milestones + Video Entries
   const timelineData: TimelineEntry[] = [
@@ -62,7 +62,6 @@ export const About: React.FC = () => {
 
   return (
     <motion.div
-      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -70,7 +69,9 @@ export const About: React.FC = () => {
     >
       {!isVideoOverlayOpen && !isMobile && (
         <div className="fixed inset-0 z-0 opacity-10 pointer-events-none">
-          <GenerativeArt variant="network" intensity={30} color={THEMES[theme].text} />
+          <Suspense fallback={null}>
+            <GenerativeArt variant="network" intensity={30} color={THEMES[theme].text} />
+          </Suspense>
         </div>
       )}
 
@@ -110,16 +111,22 @@ export const About: React.FC = () => {
 
           {/* Enhanced 3D Image Section */}
           <div className="md:col-span-7">
-            <AboutPortrait3D motionPaused={isVideoOverlayOpen || isMobile} />
+            <Suspense fallback={<div className="aspect-square w-full bg-theme-panel/30" />}>
+              <AboutPortrait3D motionPaused={isVideoOverlayOpen || isMobile} />
+            </Suspense>
           </div>
         </div>
 
         {/* Scroll Storytelling Section */}
-        <ExecutionLog items={timelineData} />
+        <Suspense fallback={<div className="min-h-[30vh]" />}>
+          <ExecutionLog items={timelineData} />
+        </Suspense>
       </div>
 
       {/* FULL WIDTH GALLERY SECTION */}
-      <LifeGallery onVideoOverlayChange={setIsVideoOverlayOpen} />
+      <Suspense fallback={<div className="min-h-[60vh]" />}>
+        <LifeGallery onVideoOverlayChange={setIsVideoOverlayOpen} />
+      </Suspense>
 
       <div className="container mx-auto px-8 md:px-32 relative z-10">
         {/* Team / Me */}

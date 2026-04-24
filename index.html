@@ -3,24 +3,40 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#e6e6e6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description"
+    content="Brutalist, experimental portfolio of Nguyen Xuan Dai (Xuni-Dizan) — IT student & front-end developer in Ho Chi Minh City. Projects, experiments, and an AI neural interface." />
+  <meta name="robots" content="index,follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Nguyen Xuan Dai – Xuni-Dizan" />
+  <meta property="og:description"
+    content="Brutalist portfolio showcasing front-end experiments, generative art and an AI chat interface." />
+  <meta property="og:image"
+    content="https://res.cloudinary.com/dak4x4d7u/image/upload/v1763829217/Whisk_cjmyety3imz3y2mk1snzmtytyjm4qtl3gzy40sz_k2c1um.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
   <title>Nguyen Xuan Dai – Xuni-Dizan</title>
 
-  <!-- Fonts - Optimized: preconnect + preload critical fonts -->
+  <!-- Preconnect to third-party origins used for fonts and CDN media -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+  <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+  <link rel="dns-prefetch" href="https://aistudiocdn.com" />
 
-  <!-- Desktop: Preload Inter 900 (LCP "Hi." text) - critical for desktop LCP -->
+  <!-- Desktop: preload Inter 900 (hero LCP text) — only fetched on ≥768px viewports -->
   <link rel="preload" as="font" type="font/woff2"
     href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.woff2" crossorigin
     media="(min-width: 768px)" />
 
-  <!-- Load fonts with swap for fast rendering -->
+  <!-- Fonts with swap: Inter is critical for FCP, JetBrains Mono is not -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet" media="print"
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" media="print"
     onload="this.media='all'" />
-  <!-- JetBrains Mono loaded async - not critical for FCP -->
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap"
     media="print" onload="this.media='all'" />
   <noscript>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400&display=swap"
@@ -29,27 +45,6 @@
 
   <!-- Favicon -->
   <link rel="icon" href="https://res.cloudinary.com/dak4x4d7u/image/upload/v1764596213/Untitled_design_13_e3ksgf.png" />
-
-  <!-- Import map (chỉ dùng nếu mở index.html trực tiếp, không ảnh hưởng Vite build) -->
-  <script type="importmap">
-      {
-        "imports": {
-          "react": "https://esm.sh/react@18.2.0",
-          "react/": "https://esm.sh/react@18.2.0/",
-          "react-dom": "https://esm.sh/react-dom@18.2.0",
-          "react-dom/": "https://esm.sh/react-dom@18.2.0/",
-          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-          "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react",
-          "framer-motion": "https://esm.sh/framer-motion@11.0.8?external=react,react-dom",
-          "three": "https://esm.sh/three@0.160.0",
-          "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.15.16?external=react,react-dom,three",
-          "@react-three/drei": "https://esm.sh/@react-three/drei@9.102.6?external=react,react-dom,three,@react-three/fiber",
-          "react-router-dom": "https://esm.sh/react-router-dom@6.23.0?external=react,react-dom",
-          "@remix-run/router": "https://esm.sh/@remix-run/router@1.16.0"
-        }
-      }
-    </script>
 </head>
 
 <body>
