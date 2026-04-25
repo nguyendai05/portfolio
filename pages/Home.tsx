@@ -9,13 +9,14 @@ import { fetchProjects, fetchSkillNames, fetchAwards, fetchExperiments, Award, E
 import { Project } from '../types';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProject, localizeAward, localizeExperiment } from '../data/projectI18n';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
 const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
 
 
 export const Home: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showHeroArt, setShowHeroArt] = useState(false);
@@ -477,12 +478,14 @@ export const Home: React.FC = () => {
           </div>
 
           <div className="flex flex-col">
-            {FEATURED_PROJECTS.map((project) => (
+            {FEATURED_PROJECTS.map((rawProject) => {
+              const project = localizeProject(rawProject, language);
+              return (
               <motion.div
                 key={project.id}
                 onMouseEnter={() => setHoveredProject(project.id)}
                 onMouseLeave={() => setHoveredProject(null)}
-                onClick={() => setSelectedProject(project)}
+                onClick={() => setSelectedProject(rawProject)}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -497,7 +500,8 @@ export const Home: React.FC = () => {
                   <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -516,7 +520,9 @@ export const Home: React.FC = () => {
               </p>
             </div>
             <div className="md:w-2/3 flex flex-col">
-              {AWARDS.map((item, index) => (
+              {AWARDS.map((rawItem, index) => {
+                const item = localizeAward(rawItem, language);
+                return (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: 20 }}
@@ -533,7 +539,8 @@ export const Home: React.FC = () => {
                     <div className="text-sm font-medium">{item.project}</div>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -620,7 +627,9 @@ export const Home: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {EXPERIMENTS.map((exp, i) => (
+            {EXPERIMENTS.map((rawExp, i) => {
+              const exp = localizeExperiment(rawExp, language);
+              return (
               <motion.div
                 key={i}
                 whileHover={{ y: -10 }}
@@ -639,7 +648,8 @@ export const Home: React.FC = () => {
                 <div className="absolute -bottom-12 -right-12 w-32 h-32 border border-current rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500 dashed-border"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

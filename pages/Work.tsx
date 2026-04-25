@@ -12,12 +12,13 @@ import { WorkScrollProgress } from '../components/WorkScrollProgress';
 import { ToolShowcase } from '../components/ToolShowcase';
 import { useGamification } from '../context/GamificationContext';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeCategory } from '../data/projectI18n';
 
 export const Work: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const { unlockAchievement } = useGamification();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { scrollYProgress } = useScroll();
 
   const [activeSection, setActiveSection] = useState<'tools' | 'projects'>('tools');
@@ -127,7 +128,7 @@ export const Work: React.FC = () => {
                       : 'text-theme-text/70 hover:text-theme-text hover:bg-theme-panel'
                     }`}
                 >
-                  {cat === 'All' ? t('work.filter.all') : cat}
+                  {cat === 'All' ? t('work.filter.all') : localizeCategory(cat, language)}
                 </button>
               ))}
             </div>
@@ -167,7 +168,7 @@ export const Work: React.FC = () => {
               <div className="text-center py-16 border border-dashed border-theme-border/50 rounded-2xl">
                 <Globe className="w-12 h-12 mx-auto mb-4 text-theme-text/20" />
                 <p className="text-theme-text/50 font-mono text-sm">
-                  {t('work.projects.emptyForCategory').replace('{category}', filter)}
+                  {t('work.projects.emptyForCategory').replace('{category}', localizeCategory(filter, language))}
                 </p>
                 <button
                   onClick={() => setFilter('All')}

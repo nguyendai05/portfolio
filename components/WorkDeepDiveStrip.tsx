@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowRight, Layers, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProject } from '../data/projectI18n';
 
 interface WorkDeepDiveStripProps {
     projects: Project[];
@@ -105,8 +106,9 @@ interface FlagshipCardProps {
     scrollVariant?: boolean;
 }
 
-const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, shouldAnimate, scrollVariant }) => {
-    const { t } = useLanguage();
+const FlagshipCard: React.FC<FlagshipCardProps> = ({ project: rawProject, index, onClick, shouldAnimate, scrollVariant }) => {
+    const { t, language } = useLanguage();
+    const project = localizeProject(rawProject, language);
     const widthClass = scrollVariant
         ? 'w-[85vw] sm:w-[420px] md:w-[460px] shrink-0 snap-start'
         : 'w-full';
