@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Project } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProject } from '../data/projectI18n';
 
 // --- Types & Interfaces ---
 
@@ -194,8 +195,9 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
 
 // --- Main Component ---
 
-export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
-   const { t } = useLanguage();
+export const ProjectModal: React.FC<ProjectModalProps> = ({ project: rawProject, onClose }) => {
+   const { t, language } = useLanguage();
+   const project = localizeProject(rawProject, language);
    // Track project open
    useEffect(() => {
       track('project_open', { id: project.id, source: 'modal' });

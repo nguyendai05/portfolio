@@ -325,7 +325,7 @@ export const Collaboration: React.FC = () => {
                       ))}
                     </div>
                     <span className={`px-2 py-1 text-[10px] font-bold uppercase border border-theme-border ${idea.difficulty === 'Easy' ? 'bg-green-100 text-green-800' : idea.difficulty === 'Hard' ? 'bg-red-100 text-red-800' : idea.difficulty === 'Expert' ? 'bg-purple-100 text-purple-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                      {idea.difficulty}
+                      {t(`collab.modal.difficulty.${idea.difficulty.toLowerCase()}` as Parameters<typeof t>[0])}
                     </span>
                   </div>
 
@@ -436,10 +436,10 @@ export const Collaboration: React.FC = () => {
                       onChange={e => setNewIdea({ ...newIdea, difficulty: e.target.value })}
                       className="w-full bg-theme-bg p-3 border border-theme-border focus:border-mantis-green outline-none"
                     >
-                      <option>Easy</option>
-                      <option>Medium</option>
-                      <option>Hard</option>
-                      <option>Expert</option>
+                      <option value="Easy">{t('collab.modal.difficulty.easy')}</option>
+                      <option value="Medium">{t('collab.modal.difficulty.medium')}</option>
+                      <option value="Hard">{t('collab.modal.difficulty.hard')}</option>
+                      <option value="Expert">{t('collab.modal.difficulty.expert')}</option>
                     </select>
                   </div>
                 </div>

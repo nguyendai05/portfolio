@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Project } from '../types';
 import { Wrench, ExternalLink, Sparkles, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProject } from '../data/projectI18n';
 
 interface ToolShowcaseProps {
   tools: Project[];
@@ -79,8 +80,9 @@ interface ToolCardProps {
   isFirst: boolean;
 }
 
-const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) => {
-  const { t } = useLanguage();
+const ToolCard: React.FC<ToolCardProps> = ({ tool: rawTool, onClick, index, isFirst }) => {
+  const { t, language } = useLanguage();
+  const tool = localizeProject(rawTool, language);
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}

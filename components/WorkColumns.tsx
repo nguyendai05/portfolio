@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProject } from '../data/projectI18n';
 
 interface WorkColumnsProps {
     projects: Project[];
@@ -61,8 +62,9 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
     );
 };
 
-const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ project, onClick }) => {
-    const { t } = useLanguage();
+const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ project: rawProject, onClick }) => {
+    const { t, language } = useLanguage();
+    const project = localizeProject(rawProject, language);
     const isFeatured = !!project.featured;
 
     return (

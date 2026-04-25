@@ -311,6 +311,10 @@ export const translations = {
     'collab.modal.tags': 'Tags (comma sep)',
     'collab.modal.tagsPlaceholder': 'React, IoT, Web3',
     'collab.modal.difficulty': 'Difficulty',
+    'collab.modal.difficulty.easy': 'Easy',
+    'collab.modal.difficulty.medium': 'Medium',
+    'collab.modal.difficulty.hard': 'Hard',
+    'collab.modal.difficulty.expert': 'Expert',
     'collab.modal.submit': 'Submit to Board',
     'collab.modal.submitting': 'Submitting...',
     'collab.comment.title': 'Comments',
@@ -432,13 +436,13 @@ export const translations = {
 
     // --- Home ---
     'home.hero.welcome': 'Chào mừng đến với khoảng không',
-    'home.hero.viewAssignments': 'Xem dự án',
+    'home.hero.viewAssignments': 'Xem bài tập',
     'home.hero.badge': 'ĐANG KHỞI TẠO...',
     'home.profile.role': 'Sinh viên IT',
     'home.profile.subrole': 'Lập trình viên',
     'home.profile.quote': '"Ngày ta đại thành Java kinh phổ, ắt sẽ danh chấn thiên hạ!"',
-    'home.philosophy.headline': 'Mình không chỉ viết code. Mình còn sửa nó.',
-    'home.philosophy.highlight': 'sửa nó.',
+    'home.philosophy.headline': 'Mình không chỉ viết code. Mình còn cố sửa nó.',
+    'home.philosophy.highlight': 'cố sửa nó.',
     'home.philosophy.p1':
       'Mình là Nguyễn Xuân Đại, sinh viên IT tại Đại học Nông Lâm. Hành trình của mình là nối liền lý thuyết và thực hành, từng dòng console.log một.',
     'home.philosophy.p2':
@@ -460,7 +464,7 @@ export const translations = {
     'home.lab.titleA': 'Nghiên cứu &',
     'home.lab.titleB': 'Debug',
     'home.lab.copy':
-      'Sân chơi cá nhân của mình. Nơi mình phá thứ gì đó để hiểu cách nó hoạt động. Không thương mại, không kiểm soát, và đầy tính giáo dục.',
+      'Sân chơi cá nhân của mình. Nơi mình phá thứ gì đó để hiểu cách nó hoạt động. Phi thương mại, hơi điên, và đầy tính giáo dục.',
     'home.connect.heading': 'Kết nối.',
     'home.connect.p1': 'Mình hiện là sinh viên và front-end developer mới vào nghề.',
     'home.connect.p2Prefix': 'Mình tin rằng ',
@@ -477,7 +481,7 @@ export const translations = {
     'about.bio.p1':
       'Mình là Nguyễn Xuân Đại (Xuni-Dizan). Mình là sinh viên ngành Công nghệ Thông tin tại Đại học Nông Lâm, TP. Hồ Chí Minh.',
     'about.bio.p2':
-      'Giữa thế giới đầy framework và lớp trừu tượng, mình quan tâm đến những gì căn bản. Portfolio này là sandbox của mình — brutalist, hơi lỗi lỗi, và thành thật về trình độ.',
+      'Giữa thế giới đầy framework và lớp trừu tượng, mình quan tâm đến những gì căn bản. Portfolio này là sandbox của mình — brutalist, hơi giật giật, và thành thật về trình độ.',
     'about.focus.title': 'Trọng tâm',
     'about.focus.item1': 'Phát triển Front-End',
     'about.focus.item2': 'Tương tác Người - Máy (HCI)',
@@ -675,7 +679,7 @@ export const translations = {
     'mentorship.analyzing.subtitle': 'Đang kết nối với Neural Interface.',
     'mentorship.complete.ticketId': 'MÃ YÊU CẦU',
     'mentorship.complete.queued': 'ĐANG CHỜ',
-    'mentorship.complete.heading': 'Bản pre-flight tự động',
+    'mentorship.complete.heading': 'Kiểm tra pre-flight tự động',
     'mentorship.complete.logged':
       'Yêu cầu của bạn đã được ghi nhận. Sẽ có người thật review trong thời gian sớm nhất.',
     'mentorship.complete.another': 'Gửi yêu cầu khác',
@@ -704,6 +708,10 @@ export const translations = {
     'collab.modal.tags': 'Tags (cách nhau bằng dấu phẩy)',
     'collab.modal.tagsPlaceholder': 'React, IoT, Web3',
     'collab.modal.difficulty': 'Độ khó',
+    'collab.modal.difficulty.easy': 'Dễ',
+    'collab.modal.difficulty.medium': 'Trung bình',
+    'collab.modal.difficulty.hard': 'Khó',
+    'collab.modal.difficulty.expert': 'Chuyên gia',
     'collab.modal.submit': 'Đăng lên Board',
     'collab.modal.submitting': 'Đang gửi...',
     'collab.comment.title': 'Bình luận',
