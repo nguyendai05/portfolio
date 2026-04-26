@@ -20,6 +20,12 @@ export interface ChatMessage {
 
 export interface Project {
   id: number;
+  /**
+   * Stable slug used to look up localized copy in `data/projectTranslations.ts`.
+   * The DB / API expose the same slug, so frontend can localize regardless of
+   * whether the data comes from the API or the local mock fallback.
+   */
+  slug?: string;
   title: string;
   category: string;
   image: string;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { track } from '@vercel/analytics';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, useMotionTemplate } from 'framer-motion';
 import {
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Project } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProject } from '../data/projectTranslations';
 
 // --- Types & Interfaces ---
 
@@ -195,7 +196,10 @@ const PhaseTimeline: React.FC<{ phases?: string[] }> = ({ phases }) => {
 // --- Main Component ---
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
-   const { t } = useLanguage();
+   const { t, language } = useLanguage();
+   // Localize category / description / phases per current language. Title,
+   // technologies, image, and link are intentionally left untouched.
+   const localized = useMemo(() => localizeProject(project, language), [project, language]);
    // Track project open
    useEffect(() => {
       track('project_open', { id: project.id, source: 'modal' });
@@ -233,7 +237,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
             >
                {/* --- LEFT PANEL: VISUAL CORE (55%) --- */}
                <div className="w-full md:w-[55%] relative border-b md:border-b-0 md:border-r border-theme-border/20">
-                  <VisualCore project={project} />
+                  <VisualCore project={localized} />
 
                   {/* Mobile Close Button (Visible only on small screens) */}
                   <button
@@ -275,13 +279,13 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                      {/* Title Section */}
                      <motion.div variants={itemVariants} className="mb-8">
                         <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[0.9] mb-4 uppercase break-words text-theme-text">
-                           {project.title}
+                           {localized.title}
                         </h2>
                         <div className="flex flex-wrap gap-3">
                            <span className="px-3 py-1 border border-theme-border text-xs font-mono font-bold uppercase bg-theme-panel text-theme-text">
-                              {project.category}
+                              {localized.category}
                            </span>
-                           {project.featured && (
+                           {localized.featured && (
                               <span className="px-3 py-1 bg-theme-accent text-theme-bg text-xs font-mono font-bold uppercase flex items-center gap-1">
                                  <Activity size={12} /> {t('modal.featured')}
                               </span>
@@ -292,7 +296,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                      {/* Description */}
                      <motion.div variants={itemVariants} className="mb-10">
                         <p className="text-lg font-sans leading-relaxed text-theme-text/90">
-                           {project.description}
+                           {localized.description}
                         </p>
                      </motion.div>
 
@@ -302,19 +306,19 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                            <Database size={14} />
                            <span className="font-mono text-xs uppercase tracking-widest">{t('modal.techMatrix')}</span>
                         </div>
-                        <TechMatrix technologies={project.technologies} />
+                        <TechMatrix technologies={localized.technologies} />
                      </motion.div>
 
                      {/* Phase Timeline */}
                      <motion.div variants={itemVariants}>
-                        <PhaseTimeline phases={project.phases} />
+                        <PhaseTimeline phases={localized.phases} />
                      </motion.div>
 
                      {/* Footer / CTA */}
                      <motion.div variants={itemVariants} className="mt-auto pt-10">
-                        {project.link ? (
+                        {localized.link ? (
                            <a
-                              href={project.link}
+                              href={localized.link}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="group relative w-full block"

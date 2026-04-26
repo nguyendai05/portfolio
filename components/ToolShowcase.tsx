@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Project } from '../types';
 import { Wrench, ExternalLink, Sparkles, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProjects } from '../data/projectTranslations';
 
 interface ToolShowcaseProps {
   tools: Project[];
@@ -10,8 +11,9 @@ interface ToolShowcaseProps {
 }
 
 export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }) => {
-  const { t } = useLanguage();
-  if (tools.length === 0) return null;
+  const { t, language } = useLanguage();
+  const localizedTools = useMemo(() => localizeProjects(tools, language), [tools, language]);
+  if (localizedTools.length === 0) return null;
 
   return (
     <section className="relative py-16 md:py-24 mb-16">
@@ -43,13 +45,13 @@ export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }
         </div>
         <div className="hidden md:flex items-center gap-2 text-theme-text/50 font-mono text-xs">
           <Zap size={14} className="text-mantis-green" />
-          <span>{t('work.tools.count').replace('{n}', String(tools.length))}</span>
+          <span>{t('work.tools.count').replace('{n}', String(localizedTools.length))}</span>
         </div>
       </div>
 
       {/* Tools Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tools.map((tool, index) => (
+        {localizedTools.map((tool, index) => (
           <ToolCard 
             key={tool.id} 
             tool={tool} 
@@ -61,7 +63,7 @@ export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }
       </div>
 
       {/* Empty State Placeholder */}
-      {tools.length === 0 && (
+      {localizedTools.length === 0 && (
         <div className="text-center py-16 border border-dashed border-theme-border rounded-2xl">
           <Wrench className="w-12 h-12 mx-auto mb-4 text-theme-text/30" />
           <p className="text-theme-text/50 font-mono text-sm">{t('work.tools.comingSoonTitle')}</p>

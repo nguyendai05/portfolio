@@ -777,18 +777,18 @@ export const translations = {
     'chat.cleared': 'Memory purged. Systems normal. Sẵn sàng cho câu hỏi mới.',
 
     // --- Project Modal ---
-    'modal.systemId': 'System_ID:',
+    'modal.systemId': 'Mã hệ thống:',
     'modal.share': 'Chia sẻ',
     'modal.close': 'Đóng modal',
     'modal.featured': 'Nổi bật',
-    'modal.techMatrix': 'Tech_Stack_Matrix',
-    'modal.devLog': 'Development_Log',
-    'modal.accessTerminal': 'Access_Terminal',
-    'modal.liveFeed': 'Live Feed',
+    'modal.techMatrix': 'Ma trận công nghệ',
+    'modal.devLog': 'Nhật ký phát triển',
+    'modal.accessTerminal': 'Truy cập dự án',
+    'modal.liveFeed': 'Luồng trực tiếp',
     'modal.visitProject': 'Xem dự án',
-    'modal.noLink': 'Chưa có link trực tiếp',
+    'modal.noLink': 'Chưa có liên kết',
     'modal.launchProject': 'Mở dự án',
-    'modal.archived': 'Dự án đã lưu trữ // Chưa có link trực tiếp',
+    'modal.archived': 'Dự án đã lưu trữ // Không có liên kết',
 
     // --- Language switcher ---
     'lang.english': 'English',

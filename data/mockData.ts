@@ -12,6 +12,7 @@ export const TOOLS: Project[] = [];
 export const PROJECTS: Project[] = [
   {
     id: 7,
+    slug: "xuni-dizan-resource-hub",
     title: "Xuni Dizan Resource Hub",
     category: "Full-Stack Platform",
     image: "https://image.thum.io/get/width/1200/noanimate/https://hub.nguyenxuandai.com/",
@@ -42,6 +43,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 8,
+    slug: "mu-phim-multi-catalog-streaming",
     title: "Mù Phim – Multi-Catalog Streaming",
     category: "Streaming Platform",
     image: "https://image.thum.io/get/width/1200/noanimate/https://muphim.online/",
@@ -72,6 +74,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 9,
+    slug: "nuoi-xuan-dai-donation-landing",
     title: "Nuôi Xuân Đại – Donation Landing",
     category: "Fundraising / Full-Stack",
     image: "https://image.thum.io/get/width/1200/noanimate/https://nuoi.nguyenxuandai.com/",
@@ -101,6 +104,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 1,
+    slug: "personal-portfolio-dizan",
     title: "Personal Portfolio – DIZAN",
     category: "Personal Website",
     image: "https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799129/Screenshot_2025-11-22_113653_ex7oun.png",
@@ -112,6 +116,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 2,
+    slug: "christmas-gift-for-crush",
     title: "Christmas Gift for Crush",
     category: "Creative Mini Project",
     image: "https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799127/Screenshot_2025-11-22_145743_xzhvlr.png",
@@ -123,6 +128,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 3,
+    slug: "flick-tale-movie-website",
     title: "Flick Tale Movie Website",
     category: "Movie UI / Frontend",
     image: "https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799127/Screenshot_2025-11-22_150710_ceku1x.png",
@@ -134,6 +140,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 4,
+    slug: "hci-group-10-course-portal",
     title: "HCI Group 10 Course Portal",
     category: "University Group Project",
     image: "https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799128/Screenshot_2025-11-22_150936_hxjruf.png",
@@ -145,6 +152,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 5,
+    slug: "handmade-craft-shop-group-10",
     title: "Handmade Craft Shop – Group 10",
     category: "Team E-commerce Project",
     image: "https://res.cloudinary.com/dak4x4d7u/image/upload/f_auto,q_auto,w_800/v1763799127/Screenshot_2025-11-22_151116_af4prv.png",
@@ -156,6 +164,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: 6,
+    slug: "dizan-experience-studio",
     title: "Dizan – Experience Studio (Next.js Portfolio)",
     category: "Next.js Portfolio Website",
     // TODO: replace with a real screenshot of the Next.js portfolio

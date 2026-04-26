@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, lazy, Suspense } from 'react';
+import React, { useRef, useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { GlitchText } from '../components/GlitchText';
@@ -9,13 +9,14 @@ import { fetchProjects, fetchSkillNames, fetchAwards, fetchExperiments, Award, E
 import { Project } from '../types';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProjects } from '../data/projectTranslations';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
 const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
 
 
 export const Home: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showHeroArt, setShowHeroArt] = useState(false);
@@ -67,8 +68,15 @@ export const Home: React.FC = () => {
   }, [isMobile]);
 
 
+  // Localize projects so Featured Works (category, etc.) renders in the
+  // current language. Title and image stay as the brand-y source-of-truth.
+  const LOCALIZED_PROJECTS = useMemo(
+    () => localizeProjects(PROJECTS, language),
+    [PROJECTS, language],
+  );
+
   // Display only first 3 projects on Home
-  const FEATURED_PROJECTS = PROJECTS.slice(0, 3);
+  const FEATURED_PROJECTS = LOCALIZED_PROJECTS.slice(0, 3);
 
   // Prepare duplicated clients list for seamless loop
   const MARQUEE_CLIENTS = [...CLIENTS, ...CLIENTS];
@@ -457,7 +465,7 @@ export const Home: React.FC = () => {
               className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
             >
               <motion.img
-                src={PROJECTS.find(p => p.id === hoveredProject)?.image}
+                src={LOCALIZED_PROJECTS.find(p => p.id === hoveredProject)?.image}
                 alt="Project Preview"
                 className="w-full h-full object-cover grayscale contrast-125"
                 initial={{ scale: 1 }}
