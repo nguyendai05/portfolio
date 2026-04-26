@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProjects } from '../data/projectTranslations';
 
 interface WorkColumnsProps {
     projects: Project[];
@@ -11,17 +12,20 @@ interface WorkColumnsProps {
 
 export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectClick }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const { language } = useLanguage();
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ["start end", "end start"]
     });
 
     // Featured flagship projects surface first, keeping remaining order stable.
+    // Apply localization once at the list level so card-level rendering stays simple.
     const orderedProjects = useMemo(() => {
-        const featured = projects.filter((p) => p.featured);
-        const rest = projects.filter((p) => !p.featured);
+        const localized = localizeProjects(projects, language);
+        const featured = localized.filter((p) => p.featured);
+        const rest = localized.filter((p) => !p.featured);
         return [...featured, ...rest];
-    }, [projects]);
+    }, [projects, language]);
 
     // Split projects into columns for desktop
     const col1 = orderedProjects.filter((_, i) => i % 2 === 0);

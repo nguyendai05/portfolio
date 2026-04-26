@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
 import { PROJECTS as MOCK_PROJECTS, TOOLS as MOCK_TOOLS } from '../data/mockData';
 import { fetchProjects, fetchTools } from '../services/portfolioService';
@@ -12,12 +12,13 @@ import { WorkScrollProgress } from '../components/WorkScrollProgress';
 import { ToolShowcase } from '../components/ToolShowcase';
 import { useGamification } from '../context/GamificationContext';
 import { useLanguage } from '../context/LanguageContext';
+import { localizeProjects } from '../data/projectTranslations';
 
 export const Work: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState<string>('All');
   const { unlockAchievement } = useGamification();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { scrollYProgress } = useScroll();
 
   const [activeSection, setActiveSection] = useState<'tools' | 'projects'>('tools');
@@ -44,8 +45,20 @@ export const Work: React.FC = () => {
     loadData();
   }, []);
 
-  const categories = ['All', ...Array.from(new Set(PROJECTS.map(p => p.category)))];
-  const filteredProjects = filter === 'All' ? PROJECTS : PROJECTS.filter(p => p.category === filter);
+  // Localize projects once per language so categories, descriptions, and
+  // phases all render in the active language across the page (cards, deep
+  // dive strip, modal, etc.).
+  const LOCALIZED_PROJECTS = useMemo(
+    () => localizeProjects(PROJECTS, language),
+    [PROJECTS, language],
+  );
+  const LOCALIZED_TOOLS = useMemo(
+    () => localizeProjects(TOOLS, language),
+    [TOOLS, language],
+  );
+
+  const categories = ['All', ...Array.from(new Set(LOCALIZED_PROJECTS.map(p => p.category)))];
+  const filteredProjects = filter === 'All' ? LOCALIZED_PROJECTS : LOCALIZED_PROJECTS.filter(p => p.category === filter);
 
   // Unlock achievement when reaching the bottom
   useEffect(() => {
@@ -88,10 +101,10 @@ export const Work: React.FC = () => {
               >
                 <Wrench size={16} />
                 <span>{t('work.tab.tools')}</span>
-                {TOOLS.length > 0 && (
+                {LOCALIZED_TOOLS.length > 0 && (
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${activeSection === 'tools' ? 'bg-theme-bg/20' : 'bg-mantis-green/20 text-mantis-green'
                     }`}>
-                    {TOOLS.length}
+                    {LOCALIZED_TOOLS.length}
                   </span>
                 )}
               </button>
@@ -106,7 +119,7 @@ export const Work: React.FC = () => {
                 <span>{t('work.tab.projects')}</span>
                 <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] ${activeSection === 'projects' ? 'bg-theme-bg/20' : 'bg-theme-text/10'
                   }`}>
-                  {PROJECTS.length}
+                  {LOCALIZED_PROJECTS.length}
                 </span>
               </button>
             </div>
@@ -142,10 +155,10 @@ export const Work: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <ToolShowcase tools={TOOLS} onToolClick={setSelectedProject} />
+            <ToolShowcase tools={LOCALIZED_TOOLS} onToolClick={setSelectedProject} />
 
             {/* Empty state when no tools */}
-            {TOOLS.length === 0 && (
+            {LOCALIZED_TOOLS.length === 0 && (
               <div className="text-center py-24 border border-dashed border-theme-border/50 rounded-3xl bg-theme-panel/20">
                 <Wrench className="w-16 h-16 mx-auto mb-6 text-theme-text/20" />
                 <h3 className="text-2xl font-bold mb-2 text-theme-text/50">{t('work.tools.comingSoonTitle')}</h3>
@@ -184,7 +197,7 @@ export const Work: React.FC = () => {
       {/* Horizontal Deep Dive Strip (Only show if viewing All or if there are featured projects in current filter) */}
       <div className="mt-32 border-t border-theme-border bg-theme-bg relative z-20">
         <WorkDeepDiveStrip
-          projects={PROJECTS}
+          projects={LOCALIZED_PROJECTS}
           onProjectClick={setSelectedProject}
         />
       </div>
