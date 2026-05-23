@@ -54,6 +54,10 @@ function parseNumericId(raw: string | undefined): number | null {
 }
 
 function getApiPath(req: VercelRequest): string {
+  const rewrittenPath = getQueryParam(req, '__path');
+  if (rewrittenPath) {
+    return `/${rewrittenPath.replace(/^\/+/, '')}`;
+  }
   const url = new URL(req.url || '/', 'http://localhost');
   const path = url.pathname.replace(/^\/api/, '');
   return path || '/';
