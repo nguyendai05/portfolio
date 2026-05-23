@@ -34,4 +34,10 @@ export interface Project {
   link?: string;
   featured?: boolean;
   phases?: string[];
+  /** Optional short tagline; only populated when sourced from the DB. */
+  summary?: string;
+  /** Discriminates between long-form case studies (`project`) and tools. */
+  projectType?: 'project' | 'tool';
+  createdAt?: string;
+  updatedAt?: string;
 }

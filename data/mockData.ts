@@ -1,5 +1,20 @@
 import { Project } from '../types';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FALLBACK / DEMO DATA ONLY
+// ─────────────────────────────────────────────────────────────────────────────
+// The portfolio's source of truth is the MySQL database accessed through the
+// `/api/*` endpoints. The arrays in this file exist purely as a development
+// fallback so the UI never blanks out when the API is unreachable (e.g. when
+// running `npm run dev` against a Vercel deployment that is not configured
+// yet, or in offline environments).
+//
+// DO NOT add new portfolio entries here — use the admin UI at `#/admin`
+// instead. New projects, tools, skills, milestones, and experiments saved
+// through the admin will appear on the public site immediately without any
+// code change.
+// ─────────────────────────────────────────────────────────────────────────────
+
 // TOOLS: Personal utility tools and applications
 // Currently empty - tools are fetched from database
 export const TOOLS: Project[] = [];
