@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
-import { fetchProjects, fetchTools } from '../services/portfolioService';
 import { ProjectModal } from '../components/ProjectModal';
 import { Project } from '../types';
 import { Filter, Wrench, Globe } from 'lucide-react';
@@ -12,6 +11,7 @@ import { ToolShowcase } from '../components/ToolShowcase';
 import { useGamification } from '../context/GamificationContext';
 import { useLanguage } from '../context/LanguageContext';
 import { localizeProjects } from '../data/projectTranslations';
+import { useWorkPortfolioData } from '../services/api/hooks';
 
 export const Work: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -22,33 +22,16 @@ export const Work: React.FC = () => {
 
   const [activeSection, setActiveSection] = useState<'tools' | 'projects'>('tools');
 
-  // DB-driven data. `null` = loading, `[]` = loaded empty.
-  const [PROJECTS, setProjects] = useState<Project[] | null>(null);
-  const [TOOLS, setTools] = useState<Project[] | null>(null);
+  const { data: workData, errors: loadErrors } = useWorkPortfolioData();
+  // DB-driven data. `null` = loading, `[]` = loaded empty or API branch failed.
+  const PROJECTS = workData?.projects ?? null;
+  const TOOLS = workData?.tools ?? null;
 
   useEffect(() => {
-    let cancelled = false;
-    const loadData = async () => {
-      const [projectsData, toolsData] = await Promise.allSettled([
-        fetchProjects(),
-        fetchTools(),
-      ]);
-      if (cancelled) return;
-      setProjects(projectsData.status === 'fulfilled' ? projectsData.value : []);
-      setTools(toolsData.status === 'fulfilled' ? toolsData.value : []);
-      const anyFailed = [projectsData, toolsData].some((r) => r.status === 'rejected');
-      if (anyFailed) {
-        const failures = [projectsData, toolsData]
-          .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-          .map((r) => r.reason);
-        console.warn('[work] failed to load projects/tools from API', failures);
-      }
-    };
-    loadData();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (loadErrors.length > 0) {
+      console.warn('[work] failed to load projects/tools from API', loadErrors);
+    }
+  }, [loadErrors]);
 
   // Localize projects once per language so categories, descriptions, and
   // phases all render in the active language across the page (cards, deep

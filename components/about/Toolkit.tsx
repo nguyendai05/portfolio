@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { fetchSkills, Skill } from '../../services/portfolioService';
+import type { Skill } from '../../services/portfolioService';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSkills } from '../../services/api/hooks';
 
 const GROUP_ORDER: Array<Skill['type']> = [
   'frontend',
@@ -15,22 +16,13 @@ const GROUP_ORDER: Array<Skill['type']> = [
 
 export const Toolkit: React.FC = () => {
   const { t } = useLanguage();
-  const [skills, setSkills] = useState<Skill[] | null>(null);
-  const [error, setError] = useState(false);
+  const { data: skills, errors: loadErrors } = useSkills();
 
   useEffect(() => {
-    let cancelled = false;
-    fetchSkills()
-      .then((data) => {
-        if (!cancelled) setSkills(data);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (loadErrors.length > 0) {
+      console.warn('[toolkit] failed to load skills from API', loadErrors);
+    }
+  }, [loadErrors]);
 
   const grouped = useMemo(() => {
     const result = new Map<Skill['type'], Skill[]>();
@@ -47,7 +39,7 @@ export const Toolkit: React.FC = () => {
   }, [skills]);
 
   const groupsToRender = GROUP_ORDER.filter((key) => (grouped.get(key)?.length ?? 0) > 0);
-  const isEmpty = error || (skills !== null && skills.length === 0);
+  const isEmpty = skills !== null && skills.length === 0;
 
   return (
     <section className="border-t border-theme-border pt-24 mt-32">

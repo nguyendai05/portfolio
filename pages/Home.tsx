@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 import { GlitchText } from '../components/GlitchText';
 import { ProjectModal } from '../components/ProjectModal';
 import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
-import { fetchProjects, fetchSkills, fetchAwards, fetchExperiments, Award, Experiment, Skill } from '../services/portfolioService';
 import { Project } from '../types';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../context/LanguageContext';
 import { localizeProjects } from '../data/projectTranslations';
 import { IdentityIntro } from '../components/home/IdentityIntro';
 import { CapabilityMap } from '../components/home/CapabilityMap';
+import { useHomePortfolioData } from '../services/api/hooks';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
 const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
@@ -24,12 +24,13 @@ export const Home: React.FC = () => {
   const isMobile = useIsMobile();
   const containerRef = useRef(null);
 
-  // Data states - DB is the source of truth (no mockData fallback).
-  // `null` = still loading, `[]` = loaded but empty.
-  const [PROJECTS, setProjects] = useState<Project[] | null>(null);
-  const [AWARDS, setAwards] = useState<Award[] | null>(null);
-  const [EXPERIMENTS, setExperiments] = useState<Experiment[] | null>(null);
-  const [SKILLS, setSkills] = useState<Skill[] | null>(null);
+  const { data: homeData, errors: loadErrors } = useHomePortfolioData();
+  // DB is the source of truth (no mockData fallback).
+  // `null` = still loading, `[]` = loaded empty or API branch failed.
+  const PROJECTS = homeData?.projects ?? null;
+  const AWARDS = homeData?.awards ?? null;
+  const EXPERIMENTS = homeData?.experiments ?? null;
+  const SKILLS = homeData?.skills ?? null;
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -40,36 +41,11 @@ export const Home: React.FC = () => {
   const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
 
-  // Fetch data from API on mount. The DB is the only source of truth.
   useEffect(() => {
-    let cancelled = false;
-    const loadData = async () => {
-      const [projectsData, skillsData, awardsData, experimentsData] = await Promise.allSettled([
-        fetchProjects(),
-        fetchSkills(),
-        fetchAwards(),
-        fetchExperiments(),
-      ]);
-      if (cancelled) return;
-      setProjects(projectsData.status === 'fulfilled' ? projectsData.value : []);
-      setSkills(skillsData.status === 'fulfilled' ? skillsData.value : []);
-      setAwards(awardsData.status === 'fulfilled' ? awardsData.value : []);
-      setExperiments(experimentsData.status === 'fulfilled' ? experimentsData.value : []);
-      const anyFailed = [projectsData, skillsData, awardsData, experimentsData].some(
-        (r) => r.status === 'rejected',
-      );
-      if (anyFailed) {
-        const failures = [projectsData, skillsData, awardsData, experimentsData]
-          .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-          .map((r) => r.reason);
-        console.warn('[home] failed to load portfolio data from API', failures);
-      }
-    };
-    loadData();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (loadErrors.length > 0) {
+      console.warn('[home] failed to load portfolio data from API', loadErrors);
+    }
+  }, [loadErrors]);
 
   useEffect(() => {
     // Delay GenerativeArt on mobile to prioritize LCP; show immediately on desktop.
