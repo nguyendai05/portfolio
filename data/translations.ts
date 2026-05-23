@@ -74,6 +74,48 @@ export const translations = {
     'home.connect.p3': 'Check out my social profiles or drop a message if you want to chat about tech, school, or debugging.',
     'home.connect.sayHello': 'Say Hello',
 
+    // --- Home / identity intro ---
+    'home.intro.eyebrow': 'WHO_AM_I // DEV_LOG',
+    'home.intro.identity': 'Nguyễn Xuân Đại — Xuni-Dizan',
+    'home.intro.locationLabel': 'BASED_IN',
+    'home.intro.location': 'Ho Chi Minh City · Nong Lam University',
+    'home.intro.stackLabel': 'CURRENT_STACK',
+    'home.intro.stack': 'React · TypeScript · Node · MySQL · AI',
+    'home.intro.headline':
+      'I build small, weird, end-to-end web platforms — then write the whole thing again to learn how it really works.',
+    'home.intro.headlineHighlight': 'end-to-end',
+    'home.intro.buildLabel': 'WHAT_I_BUILD',
+    'home.intro.buildCopy':
+      'Full-stack sites with brutalist UI, real-time backends, payment flows, and AI integrations — shipped on Vercel and TiDB.',
+    'home.intro.focusLabel': 'CURRENT_FOCUS',
+    'home.intro.focusCopy':
+      'Multi-catalog streaming pipelines, RBAC admin panels, and refactoring my own code so the next iteration ships faster.',
+    'home.intro.primaryCta': 'See selected work',
+    'home.intro.secondaryCta': 'Start a conversation',
+    'home.intro.statProjects': 'Projects shipped',
+    'home.intro.statSkills': 'Tools in stack',
+    'home.intro.statMilestones': 'Milestones',
+    'home.intro.statExperiments': 'Lab experiments',
+
+    // --- Home / capability map ---
+    'home.capability.eyebrow': 'CAPABILITY_MAP // LIVE',
+    'home.capability.title': 'The stack I reach for.',
+    'home.capability.copy':
+      'Pulled live from the database. Updated as I pick up new tools and retire old ones.',
+    'home.capability.empty': 'Capability map will populate as soon as the database is reachable.',
+    'home.capability.group.frontend': 'Frontend',
+    'home.capability.group.backend': 'Backend',
+    'home.capability.group.database': 'Database',
+    'home.capability.group.tool': 'Tools',
+    'home.capability.group.design': 'Design',
+    'home.capability.group.language': 'Languages',
+    'home.capability.group.other': 'Other',
+
+    // --- Home / empty + loading states ---
+    'home.featured.empty': 'No featured projects published yet — add some from the admin panel.',
+    'home.milestones.empty': 'Milestones will appear here once they are added.',
+    'home.lab.empty': 'No lab experiments yet — open the admin panel to log one.',
+
     // --- About ---
     'about.manifesto': 'Manifesto',
     'about.headline': "I don't just use the browser. I explore it.",
@@ -91,6 +133,12 @@ export const translations = {
       '"When my Java skills are mastered — the world will hear my name!" Student, Developer, and Explorer.',
     'about.human.tag1': 'NLU Student',
     'about.human.tag2': 'Front-End',
+
+    // --- About / toolkit (skills from DB) ---
+    'about.toolkit.title': 'Toolkit.',
+    'about.toolkit.copy':
+      'The tools I actually reach for, grouped by where they live in the stack. Synced from the same database that powers the rest of the site.',
+    'about.toolkit.empty': 'Toolkit will appear here as soon as the skills database is reachable.',
 
     // About timeline
     'about.timeline.2023.title': 'System Boot',
@@ -470,6 +518,48 @@ export const translations = {
       'Xem các trang mạng xã hội của mình hoặc nhắn tin nếu bạn muốn tám về tech, trường học hoặc debug.',
     'home.connect.sayHello': 'Chào mình',
 
+    // --- Home / identity intro ---
+    'home.intro.eyebrow': 'TÔI_LÀ_AI // DEV_LOG',
+    'home.intro.identity': 'Nguyễn Xuân Đại — Xuni-Dizan',
+    'home.intro.locationLabel': 'ĐANG_Ở',
+    'home.intro.location': 'TP. Hồ Chí Minh · Đại học Nông Lâm',
+    'home.intro.stackLabel': 'STACK_HIỆN_TẠI',
+    'home.intro.stack': 'React · TypeScript · Node · MySQL · AI',
+    'home.intro.headline':
+      'Mình dựng những web platform nhỏ, lạ, full-stack — rồi viết lại từ đầu để thực sự hiểu cách nó chạy.',
+    'home.intro.headlineHighlight': 'full-stack',
+    'home.intro.buildLabel': 'MÌNH_DỰNG',
+    'home.intro.buildCopy':
+      'Trang full-stack với UI brutalist, backend real-time, luồng thanh toán, và tích hợp AI — deploy trên Vercel và TiDB.',
+    'home.intro.focusLabel': 'ĐANG_TẬP_TRUNG',
+    'home.intro.focusCopy':
+      'Pipeline streaming đa nguồn, admin panel RBAC, và refactor code cũ để vòng tiếp theo ship nhanh hơn.',
+    'home.intro.primaryCta': 'Xem dự án nổi bật',
+    'home.intro.secondaryCta': 'Bắt đầu trò chuyện',
+    'home.intro.statProjects': 'Dự án đã ship',
+    'home.intro.statSkills': 'Tool đang dùng',
+    'home.intro.statMilestones': 'Cột mốc',
+    'home.intro.statExperiments': 'Thử nghiệm Lab',
+
+    // --- Home / capability map ---
+    'home.capability.eyebrow': 'CAPABILITY_MAP // LIVE',
+    'home.capability.title': 'Stack mình hay dùng.',
+    'home.capability.copy':
+      'Lấy trực tiếp từ database. Cập nhật mỗi khi mình học thêm tool mới hoặc bỏ tool cũ.',
+    'home.capability.empty': 'Capability map sẽ hiện khi database kết nối được.',
+    'home.capability.group.frontend': 'Frontend',
+    'home.capability.group.backend': 'Backend',
+    'home.capability.group.database': 'Database',
+    'home.capability.group.tool': 'Tools',
+    'home.capability.group.design': 'Design',
+    'home.capability.group.language': 'Ngôn ngữ',
+    'home.capability.group.other': 'Khác',
+
+    // --- Home / empty + loading states ---
+    'home.featured.empty': 'Chưa có dự án nổi bật — thêm từ trang admin nhé.',
+    'home.milestones.empty': 'Cột mốc sẽ hiện ở đây khi được thêm.',
+    'home.lab.empty': 'Chưa có thử nghiệm Lab — mở trang admin để log một cái.',
+
     // --- About ---
     'about.manifesto': 'Tuyên ngôn',
     'about.headline': 'Mình không chỉ dùng trình duyệt. Mình khám phá nó.',
@@ -487,6 +577,11 @@ export const translations = {
       '"Ngày ta đại thành Java kinh phổ - ắt sẽ danh chấn thiên hạ!" Sinh viên, Developer, và Người khám phá.',
     'about.human.tag1': 'Sinh viên NLU',
     'about.human.tag2': 'Front-End',
+
+    'about.toolkit.title': 'Công cụ.',
+    'about.toolkit.copy':
+      'Những tool mình hay với tới nhất, phân nhóm theo vị trí của chúng trong stack. Đồng bộ từ cùng database đang chạy cả trang.',
+    'about.toolkit.empty': 'Công cụ sẽ hiện ở đây khi database kết nối được.',
 
     'about.timeline.2023.title': 'Khởi động hệ thống',
     'about.timeline.2023.desc':

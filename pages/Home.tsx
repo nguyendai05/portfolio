@@ -5,11 +5,13 @@ import { GlitchText } from '../components/GlitchText';
 import { ProjectModal } from '../components/ProjectModal';
 import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
 import { PROJECTS as MOCK_PROJECTS, CLIENTS as MOCK_CLIENTS, AWARDS as MOCK_AWARDS, EXPERIMENTS as MOCK_EXPERIMENTS } from '../data/mockData';
-import { fetchProjects, fetchSkillNames, fetchAwards, fetchExperiments, Award, Experiment } from '../services/portfolioService';
+import { fetchProjects, fetchSkills, fetchAwards, fetchExperiments, Award, Experiment, Skill } from '../services/portfolioService';
 import { Project } from '../types';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../context/LanguageContext';
 import { localizeProjects } from '../data/projectTranslations';
+import { IdentityIntro } from '../components/home/IdentityIntro';
+import { CapabilityMap } from '../components/home/CapabilityMap';
 
 // Lazy load GenerativeArt - heavy component, defer on mobile
 const GenerativeArt = lazy(() => import('../components/GenerativeArt').then(m => ({ default: m.GenerativeArt })));
@@ -28,6 +30,7 @@ export const Home: React.FC = () => {
   const [CLIENTS, setClients] = useState<string[]>(MOCK_CLIENTS);
   const [AWARDS, setAwards] = useState<Award[]>(MOCK_AWARDS);
   const [EXPERIMENTS, setExperiments] = useState<Experiment[]>(MOCK_EXPERIMENTS);
+  const [SKILLS, setSkills] = useState<Skill[] | null>(null);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -44,13 +47,16 @@ export const Home: React.FC = () => {
       try {
         const [projectsData, skillsData, awardsData, experimentsData] = await Promise.allSettled([
           fetchProjects(),
-          fetchSkillNames(),
+          fetchSkills(),
           fetchAwards(),
           fetchExperiments()
         ]);
 
         if (projectsData.status === 'fulfilled') setProjects(projectsData.value);
-        if (skillsData.status === 'fulfilled') setClients(skillsData.value);
+        if (skillsData.status === 'fulfilled') {
+          setSkills(skillsData.value);
+          setClients(skillsData.value.map((s) => s.name.toUpperCase()));
+        }
         if (awardsData.status === 'fulfilled') setAwards(awardsData.value);
         if (experimentsData.status === 'fulfilled') setExperiments(experimentsData.value);
       } catch (error) {
@@ -80,6 +86,16 @@ export const Home: React.FC = () => {
 
   // Prepare duplicated clients list for seamless loop
   const MARQUEE_CLIENTS = [...CLIENTS, ...CLIENTS];
+
+  const INTRO_STATS = useMemo(
+    () => [
+      { value: PROJECTS.length, label: t('home.intro.statProjects') },
+      { value: SKILLS?.length ?? CLIENTS.length, label: t('home.intro.statSkills') },
+      { value: AWARDS.length, label: t('home.intro.statMilestones') },
+      { value: EXPERIMENTS.length, label: t('home.intro.statExperiments') },
+    ],
+    [PROJECTS.length, SKILLS, CLIENTS.length, AWARDS.length, EXPERIMENTS.length, t],
+  );
 
   return (
     <motion.div
@@ -405,6 +421,9 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* IDENTITY INTRO */}
+      <IdentityIntro stats={INTRO_STATS} />
+
       {/* PHILOSOPHY SECTION */}
       <section className="relative min-h-screen flex items-center py-24">
         <div className="container mx-auto px-8 md:px-32 relative z-10">
@@ -484,6 +503,11 @@ export const Home: React.FC = () => {
             <Link to="/work" className="font-mono text-xs uppercase tracking-widest mb-2 hover:bg-theme-text hover:text-theme-bg px-2 transition-colors">{t('home.featured.viewAll')}</Link>
           </div>
 
+          {FEATURED_PROJECTS.length === 0 ? (
+            <div className="border border-dashed border-theme-border p-12 text-center font-mono text-sm text-theme-text/50">
+              {t('home.featured.empty')}
+            </div>
+          ) : (
           <div className="flex flex-col">
             {FEATURED_PROJECTS.map((project) => (
               <motion.div
@@ -507,8 +531,12 @@ export const Home: React.FC = () => {
               </motion.div>
             ))}
           </div>
+          )}
         </div>
       </section>
+
+      {/* CAPABILITY MAP */}
+      <CapabilityMap skills={SKILLS} />
 
       {/* MILESTONES */}
       <section className="py-24 border-t border-b border-theme-border bg-theme-bg">
@@ -524,6 +552,11 @@ export const Home: React.FC = () => {
               </p>
             </div>
             <div className="md:w-2/3 flex flex-col">
+              {AWARDS.length === 0 && (
+                <div className="border border-dashed border-theme-border p-8 text-center font-mono text-sm text-theme-text/50">
+                  {t('home.milestones.empty')}
+                </div>
+              )}
               {AWARDS.map((item, index) => (
                 <motion.div
                   key={index}
@@ -627,6 +660,11 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
+          {EXPERIMENTS.length === 0 ? (
+            <div className="border border-dashed border-white/20 p-12 text-center font-mono text-sm text-white/40">
+              {t('home.lab.empty')}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {EXPERIMENTS.map((exp, i) => (
               <motion.div
@@ -649,6 +687,7 @@ export const Home: React.FC = () => {
               </motion.div>
             ))}
           </div>
+          )}
         </div>
       </section>
 
