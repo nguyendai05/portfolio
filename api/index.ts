@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const { routeRequest } = await import('../server/router');
+    const { routeRequest } = await import('../server/router.js');
     return routeRequest(req, res);
   } catch (error) {
     const e = error as { code?: string; message?: string; name?: string };
