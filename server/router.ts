@@ -1,16 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { formatDbError, getConnection } from './db';
+import { formatDbError, getConnection } from './db.js';
 import {
   applyCors,
   getConfiguredAdminToken,
   requireAdmin,
-} from './auth';
+} from './auth.js';
 import {
   ContactRow,
   insertContactMessage,
   isAllowedStatus,
   mapContactRow,
-} from './contact-messages';
+} from './contact-messages.js';
 import {
   createProject,
   deleteProject,
@@ -20,7 +20,7 @@ import {
   updateProject,
   type ProjectInput,
   type ProjectType,
-} from './projects';
+} from './projects.js';
 import {
   ContactFormData,
   DEFAULT_MESSAGE,
@@ -32,7 +32,7 @@ import {
   incrementEmailCount,
   isEmailBlocked,
   sendEmailJS,
-} from './email';
+} from './email.js';
 
 type Conn = import('mysql2/promise').Connection;
 
