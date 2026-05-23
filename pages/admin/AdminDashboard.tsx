@@ -185,8 +185,10 @@ export const AdminDashboard: React.FC = () => {
             </li>
             <li>
               <span className="font-mono text-theme-accent mr-2">03.</span>
-              <code className="text-theme-accent">data/mockData.ts</code> is
-              kept only as a development fallback when the API is unreachable.
+              The MySQL database is the only source of truth. Seed initial
+              content with{' '}
+              <code className="text-theme-accent">db/schema.sql</code> or add
+              entries directly from this admin panel.
             </li>
           </ol>
         </Card>

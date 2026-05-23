@@ -1,18 +1,22 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { GlitchText } from './GlitchText';
-import { PROJECTS } from '../data/mockData';
 import { useLanguage } from '../context/LanguageContext';
 
-export const WorkHero: React.FC = () => {
+interface WorkHeroProps {
+    totalProjects: number;
+    uniqueCategories: number;
+}
+
+export const WorkHero: React.FC<WorkHeroProps> = ({
+    totalProjects,
+    uniqueCategories,
+}) => {
     const { t } = useLanguage();
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 300], [1, 0]);
     const scale = useTransform(scrollY, [0, 300], [1, 0.9]);
     const y = useTransform(scrollY, [0, 300], [0, 50]);
-
-    const uniqueCategories = new Set(PROJECTS.map(p => p.category)).size;
-    const totalProjects = PROJECTS.length;
 
     // Disable pointer events when hero fades out
     const pointerEvents = useTransform(opacity, (v) => v < 0.5 ? 'none' : 'auto');
@@ -43,11 +47,11 @@ export const WorkHero: React.FC = () => {
             <div className="flex flex-wrap justify-center gap-8 md:gap-16 border-t border-b border-theme-border py-6 px-12 bg-theme-bg/50 backdrop-blur-sm">
                 <div className="text-center">
                     <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statProjects')}</div>
-                    <div className="text-2xl font-bold font-mono">0{totalProjects}</div>
+                    <div className="text-2xl font-bold font-mono">{String(totalProjects).padStart(2, '0')}</div>
                 </div>
                 <div className="text-center">
                     <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statCategories')}</div>
-                    <div className="text-2xl font-bold font-mono">0{uniqueCategories}</div>
+                    <div className="text-2xl font-bold font-mono">{String(uniqueCategories).padStart(2, '0')}</div>
                 </div>
                 <div className="text-center">
                     <div className="font-mono text-xs uppercase tracking-widest opacity-50 mb-1">{t('work.hero.statCommits')}</div>
