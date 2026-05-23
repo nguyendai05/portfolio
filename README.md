@@ -6,6 +6,10 @@
 
 This is a **brutalist, avant-garde portfolio website** for **Nguyen Xuan Dai (Xuni-Dizan)**, an IT student and front-end developer based in Ho Chi Minh City, Vietnam. The portfolio showcases experimental UI/UX design with gamification features, dynamic theming, and AI-powered chat interface.
 
+> **Picking this up as a new contributor or AI agent?**
+> Read [`docs/HANDOFF.md`](docs/HANDOFF.md) first — it lists what has
+> shipped, what is still open, and where to look for each piece of code.
+
 **Tech Stack:**
 - **Framework:** React 18.2.0 with TypeScript 5.8.2
 - **Build Tool:** Vite 6.2.0
