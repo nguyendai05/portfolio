@@ -64,7 +64,8 @@ function getApiPath(req: VercelRequest): string {
 }
 
 function getQueryParam(req: VercelRequest, key: string): string | undefined {
-  const v = req.query[key];
+  const query = req.query ?? {};
+  const v = query[key];
   if (typeof v === 'string') return v;
   if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
   return undefined;
@@ -1249,8 +1250,9 @@ export async function routeRequest(req: VercelRequest, res: VercelResponse) {
   applyCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const path = getApiPath(req);
+  let path = '(unknown)';
   try {
+    path = getApiPath(req);
     // Health
     if (path === '/' || path === '') {
       return res
