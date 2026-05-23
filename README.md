@@ -55,8 +55,9 @@ portfolio/
 ├── services/           # External service integrations
 │   ├── geminiKeyManager.ts # API key rotation & cooldown manager
 │   └── geminiService.ts    # Google Gemini AI service
-├── data/               # Static data & mock content
-│   └── mockData.ts         # Projects, tech stack, milestones
+├── data/               # Static i18n + project copy overrides
+│   ├── translations.ts     # All UI strings (EN + VI)
+│   └── projectTranslations.ts # Per-slug VI overrides for projects
 ├── App.tsx             # Main app component with routing
 ├── index.css           # Additional global styles
 ├── index.html          # HTML template with Tailwind config
@@ -224,10 +225,10 @@ The app implements automatic key rotation when rate limits are hit:
 
 ### Admin / Content Management
 
-The portfolio now exposes an authenticated admin panel that drives all content
+The portfolio exposes an authenticated admin panel that drives all content
 (projects, tools, skills, milestones, experiments, contact messages) through
-the MySQL database. The hardcoded arrays in `data/mockData.ts` are now a
-fallback only — new content should be added through the admin UI.
+the MySQL database. The DB is the only source of truth — new content is
+added through the admin UI or seeded via `db/schema.sql`.
 
 | Variable          | Required | Notes                                                                 |
 |-------------------|----------|-----------------------------------------------------------------------|
@@ -373,38 +374,34 @@ Located in `components/NeuralInterface.tsx`:
 - Persona is experimental, brutalist, and concise
 - **Bilingual support:** Responds in Vietnamese or English based on user input
 - Mentions university projects and learning experiments when asked about work
-- Real project grounding from `mockData.ts`
+- Real project grounding from the live API (`/api/projects`)
 
 ---
 
 ## Data Layer
 
-### Mock Data (`data/mockData.ts`)
-Contains static content:
-- **PROJECTS:** Array of 6 real portfolio projects:
-  1. Personal Portfolio – DIZAN (HTML/CSS/JS foundation)
-  2. Christmas Gift for Crush (Interactive mini-site)
-  3. Flick Tale Movie Website (Movie browsing UI)
-  4. HCI Group 10 Course Portal (University project)
-  5. Handmade Craft Shop – Group 10 (E-commerce team project)
-  6. Dizan – Experience Studio (Next.js portfolio on Vercel)
-- **CLIENTS:** Repurposed as tech stack for marquee animation (17 technologies)
-- **AWARDS:** Repurposed as milestones (4 key career moments from 2023-2025)
-- **EXPERIMENTS:** Additional UI/UX experiments (3 items)
+### Database (`db/schema.sql`)
+The MySQL schema is the single source of truth for all portfolio content.
+It defines and seeds:
+- **projects** (flagship + smaller projects + tools, with technologies and phases)
+- **skills** (tech stack chips, grouped by `skill_type`: frontend / backend / database / tool / design / language / other)
+- **awards** (milestones / timeline entries)
+- **experiments** (lab / playground entries)
+- **contact_messages** (inbox for the contact form)
+- **ideas** + **idea_comments** (collaboration board)
 
-**Pattern:**
+**Pattern (public pages):**
 ```tsx
-import { PROJECTS, CLIENTS, AWARDS, EXPERIMENTS } from '../data/mockData';
+import { fetchProjects, fetchSkills, fetchAwards, fetchExperiments } from '../services/portfolioService';
 ```
 
 ### Data Update Guidelines
 When modifying portfolio content:
-1. Update `data/mockData.ts` (source of truth)
-2. Ensure `Project` type matches interface in `types.ts`
-3. Verify images are accessible (uses Cloudinary CDN)
-4. Add GitHub Pages or Vercel links where applicable
-5. Include `featured` flag for highlighted projects
-6. Include `phases` array for project timeline
+1. Use the admin UI at `#/admin/*` (preferred), or run SQL against `db/schema.sql`
+2. Public pages (`Home`, `Work`, `About`) refresh on next page load
+3. Verify images are accessible (uses Cloudinary CDN for stable URLs)
+4. Include `featured` flag for highlighted projects
+5. Include `phases` array for project timeline
 
 ---
 
@@ -497,7 +494,7 @@ npm run preview      # Preview production build
 | `index.css` | Additional global styles | Custom CSS beyond Tailwind |
 | `vite.config.ts` | Build configuration | Env vars, aliases, plugins |
 | `types.ts` | Type definitions | Adding new interfaces/types |
-| `data/mockData.ts` | Portfolio content (6 projects, 17 tech items, 4 milestones) | Updating projects, tech stack, milestones |
+| `db/schema.sql` | Portfolio content + DB schema (projects, skills, awards, experiments) | Updating content, schema changes |
 | `context/ThemeContext.tsx` | Theme management (8 themes) | Adding new themes, changing colors |
 | `context/GamificationContext.tsx` | Achievements (8 easter eggs) | Adding new easter eggs |
 | `services/geminiService.ts` | Gemini AI chat integration | Modifying AI persona, response handling |
@@ -584,7 +581,7 @@ When extending this portfolio, consider:
 
 1. **Persistence:** Save chat history to `localStorage`
 2. **Analytics:** Track page views, achievement unlocks
-3. **CMS Integration:** Replace `mockData.ts` with Contentful/Sanity
+3. **CMS Integration:** Pluggable headless CMS adapter (Contentful/Sanity) on top of the existing API
 4. **Accessibility:** Add keyboard shortcuts legend, screen reader support
 5. **Performance:** Implement code splitting, lazy loading for routes
 6. **Testing:** Add unit tests (Jest/Vitest), E2E tests (Playwright)
@@ -733,7 +730,7 @@ When working with this codebase:
 3. **Maintain TypeScript types** (no `any` types)
 4. **Test responsiveness** (mobile-first approach)
 5. **Check gamification features** (don't break 8 easter eggs)
-6. **Update mockData.ts** for content changes (6 projects, 17 tech items, 4 milestones)
+6. **Update content** through the admin panel or `db/schema.sql` seeds
 7. **Use Context API** for global state (don't prop-drill)
 8. **Follow existing patterns** (component structure, naming)
 9. **Remember the student context** (not a professional agency)

@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { GlitchText } from '../components/GlitchText';
 import { ProjectModal } from '../components/ProjectModal';
 import { ArrowRight, ArrowUpRight, Trophy, Star, Code2 } from 'lucide-react';
-import { PROJECTS as MOCK_PROJECTS, CLIENTS as MOCK_CLIENTS, AWARDS as MOCK_AWARDS, EXPERIMENTS as MOCK_EXPERIMENTS } from '../data/mockData';
 import { fetchProjects, fetchSkills, fetchAwards, fetchExperiments, Award, Experiment, Skill } from '../services/portfolioService';
 import { Project } from '../types';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -25,11 +24,11 @@ export const Home: React.FC = () => {
   const isMobile = useIsMobile();
   const containerRef = useRef(null);
 
-  // Data states - fetch from API, fallback to mockData
-  const [PROJECTS, setProjects] = useState<Project[]>(MOCK_PROJECTS);
-  const [CLIENTS, setClients] = useState<string[]>(MOCK_CLIENTS);
-  const [AWARDS, setAwards] = useState<Award[]>(MOCK_AWARDS);
-  const [EXPERIMENTS, setExperiments] = useState<Experiment[]>(MOCK_EXPERIMENTS);
+  // Data states - DB is the source of truth (no mockData fallback).
+  // `null` = still loading, `[]` = loaded but empty.
+  const [PROJECTS, setProjects] = useState<Project[] | null>(null);
+  const [AWARDS, setAwards] = useState<Award[] | null>(null);
+  const [EXPERIMENTS, setExperiments] = useState<Experiment[] | null>(null);
   const [SKILLS, setSkills] = useState<Skill[] | null>(null);
 
   const { scrollYProgress } = useScroll({
@@ -41,29 +40,35 @@ export const Home: React.FC = () => {
   const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const yArt = useTransform(scrollYProgress, [0, 0.25], [0, 150]);
 
-  // Fetch data from API on mount
+  // Fetch data from API on mount. The DB is the only source of truth.
   useEffect(() => {
+    let cancelled = false;
     const loadData = async () => {
-      try {
-        const [projectsData, skillsData, awardsData, experimentsData] = await Promise.allSettled([
-          fetchProjects(),
-          fetchSkills(),
-          fetchAwards(),
-          fetchExperiments()
-        ]);
-
-        if (projectsData.status === 'fulfilled') setProjects(projectsData.value);
-        if (skillsData.status === 'fulfilled') {
-          setSkills(skillsData.value);
-          setClients(skillsData.value.map((s) => s.name.toUpperCase()));
-        }
-        if (awardsData.status === 'fulfilled') setAwards(awardsData.value);
-        if (experimentsData.status === 'fulfilled') setExperiments(experimentsData.value);
-      } catch (error) {
-        console.warn('Failed to fetch data from API, using mock data:', error);
+      const [projectsData, skillsData, awardsData, experimentsData] = await Promise.allSettled([
+        fetchProjects(),
+        fetchSkills(),
+        fetchAwards(),
+        fetchExperiments(),
+      ]);
+      if (cancelled) return;
+      setProjects(projectsData.status === 'fulfilled' ? projectsData.value : []);
+      setSkills(skillsData.status === 'fulfilled' ? skillsData.value : []);
+      setAwards(awardsData.status === 'fulfilled' ? awardsData.value : []);
+      setExperiments(experimentsData.status === 'fulfilled' ? experimentsData.value : []);
+      const anyFailed = [projectsData, skillsData, awardsData, experimentsData].some(
+        (r) => r.status === 'rejected',
+      );
+      if (anyFailed) {
+        const failures = [projectsData, skillsData, awardsData, experimentsData]
+          .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+          .map((r) => r.reason);
+        console.warn('[home] failed to load portfolio data from API', failures);
       }
     };
     loadData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -77,24 +82,28 @@ export const Home: React.FC = () => {
   // Localize projects so Featured Works (category, etc.) renders in the
   // current language. Title and image stay as the brand-y source-of-truth.
   const LOCALIZED_PROJECTS = useMemo(
-    () => localizeProjects(PROJECTS, language),
+    () => localizeProjects(PROJECTS ?? [], language),
     [PROJECTS, language],
   );
 
   // Display only first 3 projects on Home
   const FEATURED_PROJECTS = LOCALIZED_PROJECTS.slice(0, 3);
 
-  // Prepare duplicated clients list for seamless loop
+  // Marquee uses skill names (uppercased) from the DB.
+  const CLIENTS = useMemo(
+    () => (SKILLS ?? []).map((s) => s.name.toUpperCase()),
+    [SKILLS],
+  );
   const MARQUEE_CLIENTS = [...CLIENTS, ...CLIENTS];
 
   const INTRO_STATS = useMemo(
     () => [
-      { value: PROJECTS.length, label: t('home.intro.statProjects') },
-      { value: SKILLS?.length ?? CLIENTS.length, label: t('home.intro.statSkills') },
-      { value: AWARDS.length, label: t('home.intro.statMilestones') },
-      { value: EXPERIMENTS.length, label: t('home.intro.statExperiments') },
+      { value: PROJECTS?.length ?? 0, label: t('home.intro.statProjects') },
+      { value: SKILLS?.length ?? 0, label: t('home.intro.statSkills') },
+      { value: AWARDS?.length ?? 0, label: t('home.intro.statMilestones') },
+      { value: EXPERIMENTS?.length ?? 0, label: t('home.intro.statExperiments') },
     ],
-    [PROJECTS.length, SKILLS, CLIENTS.length, AWARDS.length, EXPERIMENTS.length, t],
+    [PROJECTS, SKILLS, AWARDS, EXPERIMENTS, t],
   );
 
   return (
@@ -503,9 +512,18 @@ export const Home: React.FC = () => {
             <Link to="/work" className="font-mono text-xs uppercase tracking-widest mb-2 hover:bg-theme-text hover:text-theme-bg px-2 transition-colors">{t('home.featured.viewAll')}</Link>
           </div>
 
-          {FEATURED_PROJECTS.length === 0 ? (
+          {PROJECTS !== null && FEATURED_PROJECTS.length === 0 ? (
             <div className="border border-dashed border-theme-border p-12 text-center font-mono text-sm text-theme-text/50">
               {t('home.featured.empty')}
+            </div>
+          ) : PROJECTS === null ? (
+            <div className="flex flex-col">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-32 border-b border-theme-border bg-theme-panel/20 animate-pulse"
+                />
+              ))}
             </div>
           ) : (
           <div className="flex flex-col">
@@ -552,12 +570,12 @@ export const Home: React.FC = () => {
               </p>
             </div>
             <div className="md:w-2/3 flex flex-col">
-              {AWARDS.length === 0 && (
+              {AWARDS !== null && AWARDS.length === 0 && (
                 <div className="border border-dashed border-theme-border p-8 text-center font-mono text-sm text-theme-text/50">
                   {t('home.milestones.empty')}
                 </div>
               )}
-              {AWARDS.map((item, index) => (
+              {(AWARDS ?? []).map((item, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: 20 }}
@@ -619,16 +637,18 @@ export const Home: React.FC = () => {
       </section>
 
       {/* TECH STACK MARQUEE */}
-      <section className="py-20 bg-theme-accent overflow-hidden border-y border-theme-border">
-        <div className="flex w-fit animate-marquee">
-          {MARQUEE_CLIENTS.map((client, i) => (
-            <div key={i} className="flex items-center mx-12 select-none">
-              <span className="text-5xl md:text-7xl font-black tracking-tighter text-black opacity-90 hover:opacity-100 transition-opacity cursor-crosshair">{client}</span>
-              <span className="ml-12 text-3xl opacity-40">✦</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {CLIENTS.length > 0 && (
+        <section className="py-20 bg-theme-accent overflow-hidden border-y border-theme-border">
+          <div className="flex w-fit animate-marquee">
+            {MARQUEE_CLIENTS.map((client, i) => (
+              <div key={i} className="flex items-center mx-12 select-none">
+                <span className="text-5xl md:text-7xl font-black tracking-tighter text-black opacity-90 hover:opacity-100 transition-opacity cursor-crosshair">{client}</span>
+                <span className="ml-12 text-3xl opacity-40">✦</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* LAB PREVIEW */}
       <section className="relative py-32 bg-theme-text text-theme-bg overflow-hidden border-b border-theme-border">
@@ -660,13 +680,13 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {EXPERIMENTS.length === 0 ? (
+          {EXPERIMENTS !== null && EXPERIMENTS.length === 0 ? (
             <div className="border border-dashed border-white/20 p-12 text-center font-mono text-sm text-white/40">
               {t('home.lab.empty')}
             </div>
           ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {EXPERIMENTS.map((exp, i) => (
+            {(EXPERIMENTS ?? []).map((exp, i) => (
               <motion.div
                 key={i}
                 whileHover={{ y: -10 }}

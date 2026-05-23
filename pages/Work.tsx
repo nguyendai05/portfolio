@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
-import { PROJECTS as MOCK_PROJECTS, TOOLS as MOCK_TOOLS } from '../data/mockData';
 import { fetchProjects, fetchTools } from '../services/portfolioService';
 import { ProjectModal } from '../components/ProjectModal';
 import { Project } from '../types';
@@ -23,37 +22,43 @@ export const Work: React.FC = () => {
 
   const [activeSection, setActiveSection] = useState<'tools' | 'projects'>('tools');
 
-  // Data states - fetch from API, fallback to mockData
-  const [PROJECTS, setProjects] = useState<Project[]>(MOCK_PROJECTS);
-  const [TOOLS, setTools] = useState<Project[]>(MOCK_TOOLS);
+  // DB-driven data. `null` = loading, `[]` = loaded empty.
+  const [PROJECTS, setProjects] = useState<Project[] | null>(null);
+  const [TOOLS, setTools] = useState<Project[] | null>(null);
 
-  // Fetch data from API on mount
   useEffect(() => {
+    let cancelled = false;
     const loadData = async () => {
-      try {
-        const [projectsData, toolsData] = await Promise.allSettled([
-          fetchProjects(),
-          fetchTools()
-        ]);
-
-        if (projectsData.status === 'fulfilled') setProjects(projectsData.value);
-        if (toolsData.status === 'fulfilled') setTools(toolsData.value);
-      } catch (error) {
-        console.warn('Failed to fetch data from API, using mock data:', error);
+      const [projectsData, toolsData] = await Promise.allSettled([
+        fetchProjects(),
+        fetchTools(),
+      ]);
+      if (cancelled) return;
+      setProjects(projectsData.status === 'fulfilled' ? projectsData.value : []);
+      setTools(toolsData.status === 'fulfilled' ? toolsData.value : []);
+      const anyFailed = [projectsData, toolsData].some((r) => r.status === 'rejected');
+      if (anyFailed) {
+        const failures = [projectsData, toolsData]
+          .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+          .map((r) => r.reason);
+        console.warn('[work] failed to load projects/tools from API', failures);
       }
     };
     loadData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Localize projects once per language so categories, descriptions, and
   // phases all render in the active language across the page (cards, deep
   // dive strip, modal, etc.).
   const LOCALIZED_PROJECTS = useMemo(
-    () => localizeProjects(PROJECTS, language),
+    () => localizeProjects(PROJECTS ?? [], language),
     [PROJECTS, language],
   );
   const LOCALIZED_TOOLS = useMemo(
-    () => localizeProjects(TOOLS, language),
+    () => localizeProjects(TOOLS ?? [], language),
     [TOOLS, language],
   );
 
@@ -86,7 +91,10 @@ export const Work: React.FC = () => {
       </AnimatePresence>
 
       <div className="container mx-auto px-4 md:px-8 lg:px-32">
-        <WorkHero />
+        <WorkHero
+          totalProjects={LOCALIZED_PROJECTS.length}
+          uniqueCategories={categories.length - 1}
+        />
 
         {/* Section Toggle - Tools vs Projects */}
         <div className="sticky top-20 z-30 mb-12 flex justify-center">
@@ -155,23 +163,44 @@ export const Work: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <ToolShowcase tools={LOCALIZED_TOOLS} onToolClick={setSelectedProject} />
-
-            {/* Empty state when no tools */}
-            {LOCALIZED_TOOLS.length === 0 && (
-              <div className="text-center py-24 border border-dashed border-theme-border/50 rounded-3xl bg-theme-panel/20">
-                <Wrench className="w-16 h-16 mx-auto mb-6 text-theme-text/20" />
-                <h3 className="text-2xl font-bold mb-2 text-theme-text/50">{t('work.tools.comingSoonTitle')}</h3>
-                <p className="text-theme-text/40 font-mono text-sm max-w-md mx-auto">
-                  {t('work.tools.comingSoonDesc')}
-                </p>
+            {TOOLS === null ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-56 border border-theme-border bg-theme-panel/20 animate-pulse rounded-lg"
+                  />
+                ))}
               </div>
+            ) : (
+              <>
+                <ToolShowcase tools={LOCALIZED_TOOLS} onToolClick={setSelectedProject} />
+                {/* Empty state when no tools */}
+                {LOCALIZED_TOOLS.length === 0 && (
+                  <div className="text-center py-24 border border-dashed border-theme-border/50 rounded-3xl bg-theme-panel/20">
+                    <Wrench className="w-16 h-16 mx-auto mb-6 text-theme-text/20" />
+                    <h3 className="text-2xl font-bold mb-2 text-theme-text/50">{t('work.tools.comingSoonTitle')}</h3>
+                    <p className="text-theme-text/40 font-mono text-sm max-w-md mx-auto">
+                      {t('work.tools.comingSoonDesc')}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </motion.div>
         ) : (
           <div>
             {/* Project Grid */}
-            {filteredProjects.length > 0 ? (
+            {PROJECTS === null ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-72 border border-theme-border bg-theme-panel/20 animate-pulse rounded-lg"
+                  />
+                ))}
+              </div>
+            ) : filteredProjects.length > 0 ? (
               <WorkColumns
                 projects={filteredProjects}
                 onProjectClick={setSelectedProject}
