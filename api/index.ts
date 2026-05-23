@@ -11,7 +11,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: false,
       error: 'API function boot failed',
       code: e.code || e.name || 'BOOT_ERROR',
-      hint: e.message || 'Check Vercel function logs for details.',
+      hint: 'Check Vercel function logs for details.',
     });
   }
 }
