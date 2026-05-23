@@ -1,6 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getConnection, formatDbError } from '../_lib/db';
-import { applyCors, requireAdmin } from '../_lib/auth';
+import {
+  applyCors,
+  getConfiguredAdminToken,
+  requireAdmin,
+} from '../_lib/auth';
+
+function getSegments(req: VercelRequest): string[] {
+  const raw = req.query.path;
+  if (!raw) return [];
+  return Array.isArray(raw) ? raw.map(String) : [String(raw)];
+}
 
 async function count(
   conn: import('mysql2/promise').Connection,
@@ -15,16 +25,43 @@ async function count(
   return Number(value || 0);
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  applyCors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
+async function handleLogin(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return res
+      .status(405)
+      .json({ success: false, error: 'Method not allowed' });
+  }
+  const token = getConfiguredAdminToken();
+  if (!token) {
+    return res.status(503).json({
+      success: false,
+      error:
+        'Admin login is not configured (set ADMIN_TOKEN — and optionally ADMIN_PASSWORD — in the server env).',
+    });
+  }
+  const body = (req.body || {}) as Record<string, unknown>;
+  const submitted =
+    typeof body.password === 'string'
+      ? body.password
+      : typeof body.token === 'string'
+        ? body.token
+        : '';
+  const expected = process.env.ADMIN_PASSWORD || token;
+  if (!submitted || submitted !== expected) {
+    return res
+      .status(401)
+      .json({ success: false, error: 'Invalid credentials' });
+  }
+  return res.status(200).json({ success: true, data: { token } });
+}
+
+async function handleStats(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     return res
       .status(405)
       .json({ success: false, error: 'Method not allowed' });
   }
   if (!requireAdmin(req, res)) return;
-
   const conn = await getConnection();
   try {
     const [
@@ -55,7 +92,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ),
       count(conn, 'SELECT COUNT(*) AS c FROM ideas').catch(() => 0),
     ]);
-
     return res.status(200).json({
       success: true,
       data: {
@@ -69,16 +105,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ideas,
       },
     });
+  } finally {
+    await conn.end();
+  }
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  applyCors(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const segments = getSegments(req);
+  const route = segments[0] || '';
+
+  try {
+    if (route === 'login') return handleLogin(req, res);
+    if (route === 'stats') return handleStats(req, res);
+    return res.status(404).json({ success: false, error: 'Not found' });
   } catch (error) {
     const formatted = formatDbError(error);
-    console.error('Database error in /api/admin/stats:', formatted);
+    console.error('Database error in /api/admin:', formatted);
     return res.status(500).json({
       success: false,
       error: 'Database error',
       code: formatted.code,
       hint: formatted.hint,
     });
-  } finally {
-    await conn.end();
   }
 }
