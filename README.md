@@ -257,6 +257,29 @@ The admin pages do not appear in the public navigation, but the URL is
 always reachable. Anything saved through these forms shows up on the public
 site immediately — no code change required.
 
+### Single-function API architecture
+
+To stay within Vercel's Hobby plan limit of 12 serverless functions, the
+entire backend is a **single catch-all function** at `api/[[...path]].ts`
+that routes by method + pathname. All route handlers and DB helpers live
+outside `/api` in `server/`:
+
+```
+api/[[...path]].ts           # The one and only Vercel function
+server/
+├── router.ts                # Method+path dispatcher, all route handlers
+├── db.ts                    # MySQL connection + error formatter
+├── auth.ts                  # ADMIN_TOKEN bearer middleware
+├── projects.ts              # Project DTOs + CRUD helpers
+├── contact-messages.ts      # Contact-message DTO helpers
+└── email.ts                 # EmailJS rotation + send helpers
+```
+
+Frontend paths are unchanged (`/api/projects`, `/api/skills`,
+`/api/admin/login`, etc.) — the dispatcher inside `server/router.ts`
+matches them internally. `api-server.mjs` continues to host the same
+routes for local dev (`npm run dev:full`).
+
 ---
 
 ## TypeScript Conventions
