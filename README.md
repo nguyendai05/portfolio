@@ -265,12 +265,12 @@ site immediately — no code change required.
 ### Single-function API architecture
 
 To stay within Vercel's Hobby plan limit of 12 serverless functions, the
-entire backend is a **single catch-all function** at `api/[[...path]].ts`
+entire backend is a **single catch-all function** at `api/[...path].ts`
 that routes by method + pathname. All route handlers and DB helpers live
 outside `/api` in `server/`:
 
 ```
-api/[[...path]].ts           # The one and only Vercel function
+api/[...path].ts           # The one and only Vercel function
 server/
 ├── router.ts                # Method+path dispatcher, all route handlers
 ├── db.ts                    # MySQL connection + error formatter

@@ -12,7 +12,7 @@ project up. Read this end-to-end before starting any new task.
 ## 1. Current state (TL;DR)
 
 The portfolio is a Vite + React + TypeScript SPA backed by a MySQL database
-exposed through a single Vercel serverless function (`api/[[...path]].ts`).
+exposed through a single Vercel serverless function (`api/[...path].ts`).
 The site ships:
 
 - Public Home / Work / About / Contact / Mentorship / Collaboration / Gallery
@@ -220,7 +220,7 @@ appetite:
 ## 3. Architecture pointers
 
 ```
-api/[[...path]].ts          # The ONE Vercel function. 5 lines, delegates to:
+api/[...path].ts          # The ONE Vercel function. 5 lines, delegates to:
 server/router.ts            # Method+path dispatch for every /api route.
 server/{db,auth,projects,
        contact-messages,
@@ -253,7 +253,7 @@ vercel.json                 # API rewrites + headers.
 ### Data flow
 
 1. Admin saves an entity through `pages/admin/*` → `services/portfolioService.ts`
-   → `api/[[...path]].ts` → `server/router.ts` → `server/<resource>.ts` →
+   → `api/[...path].ts` → `server/router.ts` → `server/<resource>.ts` →
    MySQL.
 2. Public page mounts (e.g. `pages/Home.tsx`) → `services/portfolioService.ts`
    → `/api/*` → server stack → MySQL.
