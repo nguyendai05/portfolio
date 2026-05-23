@@ -7,6 +7,7 @@ import { useTheme, THEMES } from '../context/ThemeContext';
 import type { TimelineEntry } from '../components/ExecutionLog';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../context/LanguageContext';
+import { Toolkit } from '../components/about/Toolkit';
 
 // Heavy sub-components are code-split so the initial About chunk stays small
 // (previously 55 kB gz). They stream in once the page is ready.
@@ -133,6 +134,9 @@ export const About: React.FC = () => {
       </Suspense>
 
       <div className="container mx-auto px-8 md:px-32 relative z-10">
+        {/* Toolkit / Skills (from DB) */}
+        <Toolkit />
+
         {/* Team / Me */}
         <div className="border-t border-theme-border pt-24 mt-32">
           <h3 className="text-4xl font-black tracking-tighter mb-16">{t('about.human.title')}</h3>

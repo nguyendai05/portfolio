@@ -126,7 +126,7 @@ const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ proj
                         : 'border-transparent group-hover:border-mantis-green'
                 }`}
             >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-xs uppercase tracking-widest text-theme-text/60 block">
                         {project.category}
                     </span>
@@ -139,9 +139,26 @@ const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ proj
                 <h3 className={`text-3xl md:text-4xl font-black tracking-tighter mb-2 transition-colors ${isFeatured ? 'text-mantis-green' : 'group-hover:text-mantis-green'}`}>
                     {project.title}
                 </h3>
-                <p className="text-sm opacity-60 line-clamp-2 max-w-md">
+                <p className="text-sm opacity-60 line-clamp-2 max-w-md mb-3">
                     {project.description}
                 </p>
+                {project.technologies && project.technologies.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                        {project.technologies.slice(0, 4).map((tech) => (
+                            <span
+                                key={tech}
+                                className="px-2 py-0.5 border border-theme-border/70 bg-theme-bg/40 font-mono text-[10px] tracking-wide text-theme-text/75 group-hover:border-mantis-green/60 group-hover:text-theme-text transition-colors"
+                            >
+                                {tech}
+                            </span>
+                        ))}
+                        {project.technologies.length > 4 && (
+                            <span className="px-2 py-0.5 font-mono text-[10px] tracking-wide text-theme-text/45">
+                                +{project.technologies.length - 4}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
         </motion.div>
     );
