@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getConnection } from './_lib/db';
+import { insertContactMessage } from './_lib/contact-messages';
 
 // --- Types ---
 interface ContactFormData {
@@ -198,6 +200,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Increment count
     incrementEmailCount(data.email);
+
+    // Persist the contact submission so it shows up in the admin inbox.
+    // Failures here must NOT break the email response — log and continue.
+    try {
+      const conn = await getConnection();
+      try {
+        await insertContactMessage(conn, {
+          name: data.name,
+          email: data.email,
+          topic: data.topic,
+          message: data.message,
+          userAgent:
+            typeof req.headers['user-agent'] === 'string'
+              ? req.headers['user-agent']
+              : null,
+        });
+      } finally {
+        await conn.end();
+      }
+    } catch (dbError) {
+      console.warn('contact_messages insert failed:', dbError);
+    }
 
     return res.status(200).json({ success: true, autoReplySent });
   } catch (error) {

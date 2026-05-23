@@ -222,6 +222,41 @@ The app implements automatic key rotation when rate limits are hit:
 
 **Important:** API keys are loaded at build time, not runtime. Requires rebuild after changes.
 
+### Admin / Content Management
+
+The portfolio now exposes an authenticated admin panel that drives all content
+(projects, tools, skills, milestones, experiments, contact messages) through
+the MySQL database. The hardcoded arrays in `data/mockData.ts` are now a
+fallback only — new content should be added through the admin UI.
+
+| Variable          | Required | Notes                                                                 |
+|-------------------|----------|-----------------------------------------------------------------------|
+| `ADMIN_TOKEN`     | Yes      | Long random string; bearer token the browser stores after login.      |
+| `ADMIN_PASSWORD`  | No       | What the admin types into `/admin/login`. Falls back to `ADMIN_TOKEN`.|
+| `MYSQL_*`         | Yes      | Standard host / port / user / password / database for the MySQL DB.   |
+| `MYSQL_SSL=true`  | Optional | Force TLS (auto-enabled for TiDB Cloud, Aiven, RDS, PlanetScale).     |
+
+Generate a token with `openssl rand -hex 32` and set both `ADMIN_TOKEN` and
+`ADMIN_PASSWORD` in `.env.local` (development) and in the Vercel project
+environment variables (production). Visit `#/admin/login` to sign in. After
+login, the token is stored in `localStorage` under `xuni_admin_token` and is
+attached as a Bearer token to every mutation request.
+
+**Admin routes** (all hash-based, e.g. `https://your-site.com/#/admin`):
+
+- `#/admin/login` — password login
+- `#/admin` — dashboard with stats and quick links
+- `#/admin/projects` and `#/admin/projects/new` / `#/admin/projects/:id/edit`
+- `#/admin/tools`
+- `#/admin/skills`
+- `#/admin/milestones`
+- `#/admin/experiments`
+- `#/admin/messages` — contact form inbox (also stored in DB now)
+
+The admin pages do not appear in the public navigation, but the URL is
+always reachable. Anything saved through these forms shows up on the public
+site immediately — no code change required.
+
 ---
 
 ## TypeScript Conventions

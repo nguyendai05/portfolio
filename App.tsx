@@ -25,6 +25,35 @@ const Collaboration = lazy(() =>
   import('./pages/Collaboration').then((module) => ({ default: module.Collaboration }))
 );
 
+// Admin (lazy) - separated bundle so public visitors don't pay for it
+const AdminLogin = lazy(() =>
+  import('./pages/admin/AdminLogin').then((m) => ({ default: m.AdminLogin }))
+);
+const AdminDashboard = lazy(() =>
+  import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
+const AdminProjectsList = lazy(() =>
+  import('./pages/admin/AdminProjectsList').then((m) => ({ default: m.AdminProjectsList }))
+);
+const AdminProjectForm = lazy(() =>
+  import('./pages/admin/AdminProjectForm').then((m) => ({ default: m.AdminProjectForm }))
+);
+const AdminSkills = lazy(() =>
+  import('./pages/admin/AdminSkills').then((m) => ({ default: m.AdminSkills }))
+);
+const AdminMilestones = lazy(() =>
+  import('./pages/admin/AdminMilestones').then((m) => ({ default: m.AdminMilestones }))
+);
+const AdminExperiments = lazy(() =>
+  import('./pages/admin/AdminExperiments').then((m) => ({ default: m.AdminExperiments }))
+);
+const AdminMessages = lazy(() =>
+  import('./pages/admin/AdminMessages').then((m) => ({ default: m.AdminMessages }))
+);
+const AdminGuard = lazy(() =>
+  import('./components/admin/AdminGuard').then((m) => ({ default: m.AdminGuard }))
+);
+
 // Scroll to top when route changes
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -173,6 +202,7 @@ const ThemeEffects: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const [showPreloader, setShowPreloader] = useState(true);
 
   // Failsafe: shorter duration to improve LCP on both mobile and desktop
@@ -196,11 +226,13 @@ const AppContent: React.FC = () => {
 
       {/* App content luôn render ngay lập tức, không bị ẩn → LCP không bị chặn */}
       <ScrollToTop />
-      <Navigation />
+      {!isAdminRoute && <Navigation />}
 
-      <Suspense fallback={null}>
-        <NeuralInterface />
-      </Suspense>
+      {!isAdminRoute && (
+        <Suspense fallback={null}>
+          <NeuralInterface />
+        </Suspense>
+      )}
 
       <Suspense fallback={<div className="min-h-screen" />}>
         <AnimatePresence mode="wait">
@@ -212,13 +244,90 @@ const AppContent: React.FC = () => {
             <Route path="/mentorship" element={<Mentorship />} />
             <Route path="/collaboration" element={<Collaboration />} />
             <Route path="/contact" element={<Contact />} />
+
+            {/* Admin routes (HashRouter friendly: #/admin/...) */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminGuard>
+                  <AdminDashboard />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/projects"
+              element={
+                <AdminGuard>
+                  <AdminProjectsList mode="projects" />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/tools"
+              element={
+                <AdminGuard>
+                  <AdminProjectsList mode="tools" />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/projects/new"
+              element={
+                <AdminGuard>
+                  <AdminProjectForm mode="create" />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/projects/:id/edit"
+              element={
+                <AdminGuard>
+                  <AdminProjectForm mode="edit" />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/skills"
+              element={
+                <AdminGuard>
+                  <AdminSkills />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/milestones"
+              element={
+                <AdminGuard>
+                  <AdminMilestones />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/experiments"
+              element={
+                <AdminGuard>
+                  <AdminExperiments />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/messages"
+              element={
+                <AdminGuard>
+                  <AdminMessages />
+                </AdminGuard>
+              }
+            />
           </Routes>
         </AnimatePresence>
       </Suspense>
 
       {/* Preloader chỉ là overlay, không ẩn nội dung bên dưới */}
       <AnimatePresence>
-        {showPreloader && <Preloader onComplete={handlePreloaderComplete} />}
+        {showPreloader && !isAdminRoute && (
+          <Preloader onComplete={handlePreloaderComplete} />
+        )}
       </AnimatePresence>
     </div>
   );
