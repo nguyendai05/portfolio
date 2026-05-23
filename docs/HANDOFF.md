@@ -246,7 +246,7 @@ data/projectTranslations.ts # Per-slug VI overrides for projects.
 db/schema.sql               # The single source of truth for content. Includes seeds.
 
 wrangler.jsonc              # Cloudflare static-asset deploy for dist/.
-vercel.json                 # API rewrites + headers.
+Vercel auto-detects `api/[...path].ts`; no custom API rewrite is needed.
 .env.example                # Required env vars.
 ```
 
