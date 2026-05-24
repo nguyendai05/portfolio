@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Navigation } from './components/Navigation';
 import { Preloader } from './components/Preloader';
@@ -18,12 +18,6 @@ const Work = lazy(() => import('./pages/Work').then((module) => ({ default: modu
 const About = lazy(() => import('./pages/About').then((module) => ({ default: module.About })));
 const Contact = lazy(() => import('./pages/Contact').then((module) => ({ default: module.Contact })));
 const Gallery = lazy(() => import('./pages/Gallery').then((module) => ({ default: module.Gallery })));
-const Mentorship = lazy(() =>
-  import('./pages/Mentorship').then((module) => ({ default: module.Mentorship }))
-);
-const Collaboration = lazy(() =>
-  import('./pages/Collaboration').then((module) => ({ default: module.Collaboration }))
-);
 
 // Admin (lazy) - separated bundle so public visitors don't pay for it
 const AdminLogin = lazy(() =>
@@ -241,8 +235,8 @@ const AppContent: React.FC = () => {
             <Route path="/work" element={<Work />} />
             <Route path="/about" element={<About />} />
             <Route path="/gallery" element={<Gallery />} />
-            <Route path="/mentorship" element={<Mentorship />} />
-            <Route path="/collaboration" element={<Collaboration />} />
+            <Route path="/mentorship" element={<Navigate to="/contact" replace />} />
+            <Route path="/collaboration" element={<Navigate to="/contact" replace />} />
             <Route path="/contact" element={<Contact />} />
 
             {/* Admin routes (HashRouter friendly: #/admin/...) */}

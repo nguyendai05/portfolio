@@ -3,7 +3,6 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { localizeProjects } from '../data/projectTranslations';
 
 interface WorkColumnsProps {
     projects: Project[];
@@ -12,20 +11,18 @@ interface WorkColumnsProps {
 
 export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectClick }) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { language } = useLanguage();
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ["start end", "end start"]
     });
 
     // Featured flagship projects surface first, keeping remaining order stable.
-    // Apply localization once at the list level so card-level rendering stays simple.
+    // The parent already passes localized projects so card rendering stays simple.
     const orderedProjects = useMemo(() => {
-        const localized = localizeProjects(projects, language);
-        const featured = localized.filter((p) => p.featured);
-        const rest = localized.filter((p) => !p.featured);
+        const featured = projects.filter((p) => p.featured);
+        const rest = projects.filter((p) => !p.featured);
         return [...featured, ...rest];
-    }, [projects, language]);
+    }, [projects]);
 
     // Split projects into columns for desktop
     const col1 = orderedProjects.filter((_, i) => i % 2 === 0);
@@ -43,7 +40,12 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
             {/* Mobile Layout (Single Column) */}
             <div className="md:hidden flex flex-col gap-12 pb-24">
                 {orderedProjects.map((project) => (
-                    <ProjectCard key={project.id} project={project} onClick={() => onProjectClick(project)} />
+                    <ProjectCard
+                        key={project.id}
+                        project={project}
+                        isPriority={project.id === orderedProjects[0]?.id}
+                        onClick={() => onProjectClick(project)}
+                    />
                 ))}
             </div>
 
@@ -51,13 +53,23 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
             <div className="hidden md:grid grid-cols-2 gap-12 lg:gap-24 px-4">
                 <motion.div style={{ y: y1 }} className="flex flex-col gap-24 pt-0">
                     {col1.map((project) => (
-                        <ProjectCard key={project.id} project={project} onClick={() => onProjectClick(project)} />
+                        <ProjectCard
+                            key={project.id}
+                            project={project}
+                            isPriority={project.id === orderedProjects[0]?.id}
+                            onClick={() => onProjectClick(project)}
+                        />
                     ))}
                 </motion.div>
 
                 <motion.div style={{ y: y2 }} className="flex flex-col gap-24 pt-32">
                     {col2.map((project) => (
-                        <ProjectCard key={project.id} project={project} onClick={() => onProjectClick(project)} />
+                        <ProjectCard
+                            key={project.id}
+                            project={project}
+                            isPriority={project.id === orderedProjects[0]?.id}
+                            onClick={() => onProjectClick(project)}
+                        />
                     ))}
                 </motion.div>
             </div>
@@ -65,7 +77,7 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
     );
 };
 
-const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ project, onClick }) => {
+const ProjectCard: React.FC<{ project: Project; isPriority?: boolean; onClick: () => void }> = ({ project, isPriority = false, onClick }) => {
     const { t } = useLanguage();
     const isFeatured = !!project.featured;
 
@@ -90,7 +102,7 @@ const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ proj
                 <motion.img
                     src={project.image}
                     alt={project.title}
-                    loading="lazy"
+                    loading={isPriority ? 'eager' : 'lazy'}
                     decoding="async"
                     className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
                 />

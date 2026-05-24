@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Project } from '../types';
 import { Wrench, ExternalLink, Sparkles, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { localizeProjects } from '../data/projectTranslations';
 
 interface ToolShowcaseProps {
   tools: Project[];
@@ -11,9 +10,8 @@ interface ToolShowcaseProps {
 }
 
 export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }) => {
-  const { t, language } = useLanguage();
-  const localizedTools = useMemo(() => localizeProjects(tools, language), [tools, language]);
-  if (localizedTools.length === 0) return null;
+  const { t } = useLanguage();
+  if (tools.length === 0) return null;
 
   return (
     <section className="relative py-16 md:py-24 mb-16">
@@ -45,13 +43,13 @@ export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }
         </div>
         <div className="hidden md:flex items-center gap-2 text-theme-text/50 font-mono text-xs">
           <Zap size={14} className="text-mantis-green" />
-          <span>{t('work.tools.count').replace('{n}', String(localizedTools.length))}</span>
+          <span>{t('work.tools.count').replace('{n}', String(tools.length))}</span>
         </div>
       </div>
 
       {/* Tools Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {localizedTools.map((tool, index) => (
+        {tools.map((tool, index) => (
           <ToolCard 
             key={tool.id} 
             tool={tool} 
@@ -63,7 +61,7 @@ export const ToolShowcase: React.FC<ToolShowcaseProps> = ({ tools, onToolClick }
       </div>
 
       {/* Empty State Placeholder */}
-      {localizedTools.length === 0 && (
+      {tools.length === 0 && (
         <div className="text-center py-16 border border-dashed border-theme-border rounded-2xl">
           <Wrench className="w-12 h-12 mx-auto mb-4 text-theme-text/30" />
           <p className="text-theme-text/50 font-mono text-sm">{t('work.tools.comingSoonTitle')}</p>
@@ -88,7 +86,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) =>
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-5%" }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.12) }}
       onClick={onClick}
       className={`group relative cursor-pointer ${isFirst ? 'md:col-span-2 lg:col-span-2' : ''}`}
     >
@@ -110,6 +108,8 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) =>
           <motion.img
             src={tool.image}
             alt={tool.title}
+            loading={isFirst ? 'eager' : 'lazy'}
+            decoding="async"
             className="w-full h-full object-cover"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.6 }}

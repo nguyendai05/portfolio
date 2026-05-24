@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Project } from '../../types';
 import { fetchAwards } from './awards';
 import { fetchExperiments } from './experiments';
-import { fetchProjects, fetchTools } from './projects';
+import { fetchAllProjects, fetchProjects, fetchTools } from './projects';
 import { fetchSkills } from './skills';
 import type { Award, Experiment, Skill } from './types';
 
@@ -30,6 +30,13 @@ interface WorkPortfolioData {
   projects: Project[] | null;
   tools: Project[] | null;
 }
+
+const EMPTY_WORK_DATA: WorkPortfolioData = {
+  projects: [],
+  tools: [],
+};
+
+let workPortfolioCache: WorkPortfolioData | null = null;
 
 export function useProjects(): ApiHookState<Project[]> {
   return useApiResource(fetchProjects, EMPTY_PROJECTS);
@@ -83,22 +90,16 @@ export function useHomePortfolioData(): ApiHookState<HomePortfolioData> {
 
 export function useWorkPortfolioData(): ApiHookState<WorkPortfolioData> {
   const load = useCallback(async () => {
-    const [projects, tools] = await Promise.allSettled([fetchProjects(), fetchTools()]);
-    const results = [projects, tools];
-    const errors = collectErrors(results);
-    return {
-      value: {
-        projects: getSettledValue(projects, []),
-        tools: getSettledValue(tools, []),
-      },
-      errors,
-    };
+    try {
+      const value = splitWorkProjects(await fetchAllProjects());
+      workPortfolioCache = value;
+      return { value, errors: [] };
+    } catch (error) {
+      return { value: workPortfolioCache ?? EMPTY_WORK_DATA, errors: [error] };
+    }
   }, []);
 
-  return useSettledResource<WorkPortfolioData>(load, {
-    projects: null,
-    tools: null,
-  });
+  return useSettledResource<WorkPortfolioData>(load, workPortfolioCache);
 }
 
 function useApiResource<T>(loader: () => Promise<T>, fallback: T): ApiHookState<T> {
@@ -162,4 +163,18 @@ function collectErrors(results: PromiseSettledResult<unknown>[]): unknown[] {
 
 function getSettledValue<T>(result: PromiseSettledResult<T>, fallback: T): T {
   return result.status === 'fulfilled' ? result.value : fallback;
+}
+
+function splitWorkProjects(projects: Project[]): WorkPortfolioData {
+  return projects.reduce<WorkPortfolioData>(
+    (acc, project) => {
+      if (project.projectType === 'tool') {
+        acc.tools?.push(project);
+      } else {
+        acc.projects?.push(project);
+      }
+      return acc;
+    },
+    { projects: [], tools: [] },
+  );
 }

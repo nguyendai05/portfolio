@@ -3,7 +3,6 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowRight, Layers, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { localizeProjects } from '../data/projectTranslations';
 
 interface WorkDeepDiveStripProps {
     projects: Project[];
@@ -11,18 +10,17 @@ interface WorkDeepDiveStripProps {
 }
 
 export const WorkDeepDiveStrip: React.FC<WorkDeepDiveStripProps> = ({ projects, onProjectClick }) => {
-    const { t, language } = useLanguage();
+    const { t } = useLanguage();
     const prefersReducedMotion = useReducedMotion();
 
     // Featured projects are promoted to the top of Flagship Cases.
     // When there are no explicit featured ones, show up to 6 recent projects.
-    // Localize once at the list level so each card renders the right language.
+    // The parent passes localized projects so each card renders the right language.
     const featuredProjects = useMemo(() => {
-        const localized = localizeProjects(projects, language);
-        const featured = localized.filter(p => p.featured);
-        const base = featured.length > 0 ? featured : localized;
+        const featured = projects.filter(p => p.featured);
+        const base = featured.length > 0 ? featured : projects;
         return base.slice(0, 6);
-    }, [projects, language]);
+    }, [projects]);
 
     if (!featuredProjects || featuredProjects.length === 0) return null;
 

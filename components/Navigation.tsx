@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { track } from '@vercel/analytics';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Cloud, Trophy, Clock, MapPin, Home, Briefcase, User, Mail, Image as ImageIcon, GraduationCap, Users } from 'lucide-react';
+import { Cloud, Trophy, Clock, MapPin, Home, Briefcase, User, Mail, Image as ImageIcon } from 'lucide-react';
 import { useGamification } from '../context/GamificationContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -40,8 +40,6 @@ export const Navigation: React.FC = () => {
     { path: '/about', label: t('nav.about'), index: '03', icon: <User size={18} /> },
     { path: '/contact', label: t('nav.contact'), index: '04', icon: <Mail size={18} /> },
     { path: '/gallery', label: t('nav.gallery'), index: '05', icon: <ImageIcon size={18} /> },
-    { path: '/mentorship', label: t('nav.mentorship'), index: '06', icon: <GraduationCap size={18} /> },
-    { path: '/collaboration', label: t('nav.collaboration'), index: '07', icon: <Users size={18} /> },
   ];
 
   // Triple click logo logic
