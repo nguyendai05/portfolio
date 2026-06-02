@@ -21,13 +21,16 @@ interface PreloaderProps {
 export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [count, setCount] = useState(0);
   const { t } = useLanguage();
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
     // Shorter duration to improve FCP/LCP on both mobile and desktop
     const isMobile = window.innerWidth < 768;
-    const duration = isMobile ? 500 : 300; // ms - much faster on desktop for better LCP
+    const duration = prefersReducedMotion ? 0 : isMobile ? 500 : 300; // ms
     const updateInterval = 20;
-    const steps = duration / updateInterval;
+    const steps = Math.max(1, duration / updateInterval);
     const increment = 100 / steps;
 
     const timer = setInterval(() => {
@@ -44,7 +47,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
     // Hoàn tất và gọi onComplete ngay sau khi đạt 100%
     const completeTimeout = setTimeout(() => {
       setCount(100);
-      const extraDelay = isMobile ? 100 : 200; // shorter on mobile
+      const extraDelay = prefersReducedMotion ? 0 : isMobile ? 100 : 200; // ms
       const endTimeout = setTimeout(onComplete, extraDelay);
       return () => clearTimeout(endTimeout);
     }, duration);
@@ -53,7 +56,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       clearInterval(timer);
       clearTimeout(completeTimeout);
     };
-  }, [onComplete]);
+  }, [onComplete, prefersReducedMotion]);
 
   return (
     <motion.div
@@ -63,7 +66,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       exit={{
         y: '-100%',
         transition: {
-          duration: 1.0,
+          duration: prefersReducedMotion ? 0 : 1.0,
           ease: [0.76, 0, 0.24, 1],
         },
       }}

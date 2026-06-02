@@ -7,9 +7,9 @@ import { Navigation } from './components/Navigation';
 import { Preloader } from './components/Preloader';
 import { GamificationProvider, useGamification } from './context/GamificationContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-// Lazy‑load heavy components so chúng không nằm hết trong initial bundle
+// Lazy-load heavy components out of the initial bundle.
 const NeuralInterface = lazy(() =>
   import('./components/NeuralInterface').then((module) => ({ default: module.NeuralInterface }))
 );
@@ -194,20 +194,43 @@ const ThemeEffects: React.FC = () => {
   );
 };
 
+const NeuralInterfaceGate: React.FC<{ onActivate: () => void }> = ({ onActivate }) => {
+  const { t } = useLanguage();
+
+  return (
+    <button
+      type="button"
+      onClick={onActivate}
+      className="fixed bottom-20 right-4 z-50 flex items-center justify-center group md:bottom-8 md:right-8"
+      aria-label={t('chat.trigger')}
+    >
+      <span className="absolute inset-0 rounded-full bg-theme-accent/20 animate-ping opacity-75" />
+      <span className="relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-theme-border bg-theme-panel text-xs font-black text-theme-accent shadow-[4px_4px_0px_0px_var(--color-border)] transition-all group-hover:translate-x-[2px] group-hover:translate-y-[2px] group-hover:shadow-[2px_2px_0px_0px_var(--color-border)]">
+        AI
+      </span>
+      <span className="absolute right-full mr-4 hidden rounded bg-theme-text px-2 py-1 font-mono text-[10px] whitespace-nowrap text-theme-bg opacity-0 transition-opacity pointer-events-none group-hover:opacity-100 md:block">
+        {t('chat.trigger')}
+      </span>
+    </button>
+  );
+};
+
 const AppContent: React.FC = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const [showPreloader, setShowPreloader] = useState(true);
+  const isHomeRoute = location.pathname === '/';
+  const [showPreloader, setShowPreloader] = useState(isHomeRoute);
+  const [shouldLoadNeuralInterface, setShouldLoadNeuralInterface] = useState(false);
 
   // Failsafe: shorter duration to improve LCP on both mobile and desktop
   useEffect(() => {
+    if (!showPreloader) return;
     const isMobile = window.innerWidth < 768;
-    // Desktop: further reduced to 400ms for better LCP
-    // Mobile: keep 800ms unchanged
-    const maxDuration = isMobile ? 800 : 400; // ms - faster on desktop
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const maxDuration = prefersReducedMotion ? 0 : isMobile ? 500 : 250;
     const timeout = setTimeout(() => setShowPreloader(false), maxDuration);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [showPreloader]);
 
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
@@ -222,9 +245,17 @@ const AppContent: React.FC = () => {
       <ScrollToTop />
       {!isAdminRoute && <Navigation />}
 
-      {!isAdminRoute && (
-        <Suspense fallback={null}>
-          <NeuralInterface />
+      {!isAdminRoute && !shouldLoadNeuralInterface && (
+        <NeuralInterfaceGate onActivate={() => setShouldLoadNeuralInterface(true)} />
+      )}
+
+      {!isAdminRoute && shouldLoadNeuralInterface && (
+        <Suspense
+          fallback={
+            <div className="fixed bottom-20 right-4 z-50 h-11 w-11 rounded-full border-2 border-theme-border bg-theme-panel animate-pulse md:bottom-8 md:right-8" />
+          }
+        >
+          <NeuralInterface initialOpen />
         </Suspense>
       )}
 
@@ -319,7 +350,7 @@ const AppContent: React.FC = () => {
 
       {/* Preloader chỉ là overlay, không ẩn nội dung bên dưới */}
       <AnimatePresence>
-        {showPreloader && !isAdminRoute && (
+        {showPreloader && !isAdminRoute && isHomeRoute && (
           <Preloader onComplete={handlePreloaderComplete} />
         )}
       </AnimatePresence>

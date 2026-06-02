@@ -231,6 +231,11 @@ export const translations = {
     'work.projects.viewAll': 'View all',
     'work.projects.flagship': 'Flagship',
     'work.tools.explore': 'Explore',
+    'work.loadError.title': 'Could not load Work data',
+    'work.loadError.desc':
+      'The archive could not reach the portfolio API. Projects stay database-backed, so this usually means the API or database needs attention.',
+    'work.loadError.retry': 'Retry loading',
+    'work.loadError.stale': 'Showing cached archive data. The API did not refresh this time.',
     'work.deepdive.deepDives': 'Deep Dives',
     'work.deepdive.flagshipCases': 'FLAGSHIP CASES',
     'work.deepdive.intro': 'Hand-picked, shipped products — click any card to open the full case study with stack, phases, and live link.',
@@ -669,6 +674,11 @@ export const translations = {
     'work.projects.viewAll': 'Xem tất cả',
     'work.projects.flagship': 'Chủ lực',
     'work.tools.explore': 'Khám phá',
+    'work.loadError.title': 'Không tải được dữ liệu Work',
+    'work.loadError.desc':
+      'Kho lưu trữ chưa kết nối được với portfolio API. Dự án vẫn lấy từ database, nên trạng thái này thường là do API hoặc database cần kiểm tra.',
+    'work.loadError.retry': 'Tải lại',
+    'work.loadError.stale': 'Đang hiển thị dữ liệu cache. API chưa cập nhật thành công lần này.',
     'work.deepdive.deepDives': 'Nghiên cứu chuyên sâu',
     'work.deepdive.flagshipCases': 'DỰ ÁN CHỦ LỰC',
     'work.deepdive.intro': 'Những sản phẩm đã lên sóng — bấm vào thẻ để xem chi tiết case study: stack, quy trình và link trực tiếp.',

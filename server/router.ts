@@ -81,6 +81,14 @@ function notFound(res: VercelResponse) {
   return res.status(404).json({ success: false, error: 'Not found' });
 }
 
+function setPublicPortfolioCacheHeaders(res: VercelResponse) {
+  res.setHeader('Cache-Control', 'public, max-age=0');
+  res.setHeader(
+    'Vercel-CDN-Cache-Control',
+    'public, s-maxage=300, stale-while-revalidate=86400',
+  );
+}
+
 // ─── Skill row ──────────────────────────────────────────────────
 interface SkillRow {
   id: number;
@@ -308,6 +316,7 @@ async function handleProjectsCollection(
   res: VercelResponse,
 ) {
   if (req.method === 'GET') {
+    setPublicPortfolioCacheHeaders(res);
     return withConn(async (conn) => {
       const slug = getQueryParam(req, 'slug');
       const type = getQueryParam(req, 'type');
@@ -367,6 +376,7 @@ async function handleProjectItem(
   id: number,
 ) {
   if (req.method === 'GET') {
+    setPublicPortfolioCacheHeaders(res);
     return withConn(async (conn) => {
       const project = await loadProjectById(conn, id);
       if (!project) {

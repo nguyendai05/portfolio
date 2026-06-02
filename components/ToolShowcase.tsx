@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Project } from '../types';
 import { Wrench, ExternalLink, Sparkles, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getOptimizedProjectImage } from '../services/projectImages';
 
 interface ToolShowcaseProps {
   tools: Project[];
@@ -81,6 +82,7 @@ interface ToolCardProps {
 
 const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) => {
   const { t } = useLanguage();
+  const imageSrc = getOptimizedProjectImage(tool.image);
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -106,7 +108,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onClick, index, isFirst }) =>
         {/* Image Section */}
         <div className={`relative overflow-hidden ${isFirst ? 'h-48 md:h-56' : 'h-36'}`}>
           <motion.img
-            src={tool.image}
+            src={imageSrc}
             alt={tool.title}
             loading={isFirst ? 'eager' : 'lazy'}
             decoding="async"

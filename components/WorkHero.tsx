@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { GlitchText } from './GlitchText';
 import { useLanguage } from '../context/LanguageContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface WorkHeroProps {
     totalProjects: number;
@@ -13,18 +14,21 @@ export const WorkHero: React.FC<WorkHeroProps> = ({
     uniqueCategories,
 }) => {
     const { t } = useLanguage();
+    const prefersReducedMotion = useReducedMotion();
+    const isMobile = useIsMobile();
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 300], [1, 0]);
     const scale = useTransform(scrollY, [0, 300], [1, 0.9]);
     const y = useTransform(scrollY, [0, 300], [0, 50]);
+    const shouldUseScrollMotion = !prefersReducedMotion && !isMobile;
 
     // Disable pointer events when hero fades out
     const pointerEvents = useTransform(opacity, (v) => v < 0.5 ? 'none' : 'auto');
 
     return (
         <motion.section
-            style={{ opacity, scale, y, pointerEvents }}
-            className="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 mb-24 sticky top-20 z-10"
+            style={shouldUseScrollMotion ? { opacity, scale, y, pointerEvents } : undefined}
+            className="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 mb-24 md:sticky top-20 z-10"
         >
             <div className="mb-8">
                 <div className="flex items-center justify-center gap-4 mb-6 opacity-60">

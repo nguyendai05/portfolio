@@ -9,6 +9,7 @@ import {
 import { Project } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { localizeProject } from '../data/projectTranslations';
+import { getOptimizedProjectImage } from '../services/projectImages';
 
 // --- Types & Interfaces ---
 
@@ -93,6 +94,7 @@ const TechMatrix: React.FC<{ technologies: string[] }> = ({ technologies }) => {
 
 const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
    const { t } = useLanguage();
+   const imageSrc = getOptimizedProjectImage(project.image);
    const mouseX = useMotionValue(0);
    const mouseY = useMotionValue(0);
    const containerRef = useRef<HTMLDivElement>(null);
@@ -121,7 +123,7 @@ const VisualCore: React.FC<{ project: Project }> = ({ project }) => {
          >
             {/* Main Image */}
             <motion.img
-               src={project.image}
+               src={imageSrc}
                alt={project.title}
                initial={{ scale: 1.1, filter: "grayscale(100%) blur(5px)" }}
                animate={{ scale: 1, filter: "grayscale(0%) blur(0px)" }}

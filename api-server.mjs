@@ -21,6 +21,11 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+function setPublicPortfolioCacheHeaders(res) {
+    res.set('Cache-Control', 'public, max-age=0');
+    res.set('Vercel-CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
+}
+
 // Load .env.local
 function loadEnv() {
     try {
@@ -150,18 +155,7 @@ async function syncProjectPhases(conn, projectId, phaseEntries) {
     }
 }
 
-async function loadProject(conn, id) {
-    const [rows] = await conn.execute('SELECT * FROM projects WHERE id = ?', [id]);
-    if (rows.length === 0) return null;
-    const project = rows[0];
-    const [techRows] = await conn.execute(
-        `SELECT t.name FROM technologies t JOIN project_technologies pt ON pt.technology_id = t.id WHERE pt.project_id = ?`,
-        [project.id]
-    );
-    const [phaseRows] = await conn.execute(
-        `SELECT ph.name FROM phases ph JOIN project_phases pp ON pp.phase_id = ph.id WHERE pp.project_id = ? ORDER BY pp.phase_order`,
-        [project.id]
-    );
+function mapProject(project, technologies = [], phases = []) {
     return {
         id: project.id,
         slug: project.slug,
@@ -170,12 +164,65 @@ async function loadProject(conn, id) {
         category: project.category,
         image: project.image_url,
         description: project.description,
-        technologies: techRows.map(r => r.name),
+        technologies,
         link: project.link || undefined,
         featured: Boolean(project.featured),
-        phases: phaseRows.length > 0 ? phaseRows.map(r => r.name) : undefined,
+        phases: phases.length > 0 ? phases : undefined,
         projectType: project.project_type,
+        createdAt: project.created_at,
+        updatedAt: project.updated_at,
     };
+}
+
+async function loadProjectsExtras(conn, projectIds) {
+    const technologiesByProject = new Map();
+    const phasesByProject = new Map();
+    if (projectIds.length === 0) {
+        return { technologiesByProject, phasesByProject };
+    }
+
+    const placeholders = projectIds.map(() => '?').join(', ');
+    const [techRows] = await conn.execute(
+        `SELECT pt.project_id, t.name
+           FROM project_technologies pt
+           JOIN technologies t ON t.id = pt.technology_id
+          WHERE pt.project_id IN (${placeholders})
+          ORDER BY pt.project_id, t.name`,
+        projectIds
+    );
+    for (const row of techRows) {
+        const list = technologiesByProject.get(row.project_id) || [];
+        list.push(row.name);
+        technologiesByProject.set(row.project_id, list);
+    }
+
+    const [phaseRows] = await conn.execute(
+        `SELECT pp.project_id, ph.name
+           FROM project_phases pp
+           JOIN phases ph ON ph.id = pp.phase_id
+          WHERE pp.project_id IN (${placeholders})
+          ORDER BY pp.project_id, pp.phase_order`,
+        projectIds
+    );
+    for (const row of phaseRows) {
+        const list = phasesByProject.get(row.project_id) || [];
+        list.push(row.name);
+        phasesByProject.set(row.project_id, list);
+    }
+
+    return { technologiesByProject, phasesByProject };
+}
+
+async function loadProject(conn, id) {
+    const [rows] = await conn.execute('SELECT * FROM projects WHERE id = ?', [id]);
+    if (rows.length === 0) return null;
+    const project = rows[0];
+    const { technologiesByProject, phasesByProject } = await loadProjectsExtras(conn, [project.id]);
+    return mapProject(
+        project,
+        technologiesByProject.get(project.id) || [],
+        phasesByProject.get(project.id) || [],
+    );
 }
 
 // Database connection
@@ -427,6 +474,7 @@ app.get('/api/projects', async (req, res) => {
     let conn;
 
     try {
+        setPublicPortfolioCacheHeaders(res);
         conn = await getConnection();
 
         // If slug provided, get single project
@@ -436,36 +484,14 @@ app.get('/api/projects', async (req, res) => {
                 return res.status(404).json({ success: false, error: 'Project not found' });
             }
             const project = rows[0];
-
-            // Get technologies
-            const [techRows] = await conn.execute(
-                `SELECT t.name FROM technologies t JOIN project_technologies pt ON pt.technology_id = t.id WHERE pt.project_id = ?`,
-                [project.id]
-            );
-            const technologies = techRows.map(r => r.name);
-
-            // Get phases
-            const [phaseRows] = await conn.execute(
-                `SELECT ph.name FROM phases ph JOIN project_phases pp ON pp.phase_id = ph.id WHERE pp.project_id = ? ORDER BY pp.phase_order`,
-                [project.id]
-            );
-            const phases = phaseRows.map(r => r.name);
-
+            const { technologiesByProject, phasesByProject } = await loadProjectsExtras(conn, [project.id]);
             return res.json({
                 success: true,
-                data: {
-                    id: project.id,
-                    slug: project.slug,
-                    title: project.title,
-                    category: project.category,
-                    image: project.image_url,
-                    description: project.description,
-                    technologies,
-                    link: project.link || undefined,
-                    featured: Boolean(project.featured),
-                    phases: phases.length > 0 ? phases : undefined,
-                    projectType: project.project_type,
-                }
+                data: mapProject(
+                    project,
+                    technologiesByProject.get(project.id) || [],
+                    phasesByProject.get(project.id) || [],
+                )
             });
         }
 
@@ -479,35 +505,16 @@ app.get('/api/projects', async (req, res) => {
         query += ' ORDER BY featured DESC, created_at DESC';
 
         const [rows] = await conn.execute(query, params);
-
-        const result = await Promise.all(
-            rows.map(async (project) => {
-                const [techRows] = await conn.execute(
-                    `SELECT t.name FROM technologies t JOIN project_technologies pt ON pt.technology_id = t.id WHERE pt.project_id = ?`,
-                    [project.id]
-                );
-                const technologies = techRows.map(r => r.name);
-
-                const [phaseRows] = await conn.execute(
-                    `SELECT ph.name FROM phases ph JOIN project_phases pp ON pp.phase_id = ph.id WHERE pp.project_id = ? ORDER BY pp.phase_order`,
-                    [project.id]
-                );
-                const phases = phaseRows.map(r => r.name);
-
-                return {
-                    id: project.id,
-                    slug: project.slug,
-                    title: project.title,
-                    category: project.category,
-                    image: project.image_url,
-                    description: project.description,
-                    technologies,
-                    link: project.link || undefined,
-                    featured: Boolean(project.featured),
-                    phases: phases.length > 0 ? phases : undefined,
-                    projectType: project.project_type,
-                };
-            })
+        const { technologiesByProject, phasesByProject } = await loadProjectsExtras(
+            conn,
+            rows.map(project => project.id),
+        );
+        const result = rows.map(project =>
+            mapProject(
+                project,
+                technologiesByProject.get(project.id) || [],
+                phasesByProject.get(project.id) || [],
+            )
         );
 
         res.json({ success: true, data: result });
@@ -682,6 +689,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 app.get('/api/projects/:id', async (req, res) => {
     let conn;
     try {
+        setPublicPortfolioCacheHeaders(res);
         conn = await getConnection();
         const project = await loadProject(conn, Number(req.params.id));
         if (!project) return res.status(404).json({ success: false, error: 'Project not found' });

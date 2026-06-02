@@ -86,6 +86,44 @@ async function loadProjectExtras(conn: Connection, projectId: number) {
   return { technologies, phases };
 }
 
+async function loadProjectsExtras(conn: Connection, projectIds: number[]) {
+  const technologiesByProject = new Map<number, string[]>();
+  const phasesByProject = new Map<number, string[]>();
+  if (projectIds.length === 0) return { technologiesByProject, phasesByProject };
+
+  const placeholders = projectIds.map(() => '?').join(', ');
+
+  const [techRows] = await conn.execute(
+    `SELECT pt.project_id, t.name
+       FROM project_technologies pt
+       JOIN technologies t ON t.id = pt.technology_id
+      WHERE pt.project_id IN (${placeholders})
+      ORDER BY pt.project_id, t.name`,
+    projectIds,
+  );
+  for (const row of techRows as Array<{ project_id: number; name: string }>) {
+    const list = technologiesByProject.get(row.project_id) ?? [];
+    list.push(row.name);
+    technologiesByProject.set(row.project_id, list);
+  }
+
+  const [phaseRows] = await conn.execute(
+    `SELECT pp.project_id, ph.name
+       FROM project_phases pp
+       JOIN phases ph ON ph.id = pp.phase_id
+      WHERE pp.project_id IN (${placeholders})
+      ORDER BY pp.project_id, pp.phase_order`,
+    projectIds,
+  );
+  for (const row of phaseRows as Array<{ project_id: number; name: string }>) {
+    const list = phasesByProject.get(row.project_id) ?? [];
+    list.push(row.name);
+    phasesByProject.set(row.project_id, list);
+  }
+
+  return { technologiesByProject, phasesByProject };
+}
+
 export function mapProjectRow(
   row: ProjectRow,
   technologies: string[],
@@ -150,11 +188,16 @@ export async function listProjects(
   query += ' ORDER BY featured DESC, created_at DESC, id DESC';
   const [rows] = await conn.execute(query, params);
   const list = rows as ProjectRow[];
-  return Promise.all(
-    list.map(async (row) => {
-      const { technologies, phases } = await loadProjectExtras(conn, row.id);
-      return mapProjectRow(row, technologies, phases);
-    }),
+  const { technologiesByProject, phasesByProject } = await loadProjectsExtras(
+    conn,
+    list.map((row) => row.id),
+  );
+  return list.map((row) =>
+    mapProjectRow(
+      row,
+      technologiesByProject.get(row.id) ?? [],
+      phasesByProject.get(row.id) ?? [],
+    ),
   );
 }
 

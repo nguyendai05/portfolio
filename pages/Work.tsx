@@ -1,17 +1,49 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
-import { ProjectModal } from '../components/ProjectModal';
 import { Project } from '../types';
-import { Filter, Wrench, Globe } from 'lucide-react';
+import { AlertTriangle, Filter, Wrench, Globe, RefreshCw } from 'lucide-react';
 import { WorkHero } from '../components/WorkHero';
 import { WorkColumns } from '../components/WorkColumns';
-import { WorkDeepDiveStrip } from '../components/WorkDeepDiveStrip';
 import { WorkScrollProgress } from '../components/WorkScrollProgress';
 import { ToolShowcase } from '../components/ToolShowcase';
 import { useGamification } from '../context/GamificationContext';
 import { useLanguage } from '../context/LanguageContext';
 import { localizeProjects } from '../data/projectTranslations';
 import { useWorkPortfolioData } from '../services/api/hooks';
+
+const ProjectModal = lazy(() =>
+  import('../components/ProjectModal').then((module) => ({ default: module.ProjectModal }))
+);
+const WorkDeepDiveStrip = lazy(() =>
+  import('../components/WorkDeepDiveStrip').then((module) => ({
+    default: module.WorkDeepDiveStrip,
+  }))
+);
+
+interface WorkLoadErrorProps {
+  loading: boolean;
+  onRetry: () => void;
+  t: ReturnType<typeof useLanguage>['t'];
+}
+
+const WorkLoadError: React.FC<WorkLoadErrorProps> = ({ loading, onRetry, t }) => (
+  <div className="rounded-2xl border border-theme-border/50 bg-theme-panel/40 px-6 py-12 text-center">
+    <AlertTriangle className="mx-auto mb-5 h-12 w-12 text-mantis-green" />
+    <h3 className="mb-3 text-2xl font-black tracking-tight">{t('work.loadError.title')}</h3>
+    <p className="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-theme-text/60">
+      {t('work.loadError.desc')}
+    </p>
+    <button
+      type="button"
+      onClick={onRetry}
+      disabled={loading}
+      className="inline-flex items-center gap-2 rounded-full border border-mantis-green/50 px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-widest text-mantis-green transition-colors hover:bg-mantis-green/10 disabled:cursor-wait disabled:opacity-60"
+    >
+      <RefreshCw size={14} className={loading ? 'animate-spin' : undefined} />
+      {t('work.loadError.retry')}
+    </button>
+  </div>
+);
 
 export const Work: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -21,17 +53,12 @@ export const Work: React.FC = () => {
   const { scrollYProgress } = useScroll();
 
   const [activeSection, setActiveSection] = useState<'tools' | 'projects'>('tools');
+  const [hasManuallySelectedSection, setHasManuallySelectedSection] = useState(false);
 
-  const { data: workData, errors: loadErrors } = useWorkPortfolioData();
+  const { data: workData, loading, errors: loadErrors, refetch } = useWorkPortfolioData();
   // DB-driven data. `null` = loading, `[]` = loaded empty or API branch failed.
   const PROJECTS = workData?.projects ?? null;
   const TOOLS = workData?.tools ?? null;
-
-  useEffect(() => {
-    if (loadErrors.length > 0) {
-      console.warn('[work] failed to load projects/tools from API', loadErrors);
-    }
-  }, [loadErrors]);
 
   // Localize projects once per language so categories, descriptions, and
   // phases all render in the active language across the page (cards, deep
@@ -47,6 +74,25 @@ export const Work: React.FC = () => {
 
   const categories = ['All', ...Array.from(new Set(LOCALIZED_PROJECTS.map(p => p.category)))];
   const filteredProjects = filter === 'All' ? LOCALIZED_PROJECTS : LOCALIZED_PROJECTS.filter(p => p.category === filter);
+  const hasVisibleWorkData = LOCALIZED_PROJECTS.length > 0 || LOCALIZED_TOOLS.length > 0;
+  const hasBlockingLoadError = loadErrors.length > 0 && !loading && !hasVisibleWorkData;
+
+  const handleSectionChange = (section: 'tools' | 'projects') => {
+    setHasManuallySelectedSection(true);
+    setActiveSection(section);
+  };
+
+  useEffect(() => {
+    if (
+      !hasManuallySelectedSection &&
+      PROJECTS !== null &&
+      TOOLS !== null &&
+      TOOLS.length === 0 &&
+      PROJECTS.length > 0
+    ) {
+      setActiveSection('projects');
+    }
+  }, [PROJECTS, TOOLS, hasManuallySelectedSection]);
 
   // Unlock achievement when reaching the bottom
   useEffect(() => {
@@ -69,7 +115,9 @@ export const Work: React.FC = () => {
 
       <AnimatePresence>
         {selectedProject && (
-          <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+          <Suspense fallback={null}>
+            <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+          </Suspense>
         )}
       </AnimatePresence>
 
@@ -84,7 +132,7 @@ export const Work: React.FC = () => {
           <div className="bg-theme-bg/90 backdrop-blur-md border border-theme-border p-1.5 rounded-2xl shadow-xl">
             <div className="flex gap-2">
               <button
-                onClick={() => setActiveSection('tools')}
+                onClick={() => handleSectionChange('tools')}
                 className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-mono text-sm uppercase tracking-wider transition-all duration-300 ${activeSection === 'tools'
                     ? 'bg-mantis-green text-theme-bg font-bold shadow-lg shadow-mantis-green/20'
                     : 'text-theme-text/70 hover:text-theme-text hover:bg-theme-panel/50'
@@ -100,7 +148,7 @@ export const Work: React.FC = () => {
                 )}
               </button>
               <button
-                onClick={() => setActiveSection('projects')}
+                onClick={() => handleSectionChange('projects')}
                 className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-mono text-sm uppercase tracking-wider transition-all duration-300 ${activeSection === 'projects'
                     ? 'bg-theme-text text-theme-bg font-bold'
                     : 'text-theme-text/70 hover:text-theme-text hover:bg-theme-panel/50'
@@ -138,8 +186,22 @@ export const Work: React.FC = () => {
           </div>
         )}
 
+        {loadErrors.length > 0 && hasVisibleWorkData && (
+          <div className="mb-8 rounded-xl border border-theme-border/40 bg-theme-panel/40 px-4 py-3 font-mono text-xs uppercase tracking-wider text-theme-text/60">
+            {t('work.loadError.stale')}
+          </div>
+        )}
+
         {/* Content Sections */}
-        {activeSection === 'tools' ? (
+        {hasBlockingLoadError ? (
+          <WorkLoadError
+            loading={loading}
+            onRetry={() => {
+              void refetch();
+            }}
+            t={t}
+          />
+        ) : activeSection === 'tools' ? (
           <motion.div
             key="tools"
             initial={{ opacity: 0, y: 20 }}
@@ -207,12 +269,16 @@ export const Work: React.FC = () => {
       </div>
 
       {/* Horizontal Deep Dive Strip (Only show if viewing All or if there are featured projects in current filter) */}
-      <div className="mt-32 border-t border-theme-border bg-theme-bg relative z-20">
-        <WorkDeepDiveStrip
-          projects={LOCALIZED_PROJECTS}
-          onProjectClick={setSelectedProject}
-        />
-      </div>
+      {PROJECTS !== null && LOCALIZED_PROJECTS.length > 0 && (
+        <div className="mt-32 border-t border-theme-border bg-theme-bg relative z-20">
+          <Suspense fallback={null}>
+            <WorkDeepDiveStrip
+              projects={LOCALIZED_PROJECTS}
+              onProjectClick={setSelectedProject}
+            />
+          </Suspense>
+        </div>
+      )}
 
       {/* Footer Note */}
       <div className="text-center py-24 opacity-30 font-mono text-xs uppercase tracking-widest">

@@ -264,9 +264,13 @@ const LoadingIndicator: React.FC = () => {
 };
 
 
-export const NeuralInterface: React.FC = () => {
+interface NeuralInterfaceProps {
+  initialOpen?: boolean;
+}
+
+export const NeuralInterface: React.FC<NeuralInterfaceProps> = ({ initialOpen = false }) => {
   const { t } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(initialOpen);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {

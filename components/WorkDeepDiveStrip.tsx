@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowRight, Layers, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getOptimizedProjectImage } from '../services/projectImages';
 
 interface WorkDeepDiveStripProps {
     projects: Project[];
@@ -108,6 +109,7 @@ interface FlagshipCardProps {
 
 const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, shouldAnimate, scrollVariant }) => {
     const { t } = useLanguage();
+    const imageSrc = getOptimizedProjectImage(project.image);
     const widthClass = scrollVariant
         ? 'w-[85vw] sm:w-[420px] md:w-[460px] shrink-0 snap-start'
         : 'w-full';
@@ -134,7 +136,7 @@ const FlagshipCard: React.FC<FlagshipCardProps> = ({ project, index, onClick, sh
             {/* Image */}
             <div className="relative aspect-[16/10] overflow-hidden">
                 <img
-                    src={project.image}
+                    src={imageSrc}
                     alt={project.title}
                     loading="lazy"
                     decoding="async"

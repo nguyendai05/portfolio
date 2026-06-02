@@ -1,8 +1,9 @@
 import React, { useMemo, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { Project } from '../types';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getOptimizedProjectImage } from '../services/projectImages';
 
 interface WorkColumnsProps {
     projects: Project[];
@@ -11,6 +12,7 @@ interface WorkColumnsProps {
 
 export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectClick }) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const prefersReducedMotion = useReducedMotion();
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ["start end", "end start"]
@@ -31,6 +33,8 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
     // Parallax effects for columns
     const y1 = useTransform(scrollYProgress, [0, 1], [0, -50]);
     const y2 = useTransform(scrollYProgress, [0, 1], [50, -100]);
+    const parallaxStyle1 = prefersReducedMotion ? undefined : { y: y1 };
+    const parallaxStyle2 = prefersReducedMotion ? undefined : { y: y2 };
 
     // Return null if no projects
     if (orderedProjects.length === 0) return null;
@@ -51,7 +55,7 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
 
             {/* Desktop Layout (Dual Column with Parallax) */}
             <div className="hidden md:grid grid-cols-2 gap-12 lg:gap-24 px-4">
-                <motion.div style={{ y: y1 }} className="flex flex-col gap-24 pt-0">
+                <motion.div style={parallaxStyle1} className="flex flex-col gap-24 pt-0">
                     {col1.map((project) => (
                         <ProjectCard
                             key={project.id}
@@ -62,7 +66,7 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
                     ))}
                 </motion.div>
 
-                <motion.div style={{ y: y2 }} className="flex flex-col gap-24 pt-32">
+                <motion.div style={parallaxStyle2} className="flex flex-col gap-24 pt-32">
                     {col2.map((project) => (
                         <ProjectCard
                             key={project.id}
@@ -79,12 +83,14 @@ export const WorkColumns: React.FC<WorkColumnsProps> = ({ projects, onProjectCli
 
 const ProjectCard: React.FC<{ project: Project; isPriority?: boolean; onClick: () => void }> = ({ project, isPriority = false, onClick }) => {
     const { t } = useLanguage();
+    const prefersReducedMotion = useReducedMotion();
     const isFeatured = !!project.featured;
+    const imageSrc = getOptimizedProjectImage(project.image);
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
+            whileInView={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-10%" }}
             transition={{ duration: 0.5 }}
             onClick={onClick}
@@ -100,7 +106,7 @@ const ProjectCard: React.FC<{ project: Project; isPriority?: boolean; onClick: (
             >
                 <div className="absolute inset-0 bg-mantis-green/10 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <motion.img
-                    src={project.image}
+                    src={imageSrc}
                     alt={project.title}
                     loading={isPriority ? 'eager' : 'lazy'}
                     decoding="async"
