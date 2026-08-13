@@ -5,7 +5,7 @@ import { getOptimizedProjectImage } from '../services/projectImages';
 
 export const ProjectCaseStudy: React.FC<{ project: Project; headingId?: string }> = ({ project, headingId }) => (
   <article className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-    <div className="flex aspect-[16/10] items-center justify-center overflow-hidden border border-theme-border/40 bg-theme-panel">
+    <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-md border border-theme-border/40 bg-theme-panel/80 p-1 sm:p-2">
       <img src={getOptimizedProjectImage(project.image)} alt={project.title}
         className="h-full max-h-[70vh] w-full object-contain p-2 sm:p-4" decoding="async" />
     </div>

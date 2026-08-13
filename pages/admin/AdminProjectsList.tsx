@@ -274,13 +274,13 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
                   className="h-4 w-4 accent-theme-accent"
                 />
               </div>
-              <div className="aspect-[16/10] bg-theme-bg/60 overflow-hidden border-b border-theme-border/20">
+              <div className="aspect-[16/10] rounded-md bg-theme-panel/70 overflow-hidden border-b border-theme-border/20">
                 {project.image ? (
                   <img
                     src={project.image}
                     alt={project.title}
                     loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-theme-text/30 text-xs font-mono">

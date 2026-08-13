@@ -477,7 +477,7 @@ export const AdminProjectForm: React.FC<Props> = ({ mode }) => {
                 Live preview
               </h2>
               <div className="mt-3 border border-theme-border/30 rounded-md overflow-hidden bg-theme-bg/40">
-                <div className="aspect-[16/10] bg-theme-bg/60">
+                <div className="aspect-[16/10] rounded-md bg-theme-panel/70">
                   {form.imageUrl ? (
                     <img
                       src={form.imageUrl}
