@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:baseline
+      - run: npm run typecheck 2>&1 | tee artifacts/baseline/typecheck.txt
+      - run: npm test 2>&1 | tee artifacts/baseline/tests.txt
+      - run: npm run test:coverage 2>&1 | tee artifacts/baseline/coverage.txt
+      - run: npm run build 2>&1 | tee artifacts/baseline/build.txt
+      - run: npm audit --omit=dev --audit-level=high --json > artifacts/baseline/npm-audit.json
+      - run: npm run ci:scan-secrets
+      - run: npm run ci:bundle
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-verification
+          path: artifacts/
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: portfolio-coverage
+          path: coverage/
