@@ -369,7 +369,7 @@ export const AdminProjectForm: React.FC<Props> = ({ mode }) => {
                   <img
                     src={form.imageUrl}
                     alt="Cover preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-2 sm:p-3"
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-theme-text/40">
@@ -482,7 +482,7 @@ export const AdminProjectForm: React.FC<Props> = ({ mode }) => {
                     <img
                       src={form.imageUrl}
                       alt="preview"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-2 sm:p-3"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-theme-text/30 text-xs font-mono">
