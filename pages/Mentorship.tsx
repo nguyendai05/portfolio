@@ -53,13 +53,11 @@ export const Mentorship: React.FC = () => {
       3. Tone: Professional, brutalist, encouraging. Use bullet points.
     `;
 
-    const history = [{ role: 'model', parts: [{ text: "Ready to analyze incoming requests." }] }];
+    const history = [{ role: 'model' as const, parts: [{ text: "Ready to analyze incoming requests." }] }];
 
     try {
-      // Dynamic import so the @google/genai SDK (≈220 kB / 39 kB gz) is only
-      // fetched when the user actually submits a mentorship request.
-      const { sendMessageToMantis } = await import('../services/geminiService');
-      const response = await sendMessageToMantis(history, prompt);
+      const { sendAiMessage } = await import('../services/api/ai');
+      const response = await sendAiMessage(history, prompt);
       setAiReport(response);
       setStatus('complete');
     } catch (error) {

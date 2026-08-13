@@ -446,13 +446,7 @@ export const Home: React.FC = () => {
               </div>
             </div>
           </div>
-          {!isMobile && (
-            <div className="absolute top-0 right-0 w-full h-full pointer-events-none opacity-40">
-              <Suspense fallback={null}>
-                <GenerativeArt intensity={30} speed={0.5} color="#000" variant="particles" />
-              </Suspense>
-            </div>
-          )}
+          <div aria-hidden="true" className="absolute top-0 right-0 h-full w-1/2 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,var(--color-accent),transparent_65%)]" />
         </div>
       </section>
 
@@ -576,13 +570,7 @@ export const Home: React.FC = () => {
 
       {/* FOCUS AREAS PREVIEW */}
       <section className="relative min-h-screen bg-theme-text text-theme-bg flex flex-col justify-center overflow-hidden">
-        {!isMobile && (
-          <div className="absolute inset-0 opacity-20">
-            <Suspense fallback={null}>
-              <GenerativeArt intensity={60} color="#39ff14" variant="network" />
-            </Suspense>
-          </div>
-        )}
+        <div aria-hidden="true" className="absolute inset-0 opacity-10 bg-[linear-gradient(135deg,transparent_45%,var(--color-accent)_50%,transparent_55%)] bg-[length:80px_80px]" />
 
         <div className="container mx-auto px-8 md:px-32 relative z-10">
           <motion.div
@@ -628,15 +616,7 @@ export const Home: React.FC = () => {
 
       {/* LAB PREVIEW */}
       <section className="relative py-32 bg-theme-text text-theme-bg overflow-hidden border-b border-theme-border">
-        {!isMobile && (
-          <div className="absolute top-0 right-0 p-12 opacity-30 pointer-events-none">
-            <div className="w-[500px] h-[500px]">
-              <Suspense fallback={null}>
-                <GenerativeArt intensity={25} color="#39ff14" variant="particles" speed={2} />
-              </Suspense>
-            </div>
-          </div>
-        )}
+        <div aria-hidden="true" className="absolute right-12 top-12 h-80 w-80 rounded-full border border-theme-accent/20 opacity-40 pointer-events-none" />
 
         <div className="container mx-auto px-8 md:px-32 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 border-b border-white/20 pb-8">

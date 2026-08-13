@@ -1,4 +1,6 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useMotionPolicy } from '../context/MotionContext';
 
 interface GenerativeArtProps {
   intensity?: number;
@@ -19,6 +21,26 @@ export const GenerativeArt: React.FC<GenerativeArtProps> = React.memo(({
   variant = 'network'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { motionEnabled } = useMotionPolicy();
+  const location = useLocation();
+  const [inViewport, setInViewport] = useState(false);
+  const [tabVisible, setTabVisible] = useState(() => document.visibilityState === 'visible');
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const observer = new IntersectionObserver(([entry]) => setInViewport(entry.isIntersecting), {
+      rootMargin: '100px',
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const update = () => setTabVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
 
   // Reduce intensity on mobile devices to improve performance
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -26,7 +48,7 @@ export const GenerativeArt: React.FC<GenerativeArtProps> = React.memo(({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !motionEnabled || !inViewport || !tabVisible) return;
     // Optimization: Disable alpha if not needed, but here we use it for fades.
     // 'alpha: false' would be faster if the background is opaque.
     // Since we use mix-blend-mode or transparency, we keep alpha: true.
@@ -465,9 +487,9 @@ export const GenerativeArt: React.FC<GenerativeArtProps> = React.memo(({
       cancelAnimationFrame(animationFrameId);
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
-  }, [effectiveIntensity, speed, color, variant]);
+  }, [effectiveIntensity, speed, color, variant, motionEnabled, inViewport, tabVisible, location.pathname]);
 
   const opacityClass = variant === 'network' ? 'generative-art-network' : (variant === 'matrix' ? 'generative-art-matrix' : 'generative-art-default');
 
-  return <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-multiply ${opacityClass}`} />;
+  return <canvas ref={canvasRef} aria-hidden="true" className={`absolute inset-0 w-full h-full pointer-events-none mix-blend-multiply ${opacityClass}`} />;
 });

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { track } from '@vercel/analytics';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Cloud, Trophy, Clock, MapPin, Home, Briefcase, User, Mail, Image as ImageIcon } from 'lucide-react';
+import { Cloud, Trophy, Clock, MapPin, Home, Briefcase, User, Mail, Image as ImageIcon, Pause, Play } from 'lucide-react';
 import { useGamification } from '../context/GamificationContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { TrophyCase } from './TrophyCase';
+import { useMotionPolicy } from '../context/MotionContext';
 
 const formatClock = () => new Date().toLocaleTimeString('en-US', { hour12: false });
 
@@ -31,6 +32,7 @@ export const Navigation: React.FC = () => {
   const { t } = useLanguage();
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   const isMobile = useIsMobile();
+  const { motionEnabled, reducedBySystem, toggleMotion } = useMotionPolicy();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -91,6 +93,18 @@ export const Navigation: React.FC = () => {
               <LanguageSwitcher />
               <div className="w-[1px] h-4 bg-theme-border/20"></div>
               <ThemeSwitcher />
+              <div className="w-[1px] h-4 bg-theme-border/20"></div>
+              <button
+                type="button"
+                onClick={toggleMotion}
+                disabled={reducedBySystem}
+                aria-pressed={!motionEnabled}
+                aria-label={motionEnabled ? 'Pause motion' : 'Resume motion'}
+                title={reducedBySystem ? 'Motion reduced by system preference' : motionEnabled ? 'Pause motion' : 'Resume motion'}
+                className="p-2 hover:bg-theme-accent/10 rounded-lg transition-colors disabled:opacity-40"
+              >
+                {motionEnabled ? <Pause size={18} /> : <Play size={18} />}
+              </button>
               <div className="w-[1px] h-4 bg-theme-border/20"></div>
               <button
                 onClick={toggleTrophyCase}
@@ -188,6 +202,15 @@ export const Navigation: React.FC = () => {
             <div className="flex items-center gap-4">
               <LanguageSwitcher />
               <ThemeSwitcher />
+              <button
+                type="button"
+                onClick={toggleMotion}
+                disabled={reducedBySystem}
+                aria-pressed={!motionEnabled}
+                aria-label={motionEnabled ? 'Pause motion' : 'Resume motion'}
+              >
+                {motionEnabled ? <Pause size={20} /> : <Play size={20} />}
+              </button>
               <button onClick={toggleTrophyCase} className="relative" aria-label={t('nav.achievements')}>
                 <Trophy size={20} />
                 {unlockedCount > 0 && (

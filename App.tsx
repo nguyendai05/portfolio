@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Navigation } from './components/Navigation';
 import { Preloader } from './components/Preloader';
 import { GamificationProvider, useGamification } from './context/GamificationContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { MotionProvider, useMotionPolicy } from './context/MotionContext';
 
 // Lazy-load heavy components out of the initial bundle.
 const NeuralInterface = lazy(() =>
@@ -18,6 +19,10 @@ const Work = lazy(() => import('./pages/Work').then((module) => ({ default: modu
 const About = lazy(() => import('./pages/About').then((module) => ({ default: module.About })));
 const Contact = lazy(() => import('./pages/Contact').then((module) => ({ default: module.Contact })));
 const Gallery = lazy(() => import('./pages/Gallery').then((module) => ({ default: module.Gallery })));
+const ProjectDetail = lazy(() =>
+  import('./pages/ProjectDetail').then((module) => ({ default: module.ProjectDetail }))
+);
+const NotFound = lazy(() => import('./pages/NotFound').then((module) => ({ default: module.NotFound })));
 
 // Admin (lazy) - separated bundle so public visitors don't pay for it
 const AdminLogin = lazy(() =>
@@ -84,11 +89,12 @@ const GlobalEffects: React.FC = () => {
 
 const ThemeEffects: React.FC = () => {
   const { theme } = useTheme();
+  const { motionEnabled } = useMotionPolicy();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !motionEnabled || document.visibilityState !== 'visible') return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -180,9 +186,9 @@ const ThemeEffects: React.FC = () => {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [theme]);
+  }, [theme, motionEnabled]);
 
-  if (!['rainy_day', 'celebration', 'cyberpunk', 'retro'].includes(theme)) return null;
+  if (!motionEnabled || !['rainy_day', 'celebration', 'cyberpunk', 'retro'].includes(theme)) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[0]">
@@ -264,13 +270,14 @@ const AppContent: React.FC = () => {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/work" element={<Work />} />
+            <Route path="/work/:slug" element={<ProjectDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/mentorship" element={<Navigate to="/contact" replace />} />
             <Route path="/collaboration" element={<Navigate to="/contact" replace />} />
             <Route path="/contact" element={<Contact />} />
 
-            {/* Admin routes (HashRouter friendly: #/admin/...) */}
+            {/* Admin routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin"
@@ -344,6 +351,7 @@ const AppContent: React.FC = () => {
                 </AdminGuard>
               }
             />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
       </Suspense>
@@ -361,7 +369,7 @@ const AppContent: React.FC = () => {
 function getCurrentSpeedInsightsRoute(): string | null {
   if (typeof window === 'undefined') return null;
 
-  // Dùng HashRouter nên cần map từ hash sang path cho Speed Insights
+  // Preserve a legacy hash path only during the pre-router migration redirect.
   if (window.location.hash && window.location.hash.startsWith('#/')) {
     const hashPath = window.location.hash.slice(1); // '/about', '/work', ...
     return hashPath || '/';
@@ -374,11 +382,12 @@ function App() {
   return (
     <LanguageProvider>
       <ThemeProvider>
-        <GamificationProvider>
-          <Router>
-            <AppContent />
-          </Router>
-          <Analytics
+        <MotionProvider>
+          <GamificationProvider>
+            <Router>
+              <AppContent />
+            </Router>
+            <Analytics
             mode={import.meta.env.DEV ? 'development' : 'production'}
             debug={import.meta.env.DEV}
             beforeSend={(event) => {
@@ -397,9 +406,10 @@ function App() {
                 return event;
               }
             }}
-          />
-          <SpeedInsights route={getCurrentSpeedInsightsRoute()} />
-        </GamificationProvider>
+            />
+            <SpeedInsights route={getCurrentSpeedInsightsRoute()} />
+          </GamificationProvider>
+        </MotionProvider>
       </ThemeProvider>
     </LanguageProvider>
   );

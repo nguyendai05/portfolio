@@ -48,11 +48,6 @@ body {
     contain-intrinsic-size: auto 100vh;
   }
 
-  /* Reduce repaints for animated elements */
-  [class*="animate-"] {
-    will-change: transform, opacity;
-  }
-
   /* Simplify shadows on mobile */
   .shadow-\[20px_20px_0px_0px_rgba\(0\,0\,0\,1\)\] {
     box-shadow: 10px 10px 0px 0px rgba(0, 0, 0, 0.8) !important;
@@ -306,4 +301,12 @@ body {
 /* Animated text badge 3D effect */
 .animated-badge-3d {
   transform: translateZ(100px);
+}
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 200ms !important;
 }

@@ -4,6 +4,7 @@ import { Project } from '../types';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { getOptimizedProjectImage } from '../services/projectImages';
+import { Link } from 'react-router-dom';
 
 interface WorkColumnsProps {
     projects: Project[];
@@ -93,9 +94,13 @@ const ProjectCard: React.FC<{ project: Project; isPriority?: boolean; onClick: (
             whileInView={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-10%" }}
             transition={{ duration: 0.5 }}
-            onClick={onClick}
-            className={`group cursor-pointer relative ${isFeatured ? 'is-featured' : ''}`}
+            className={`group relative ${isFeatured ? 'is-featured' : ''}`}
         >
+            <Link
+                to={`/work/${encodeURIComponent(project.slug || String(project.id))}`}
+                className="absolute inset-0 z-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-theme-accent"
+                aria-label={`View ${project.title} case study`}
+            />
             {/* Image Container */}
             <div
                 className={`relative aspect-[3/4] md:aspect-[4/5] overflow-hidden border bg-theme-panel mb-6 transition-shadow duration-500 ${
@@ -177,6 +182,17 @@ const ProjectCard: React.FC<{ project: Project; isPriority?: boolean; onClick: (
                         )}
                     </div>
                 )}
+                <button
+                    type="button"
+                    onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onClick();
+                    }}
+                    className="relative z-40 mt-4 font-mono text-[10px] uppercase tracking-widest text-theme-text/60 underline underline-offset-4 hover:text-theme-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-theme-accent"
+                >
+                    Quick preview
+                </button>
             </div>
         </motion.div>
     );

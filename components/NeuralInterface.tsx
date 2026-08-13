@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, X, Trash2, Cpu, Minimize2 } from 'lucide-react';
-import { sendMessageToMantis } from '../services/geminiService';
+import { sendAiMessage } from '../services/api/ai';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -323,7 +323,7 @@ export const NeuralInterface: React.FC<NeuralInterfaceProps> = ({ initialOpen = 
     }));
 
     try {
-      const responseText = await sendMessageToMantis(history, userMsg.text);
+      const responseText = await sendAiMessage(history, userMsg.text);
 
       if (responseText.includes("kết nối với XUNI_CORE đang bị giới hạn tạm thời")) {
         setIsRateLimited(true);

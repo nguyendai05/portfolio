@@ -1,6 +1,14 @@
 # Portfolio — Handoff Notes for the Next Agent
 
-Last updated: 2026-05-23.
+> 2026-08-13 security/routing update: the historical notes below predate the
+> stateful cookie session, server-only AI/contact delivery, Ideas retirement,
+> BrowserRouter and migration guardrails. Start with
+> [`docs/portfolio-improvement-status.md`](./portfolio-improvement-status.md)
+> and [`docs/operations/security-rollout.md`](./operations/security-rollout.md).
+> Bearer tokens, `#/admin/*`, browser Gemini/EmailJS and the public `/db-test`
+> endpoint must not be restored.
+
+Last updated: 2026-08-13.
 Owner: @annadpk444 (Nguyễn Xuân Đại — nguyendai05/portfolio).
 
 This document is the single source of truth for **what has shipped, what is
