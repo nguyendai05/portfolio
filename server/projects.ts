@@ -221,14 +221,14 @@ export async function listProjectsPage(
     where.push('(created_at < ? OR (created_at = ? AND id < ?))');
     params.push(input.cursor.createdAt, input.cursor.createdAt, input.cursor.id);
   }
-  params.push(input.limit + 1);
+
   const [rows] = await conn.execute(
     `SELECT id, slug, title, summary, description, category, project_type,
             image_url, link, featured, created_at, updated_at
        FROM projects
       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
       ORDER BY created_at DESC, id DESC
-      LIMIT ?`,
+      LIMIT ${input.limit + 1}`,
     params,
   );
   const page = rows as ProjectRow[];

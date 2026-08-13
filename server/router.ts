@@ -839,13 +839,13 @@ async function handleContactMessagesCollection(
         ? 'WHERE (created_at < ? OR (created_at = ? AND id < ?))'
         : '';
       if (cursor) params.push(cursor.createdAt, cursor.createdAt, cursor.id);
-      params.push(limit + 1);
+
       const [rows] = await conn.execute(
         `SELECT id, name, email, topic, message, status, delivery_status, user_agent, created_at
            FROM contact_messages
            ${cursorClause}
           ORDER BY created_at DESC, id DESC
-          LIMIT ?`,
+          LIMIT ${limit + 1}`,
         params,
       );
       const page = rows as ContactRow[];
@@ -972,11 +972,11 @@ async function handleIdeasCollection(req: VercelRequest, res: VercelResponse) {
         ? 'WHERE (created_at < ? OR (created_at = ? AND id < ?))'
         : '';
       if (cursor) params.push(cursor.createdAt, cursor.createdAt, cursor.id);
-      params.push(limit + 1);
+
       const [rows] = await conn.execute(
         `SELECT id, title, description, tags, difficulty, upvotes, looking_for_team, author, created_at
            FROM ideas ${cursorClause}
-          ORDER BY created_at DESC, id DESC LIMIT ?`,
+          ORDER BY created_at DESC, id DESC LIMIT ${limit + 1}`,
         params,
       );
       const page = rows as IdeaRow[];
