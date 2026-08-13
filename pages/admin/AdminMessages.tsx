@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Archive, CheckCircle2, Inbox, Mail, RefreshCw, Trash2 } from 'lucide-react';
+import { Archive, CheckCircle2, Inbox, Mail, RefreshCw, Send, Trash2 } from 'lucide-react';
 import { AdminShell } from '../../components/admin/AdminShell';
 import {
   Button,
@@ -13,7 +13,9 @@ import {
   ContactMessage,
   deleteContactMessage,
   fetchContactMessages,
+  fetchContactMessagesPage,
   updateContactStatus,
+  resendContactMessage,
 } from '../../services/portfolioService';
 
 type Filter = 'all' | 'new' | 'replied' | 'archived';
@@ -43,12 +45,17 @@ export const AdminMessages: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ContactMessage | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const refresh = () => {
     setLoading(true);
-    fetchContactMessages()
-      .then((list) => {
+    fetchContactMessagesPage()
+      .then((page) => {
+        const list = page.items;
         setItems(list);
+        setNextCursor(page.pageInfo.nextCursor);
         setError(null);
         if (list.length > 0 && selectedId === null) {
           setSelectedId(list[0].id);
@@ -106,6 +113,35 @@ export const AdminMessages: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await fetchContactMessagesPage(nextCursor);
+      setItems((previous) => [...previous, ...page.items]);
+      setNextCursor(page.pageInfo.nextCursor);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load more messages');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const handleResend = async (message: ContactMessage) => {
+    setResending(true);
+    try {
+      const result = await resendContactMessage(message.id);
+      setItems((previous) => previous.map((item) => item.id === message.id
+        ? { ...item, delivery: result.delivery }
+        : item));
+      setSuccess(`Delivery is now ${result.delivery}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Resend failed');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -210,6 +246,11 @@ export const AdminMessages: React.FC = () => {
               })}
             </ul>
           )}
+          {nextCursor ? (
+            <Button variant="secondary" onClick={loadMore} disabled={loadingMore}>
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </Button>
+          ) : null}
         </div>
 
         <div>
@@ -218,7 +259,7 @@ export const AdminMessages: React.FC = () => {
               <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
                 <div>
                   <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-theme-text/50">
-                    {selected.topic} · {selected.status}
+                    {selected.topic} · {selected.status} · delivery: {selected.delivery}
                   </div>
                   <h2 className="mt-1 text-xl font-bold">{selected.name}</h2>
                   <a
@@ -260,6 +301,16 @@ export const AdminMessages: React.FC = () => {
                 >
                   Mark unread
                 </Button>
+                {(selected.delivery === 'failed' || selected.delivery === 'unknown') ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleResend(selected)}
+                    disabled={resending}
+                  >
+                    <Send size={14} />
+                    <span>{resending ? 'Sending…' : 'Resend email'}</span>
+                  </Button>
+                ) : null}
                 <Button
                   variant="danger"
                   onClick={() => setPendingDelete(selected)}

@@ -13,6 +13,7 @@ export interface ContactRow {
   topic: ContactTopic;
   message: string;
   status: ContactStatus;
+  delivery_status: 'pending' | 'processing' | 'sent' | 'failed' | 'unknown';
   ip_address: Buffer | null;
   user_agent: string | null;
   created_at: string;
@@ -25,6 +26,7 @@ export interface ContactMessageDTO {
   topic: ContactTopic;
   message: string;
   status: ContactStatus;
+  delivery: 'pending' | 'processing' | 'sent' | 'failed' | 'unknown';
   userAgent: string | null;
   createdAt: string;
 }
@@ -45,6 +47,7 @@ export function mapContactRow(row: ContactRow): ContactMessageDTO {
     topic: row.topic,
     message: row.message,
     status: row.status,
+    delivery: row.delivery_status,
     userAgent: row.user_agent,
     createdAt: row.created_at,
   };

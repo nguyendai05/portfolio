@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Project } from '../../types';
 import { fetchAwards } from './awards';
 import { fetchExperiments } from './experiments';
@@ -11,9 +11,13 @@ const EMPTY_SKILLS: Skill[] = [];
 const EMPTY_AWARDS: Award[] = [];
 const EMPTY_EXPERIMENTS: Experiment[] = [];
 
+export type ResourceStatus = 'loading' | 'success' | 'error';
+
 export interface ApiHookState<T> {
   data: T | null;
+  status: ResourceStatus;
   loading: boolean;
+  isStale: boolean;
   error: unknown | null;
   errors: unknown[];
   refetch: () => Promise<void>;
@@ -31,12 +35,8 @@ interface WorkPortfolioData {
   tools: Project[] | null;
 }
 
-const EMPTY_WORK_DATA: WorkPortfolioData = {
-  projects: [],
-  tools: [],
-};
-
-let workPortfolioCache: WorkPortfolioData | null = null;
+type LoaderResult<T> = { value: T; errors: unknown[] };
+type SignalLoader<T> = (signal: AbortSignal) => Promise<T>;
 
 export function useProjects(): ApiHookState<Project[]> {
   return useApiResource(fetchProjects, EMPTY_PROJECTS);
@@ -59,16 +59,15 @@ export function useExperiments(): ApiHookState<Experiment[]> {
 }
 
 export function useHomePortfolioData(): ApiHookState<HomePortfolioData> {
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal: AbortSignal) => {
     const [projects, skills, awards, experiments] = await Promise.allSettled([
-      fetchProjects(),
-      fetchSkills(),
-      fetchAwards(),
-      fetchExperiments(),
+      fetchProjects(signal),
+      fetchSkills(signal),
+      fetchAwards(signal),
+      fetchExperiments(signal),
     ]);
-
+    if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
     const results = [projects, skills, awards, experiments];
-    const errors = collectErrors(results);
     return {
       value: {
         projects: getSettledValue(projects, []),
@@ -76,7 +75,7 @@ export function useHomePortfolioData(): ApiHookState<HomePortfolioData> {
         awards: getSettledValue(awards, []),
         experiments: getSettledValue(experiments, []),
       },
-      errors,
+      errors: collectErrors(results),
     };
   }, []);
 
@@ -89,69 +88,65 @@ export function useHomePortfolioData(): ApiHookState<HomePortfolioData> {
 }
 
 export function useWorkPortfolioData(): ApiHookState<WorkPortfolioData> {
-  const load = useCallback(async () => {
-    try {
-      const value = splitWorkProjects(await fetchAllProjects());
-      workPortfolioCache = value;
-      return { value, errors: [] };
-    } catch (error) {
-      return { value: workPortfolioCache ?? EMPTY_WORK_DATA, errors: [error] };
-    }
-  }, []);
-
-  return useSettledResource<WorkPortfolioData>(load, workPortfolioCache);
+  const load = useCallback(async (signal: AbortSignal) => ({
+    value: splitWorkProjects(await fetchAllProjects(signal)),
+    errors: [],
+  }), []);
+  return useSettledResource(load, { projects: [], tools: [] });
 }
 
-function useApiResource<T>(loader: () => Promise<T>, fallback: T): ApiHookState<T> {
-  const load = useCallback(async () => {
+function useApiResource<T>(loader: SignalLoader<T>, fallback: T): ApiHookState<T> {
+  const load = useCallback(async (signal: AbortSignal): Promise<LoaderResult<T>> => {
     try {
-      return { value: await loader(), errors: [] };
+      return { value: await loader(signal), errors: [] };
     } catch (error) {
+      if (signal.aborted) throw error;
       return { value: fallback, errors: [error] };
     }
   }, [fallback, loader]);
-
-  return useSettledResource<T>(load, null);
+  return useSettledResource(load, null);
 }
 
 function useSettledResource<T>(
-  loader: () => Promise<{ value: T; errors: unknown[] }>,
+  loader: (signal: AbortSignal) => Promise<LoaderResult<T>>,
   initialData: T | null,
 ): ApiHookState<T> {
   const [data, setData] = useState<T | null>(initialData);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<ResourceStatus>('loading');
   const [errors, setErrors] = useState<unknown[]>([]);
+  const controllerRef = useRef<AbortController | null>(null);
 
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    const result = await loader();
-    setData(result.value);
-    setErrors(result.errors);
-    setLoading(false);
+  const execute = useCallback(async () => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setStatus('loading');
+    try {
+      const result = await loader(controller.signal);
+      if (controller.signal.aborted) return;
+      setData(result.value);
+      setErrors(result.errors);
+      setStatus(result.errors.length > 0 ? 'error' : 'success');
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setErrors([error]);
+      setStatus('error');
+    }
   }, [loader]);
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      setLoading(true);
-      const result = await loader();
-      if (cancelled) return;
-      setData(result.value);
-      setErrors(result.errors);
-      setLoading(false);
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [loader]);
+    void execute();
+    return () => controllerRef.current?.abort();
+  }, [execute]);
 
   return {
     data,
-    loading,
+    status,
+    loading: status === 'loading',
+    isStale: status === 'error' && data !== null,
     error: errors[0] ?? null,
     errors,
-    refetch,
+    refetch: execute,
   };
 }
 
@@ -168,11 +163,8 @@ function getSettledValue<T>(result: PromiseSettledResult<T>, fallback: T): T {
 function splitWorkProjects(projects: Project[]): WorkPortfolioData {
   return projects.reduce<WorkPortfolioData>(
     (acc, project) => {
-      if (project.projectType === 'tool') {
-        acc.tools?.push(project);
-      } else {
-        acc.projects?.push(project);
-      }
+      if (project.projectType === 'tool') acc.tools?.push(project);
+      else acc.projects?.push(project);
       return acc;
     },
     { projects: [], tools: [] },

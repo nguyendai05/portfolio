@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { api, ApiError, setAdminToken } from './client';
+import { api, setAdminCsrfToken } from './client';
 
 const jsonResponse = (body: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(body), {
@@ -95,17 +95,31 @@ describe('api client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('attaches admin bearer token when auth is enabled', async () => {
-    setAdminToken('secret-token');
+  it('uses same-origin credentials and CSRF for admin mutations', async () => {
+    setAdminCsrfToken('csrf-token');
     fetchMock.mockResolvedValueOnce(jsonResponse({ success: true, data: { count: 1 } }));
 
-    await api('/admin/stats', { auth: true });
+    await api('/projects/1', { auth: true, method: 'PATCH', body: { title: 'Updated' } });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/admin/stats',
+      '/api/projects/1',
       expect.objectContaining({
-        headers: expect.objectContaining({ Authorization: 'Bearer secret-token' }),
+        credentials: 'same-origin',
+        headers: expect.objectContaining({ 'X-CSRF-Token': 'csrf-token' }),
       }),
     );
+  });
+
+  it('reads structured error objects while preserving request IDs', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({
+      success: false,
+      error: { message: 'Invalid project', code: 'VALIDATION_ERROR' },
+      requestId: 'req-12345678',
+    }, { status: 400 }));
+    await expect(api('/projects', { retry: 0 })).rejects.toMatchObject({
+      message: 'Invalid project',
+      code: 'VALIDATION_ERROR',
+      requestId: 'req-12345678',
+    });
   });
 });

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
-import { getNextAvailableKey, markKeyLimited } from "./geminiKeyManager";
+import { getNextAvailableKey, markKeyLimited } from "./gemini-key-manager.js";
 
-// src/services/geminiService.ts
+// Server-only Gemini provider.
 
 const SYSTEM_INSTRUCTION = `
 You are "XUNI_CORE", the Neural Interface for **Nguyễn Xuân Đại**, a front‑end developer & HCI student based in Ho Chi Minh City, Viet Nam.
@@ -421,10 +421,9 @@ async function withGeminiClient<T>(
   while (true) {
     const keyState = getNextAvailableKey(tried);
     if (!keyState) {
-      if (lastError) {
-        console.error('All Gemini API keys are limited or invalid.', lastError);
-      }
-      throw new Error('All Gemini API keys are temporarily unavailable.');
+      const unavailable = new Error('All Gemini API keys are temporarily unavailable.') as Error & { code?: string };
+      unavailable.code = isRateLimitError(lastError) ? 'AI_PROVIDER_QUOTA' : 'AI_PROVIDER_UNAVAILABLE';
+      throw unavailable;
     }
 
     tried.add(keyState.index);
@@ -446,8 +445,7 @@ async function withGeminiClient<T>(
 }
 
 export const sendMessageToMantis = async (history: { role: string, parts: { text: string }[] }[], message: string): Promise<string> => {
-  try {
-    return await withGeminiClient(async (client) => {
+  return withGeminiClient(async (client) => {
       const contents = [
         ...history,
         { role: 'user', parts: [{ text: message }] }
@@ -467,8 +465,4 @@ export const sendMessageToMantis = async (history: { role: string, parts: { text
 
       return normalizeMantisResponse(response.text);
     });
-  } catch (error) {
-    console.error("Mantis Neural Interface Error:", error);
-    return "Xin lỗi, kết nối với XUNI_CORE đang bị giới hạn tạm thời (hết quota API). Thử lại sau vài phút nhé.";
-  }
 };

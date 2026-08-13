@@ -1,8 +1,8 @@
 import { api } from './client';
 import type { Award } from './types';
 
-export async function fetchAwards(): Promise<Award[]> {
-  return api<Award[]>(`/awards`);
+export async function fetchAwards(signal?: AbortSignal): Promise<Award[]> {
+  return api<Award[]>(`/awards`, { signal });
 }
 
 export async function createAward(payload: Award): Promise<Award> {

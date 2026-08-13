@@ -6,13 +6,13 @@ interface SkillResponse {
   names: string[];
 }
 
-export async function fetchSkills(): Promise<Skill[]> {
-  const data = await api<SkillResponse>(`/skills`);
+export async function fetchSkills(signal?: AbortSignal): Promise<Skill[]> {
+  const data = await api<SkillResponse>(`/skills`, { signal });
   return data.skills;
 }
 
-export async function fetchSkillNames(): Promise<string[]> {
-  const data = await api<SkillResponse>(`/skills`);
+export async function fetchSkillNames(signal?: AbortSignal): Promise<string[]> {
+  const data = await api<SkillResponse>(`/skills`, { signal });
   return data.names;
 }
 

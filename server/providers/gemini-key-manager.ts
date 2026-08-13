@@ -1,5 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
-
+// Server-only provider state. Client imports are rejected by the artifact scan.
 export interface GeminiKeyState {
     index: number;            // position in the original list
     id: string;               // e.g. "GEMINI_API_KEY_1" (for debugging only)
@@ -19,8 +18,6 @@ const STORAGE_KEY = 'xuni_gemini_key_state_v1';
 // --- Initialization ---
 
 const rawKeys = (() => {
-    // In Vite 'define', this might be replaced by the array literal itself or a string.
-    // We handle both cases for robustness.
     const encoded = process.env.GEMINI_API_KEYS as unknown;
 
     if (Array.isArray(encoded)) {
@@ -32,11 +29,11 @@ const rawKeys = (() => {
             const parsed = JSON.parse(encoded);
             return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
         } catch {
-            return [];
+            return encoded.split(',').map((key) => key.trim()).filter(Boolean);
         }
     }
 
-    return [] as string[];
+    return process.env.GEMINI_API_KEY ? [process.env.GEMINI_API_KEY] : [];
 })();
 
 // Parse cooldown from env, default to 15 minutes

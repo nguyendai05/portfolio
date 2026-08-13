@@ -22,7 +22,7 @@ import {
 } from '../../components/admin/AdminUi';
 import {
   deleteProject,
-  fetchAllProjects,
+  fetchAdminProjectsPage,
 } from '../../services/portfolioService';
 import { Project } from '../../types';
 
@@ -37,17 +37,24 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
   const [success, setSuccess] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
+  const [sort, setSort] = useState<'newest' | 'title' | 'featured'>('newest');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    fetchAllProjects()
-      .then((all) => {
+    const controller = new AbortController();
+    fetchAdminProjectsPage(mode === 'tools' ? 'tool' : 'project', undefined, controller.signal)
+      .then((page) => {
         if (!active) return;
-        setItems(all);
+        setItems(page.items);
+        setNextCursor(page.pageInfo.nextCursor);
         setError(null);
       })
       .catch((err) => {
@@ -59,8 +66,9 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
       });
     return () => {
       active = false;
+      controller.abort();
     };
-  }, [refreshKey]);
+  }, [mode, refreshKey]);
 
   const scoped = useMemo(
     () =>
@@ -77,15 +85,19 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
     [scoped],
   );
 
-  const filtered = scoped.filter((p) => {
-    const matchesQuery =
-      !query ||
-      p.title.toLowerCase().includes(query.toLowerCase()) ||
-      p.description.toLowerCase().includes(query.toLowerCase()) ||
-      (p.slug || '').toLowerCase().includes(query.toLowerCase());
-    const matchesCategory = category === 'all' || p.category === category;
-    return matchesQuery && matchesCategory;
-  });
+  const filtered = useMemo(() => scoped
+    .filter((project) => {
+      const matchesQuery = !query
+        || project.title.toLowerCase().includes(query.toLowerCase())
+        || project.description.toLowerCase().includes(query.toLowerCase())
+        || (project.slug || '').toLowerCase().includes(query.toLowerCase());
+      return matchesQuery && (category === 'all' || project.category === category);
+    })
+    .sort((left, right) => {
+      if (sort === 'title') return left.title.localeCompare(right.title);
+      if (sort === 'featured') return Number(Boolean(right.featured)) - Number(Boolean(left.featured));
+      return String(right.createdAt || '').localeCompare(String(left.createdAt || '')) || right.id - left.id;
+    }), [category, query, scoped, sort]);
 
   const handleDelete = async () => {
     if (!pendingDelete) return;
@@ -102,6 +114,44 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const loadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await fetchAdminProjectsPage(mode === 'tools' ? 'tool' : 'project', nextCursor);
+      setItems((previous) => [...previous, ...page.items]);
+      setNextCursor(page.pageInfo.nextCursor);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load more projects');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setDeleting(true);
+    try {
+      for (const id of selectedIds) await deleteProject(id);
+      setSuccess(`${selectedIds.size} entries deleted.`);
+      setSelectedIds(new Set());
+      setConfirmBulkDelete(false);
+      setRefreshKey((key) => key + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bulk delete failed');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const toggleSelected = (id: number) => {
+    setSelectedIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   };
 
   const title = mode === 'tools' ? 'Tools' : 'Projects';
@@ -167,6 +217,18 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
             ))}
           </Select>
         </div>
+        <div className="sm:w-48">
+          <Select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} aria-label="Sort entries">
+            <option value="newest">Newest first</option>
+            <option value="title">Title A–Z</option>
+            <option value="featured">Featured first</option>
+          </Select>
+        </div>
+        {selectedIds.size > 0 ? (
+          <Button variant="danger" onClick={() => setConfirmBulkDelete(true)}>
+            <Trash2 size={12} /> Delete {selectedIds.size}
+          </Button>
+        ) : null}
       </div>
 
       {loading ? (
@@ -196,12 +258,22 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
           }
         />
       ) : (
+        <>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((project) => (
             <article
               key={project.id}
               className="group bg-theme-panel/40 border border-theme-border/30 rounded-md overflow-hidden flex flex-col"
             >
+              <div className="absolute z-10 m-2">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(project.id)}
+                  onChange={() => toggleSelected(project.id)}
+                  aria-label={`Select ${project.title}`}
+                  className="h-4 w-4 accent-theme-accent"
+                />
+              </div>
               <div className="aspect-[16/10] bg-theme-bg/60 overflow-hidden border-b border-theme-border/20">
                 {project.image ? (
                   <img
@@ -266,22 +338,27 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
                       <span>Delete</span>
                     </Button>
                   </div>
-                  {project.link ? (
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-mono text-theme-text/60 hover:text-theme-accent"
-                    >
-                      Open
-                      <ExternalLink size={11} />
-                    </a>
-                  ) : null}
+                  <a
+                    href={`/work/${encodeURIComponent(project.slug || String(project.id))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-mono text-theme-text/60 hover:text-theme-accent"
+                  >
+                    Preview <ExternalLink size={11} />
+                  </a>
                 </div>
               </div>
             </article>
           ))}
         </div>
+        {nextCursor ? (
+          <div className="mt-6 flex justify-center">
+            <Button variant="secondary" onClick={loadMore} disabled={loadingMore}>
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </Button>
+          </div>
+        ) : null}
+        </>
       )}
 
       <ConfirmModal
@@ -290,6 +367,15 @@ export const AdminProjectsList: React.FC<Props> = ({ mode }) => {
         description="This permanently removes the entry from the database. Linked technologies and phases are kept for reuse."
         onConfirm={handleDelete}
         onCancel={() => setPendingDelete(null)}
+        loading={deleting}
+      />
+      <ConfirmModal
+        open={confirmBulkDelete}
+        title={`Delete ${selectedIds.size} selected entries?`}
+        description="Each selected project will be deleted in sequence. This action cannot be undone."
+        confirmLabel="Delete selected"
+        onConfirm={handleBulkDelete}
+        onCancel={() => setConfirmBulkDelete(false)}
         loading={deleting}
       />
     </AdminShell>

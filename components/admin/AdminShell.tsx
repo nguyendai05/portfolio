@@ -14,7 +14,7 @@ import {
   X,
   Globe,
 } from 'lucide-react';
-import { setAdminToken } from '../../services/portfolioService';
+import { adminLogout } from '../../services/portfolioService';
 
 const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -45,9 +45,12 @@ export const AdminShell: React.FC<AdminShellProps> = ({
   // Auto-close mobile drawer when route changes
   useEffect(() => setOpen(false), [title]);
 
-  const handleLogout = () => {
-    setAdminToken(null);
-    navigate('/admin/login', { replace: true });
+  const handleLogout = async () => {
+    try {
+      await adminLogout();
+    } finally {
+      navigate('/admin/login', { replace: true });
+    }
   };
 
   return (

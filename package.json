@@ -3,19 +3,30 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "overrides": {
+    "minimatch@9": "9.0.9"
+  },
   "scripts": {
     "dev": "vite",
-    "dev:api": "node api-server.mjs",
+    "dev:api": "tsx api-server.ts",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
     "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest --run",
-    "db:test": "node db/test-connection.mjs"
+    "test:coverage": "vitest --run --coverage",
+    "test:e2e": "playwright test",
+    "db:test": "node db/test-connection.mjs",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:migrate:baseline": "node scripts/migrate.mjs --baseline",
+    "ci:baseline": "node scripts/capture-baseline.mjs",
+    "ci:scan-secrets": "node scripts/scan-client-artifacts.mjs",
+    "ci:bundle": "node scripts/bundle-report.mjs",
+    "admin:hash-password": "node scripts/hash-admin-password.mjs",
+    "spike:hosting": "node scripts/verify-hosting-spike.mjs"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
     "@google/genai": "^1.30.0",
-    "@remix-run/router": "1.16.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "framer-motion": "^10.18.0",
@@ -23,14 +34,18 @@
     "mysql2": "^3.15.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-router-dom": "6.23.0"
+    "react-router-dom": "^6.30.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.19.1",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
     "@vercel/node": "^5.5.13",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "autoprefixer": "^10.4.22",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
@@ -38,6 +53,7 @@
     "fast-check": "^4.3.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.12",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vitest": "^4.0.14"

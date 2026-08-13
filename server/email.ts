@@ -58,21 +58,26 @@ export function getCurrentEmailConfig() {
 
 export async function sendEmailJS(
   payload: EmailPayload,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; code?: string; ambiguous?: boolean }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Number(process.env.EMAIL_PROVIDER_TIMEOUT_MS || 10_000));
   try {
     const response = await fetch(EMAILJS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
-    const responseText = await response.text();
+    await response.text();
     if (!response.ok) {
-      return { ok: false, error: responseText };
+      return { ok: false, error: 'Email provider rejected the request', code: `EMAILJS_${response.status}` };
     }
     return { ok: true };
   } catch (error) {
-    console.error('EmailJS fetch error:', error);
-    return { ok: false, error: String(error) };
+    const aborted = error instanceof Error && error.name === 'AbortError';
+    return { ok: false, error: 'Email provider request failed', code: aborted ? 'EMAILJS_TIMEOUT' : 'EMAILJS_NETWORK', ambiguous: aborted };
+  } finally {
+    clearTimeout(timer);
   }
 }
 

@@ -6,6 +6,7 @@ export {
   getAdminToken,
   hasAdminToken,
   setAdminToken,
+  setAdminCsrfToken,
   withRetry,
 } from './api/client';
 export type { ApiErrorKind, ApiMethod, ApiOptions } from './api/client';
@@ -14,6 +15,7 @@ export {
   createProject,
   deleteProject,
   fetchAllProjects,
+  fetchAdminProjectsPage,
   fetchProjectById,
   fetchProjectBySlug,
   fetchProjects,
@@ -42,9 +44,17 @@ export {
 export {
   deleteContactMessage,
   fetchContactMessages,
+  fetchContactMessagesPage,
+  resendContactMessage,
   updateContactStatus,
 } from './api/contact';
 
-export { adminLogin, fetchAdminStats, verifyAdminToken } from './api/admin';
+export {
+  adminLogin,
+  adminLogout,
+  fetchAdminSession,
+  fetchAdminStats,
+  verifyAdminToken,
+} from './api/admin';
 
 export type { AdminStats, Award, ContactMessage, Experiment, Skill } from './api/types';

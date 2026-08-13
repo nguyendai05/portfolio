@@ -1,8 +1,8 @@
 import { api } from './client';
 import type { Experiment } from './types';
 
-export async function fetchExperiments(): Promise<Experiment[]> {
-  return api<Experiment[]>(`/experiments`);
+export async function fetchExperiments(signal?: AbortSignal): Promise<Experiment[]> {
+  return api<Experiment[]>(`/experiments`, { signal });
 }
 
 export async function createExperiment(payload: {

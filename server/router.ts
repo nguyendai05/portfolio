@@ -1,13 +1,27 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { formatDbError, getConnection } from './db.js';
+import { formatDbError, getConnection, isDuplicateKeyError } from './db.js';
 import {
   applyCors,
-  getConfiguredAdminToken,
+  applySecurityHeaders,
   requireAdmin,
 } from './auth.js';
 import {
+  attachRequestSession,
+  handleAdminLogin as handleSessionLogin,
+  handleAdminLogout,
+  handleAdminRevokeAll,
+  handleAdminSession,
+} from './admin.js';
+import { handleAiChat } from './ai.js';
+import { handleContact, handleContactResend } from './contact.js';
+import { getRequestId, getResponseCode, initializeRequestContext, logRequest } from './observability.js';
+import { decodeCursor, encodeCursor, parsePageLimit } from './pagination.js';
+import { writeAdminAudit } from './audit.js';
+import { handleMaintenance } from './maintenance.js';
+import { getAttachedSession } from './session-auth.js';
+import { fieldErrors, projectCreateSchema, projectUpdateSchema } from './validation.js';
+import {
   ContactRow,
-  insertContactMessage,
   isAllowedStatus,
   mapContactRow,
 } from './contact-messages.js';
@@ -15,26 +29,15 @@ import {
   createProject,
   deleteProject,
   listProjects,
+  listProjectsPage,
   loadProjectById,
   loadProjectBySlug,
   updateProject,
   type ProjectInput,
   type ProjectType,
 } from './projects.js';
-import {
-  ContactFormData,
-  DEFAULT_MESSAGE,
-  EmailPayload,
-  FINAL_WARNING_MESSAGE,
-  MAX_AUTO_REPLY_COUNT,
-  getCurrentEmailConfig,
-  getEmailCount,
-  incrementEmailCount,
-  isEmailBlocked,
-  sendEmailJS,
-} from './email.js';
 
-type Conn = import('mysql2/promise').Connection;
+type Conn = import('mysql2/promise').PoolConnection;
 
 const SKILL_TYPES = [
   'language',
@@ -215,7 +218,7 @@ async function withConn<T>(fn: (conn: Conn) => Promise<T>): Promise<T> {
   try {
     return await fn(conn);
   } finally {
-    await conn.end();
+    conn.release();
   }
 }
 
@@ -230,32 +233,6 @@ async function count(conn: Conn, query: string): Promise<number> {
 }
 
 // ─── Admin ──────────────────────────────────────────────────────
-async function handleAdminLogin(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') return methodNotAllowed(res);
-  const token = getConfiguredAdminToken();
-  if (!token) {
-    return res.status(503).json({
-      success: false,
-      error:
-        'Admin login is not configured (set ADMIN_TOKEN — and optionally ADMIN_PASSWORD — in the server env).',
-    });
-  }
-  const body = (req.body || {}) as Record<string, unknown>;
-  const submitted =
-    typeof body.password === 'string'
-      ? body.password
-      : typeof body.token === 'string'
-        ? body.token
-        : '';
-  const expected = process.env.ADMIN_PASSWORD || token;
-  if (!submitted || submitted !== expected) {
-    return res
-      .status(401)
-      .json({ success: false, error: 'Invalid credentials' });
-  }
-  return res.status(200).json({ success: true, data: { token } });
-}
-
 async function handleAdminVerify(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return methodNotAllowed(res);
   if (!requireAdmin(req, res)) return;
@@ -274,7 +251,6 @@ async function handleAdminStats(req: VercelRequest, res: VercelResponse) {
       experiments,
       messages,
       newMessages,
-      ideas,
     ] = await Promise.all([
       count(
         conn,
@@ -292,7 +268,6 @@ async function handleAdminStats(req: VercelRequest, res: VercelResponse) {
         conn,
         "SELECT COUNT(*) AS c FROM contact_messages WHERE status = 'new'",
       ),
-      count(conn, 'SELECT COUNT(*) AS c FROM ideas').catch(() => 0),
     ]);
     return res.status(200).json({
       success: true,
@@ -304,7 +279,6 @@ async function handleAdminStats(req: VercelRequest, res: VercelResponse) {
         experiments,
         messages,
         newMessages,
-        ideas,
       },
     });
   });
@@ -316,11 +290,11 @@ async function handleProjectsCollection(
   res: VercelResponse,
 ) {
   if (req.method === 'GET') {
-    setPublicPortfolioCacheHeaders(res);
     return withConn(async (conn) => {
       const slug = getQueryParam(req, 'slug');
       const type = getQueryParam(req, 'type');
       if (slug) {
+        setPublicPortfolioCacheHeaders(res);
         const project = await loadProjectBySlug(conn, slug);
         if (!project) {
           return res
@@ -333,39 +307,52 @@ async function handleProjectsCollection(
         type === 'project' || type === 'tool'
           ? (type as ProjectType)
           : undefined;
+      if (getQueryParam(req, 'admin') === 'true') {
+        if (!requireAdmin(req, res)) return;
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.setHeader('Vercel-CDN-Cache-Control', 'private, no-store');
+        const limit = parsePageLimit(getQueryParam(req, 'limit'), 20, 100);
+        const rawCursor = getQueryParam(req, 'cursor');
+        const cursor = decodeCursor(rawCursor);
+        if (rawCursor && !cursor) {
+          return res.status(400).json({ success: false, error: 'Invalid cursor', code: 'INVALID_CURSOR' });
+        }
+        const page = await listProjectsPage(conn, { projectType, limit, cursor });
+        return res.status(200).json({
+          success: true,
+          data: {
+            items: page.items,
+            pageInfo: { nextCursor: page.nextCursorValue ? encodeCursor(page.nextCursorValue) : null },
+          },
+        });
+      }
+      setPublicPortfolioCacheHeaders(res);
       const projects = await listProjects(conn, projectType);
       return res.status(200).json({ success: true, data: projects });
     });
   }
   if (req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
-    const body = (req.body || {}) as Record<string, unknown>;
-    if (!body.title || !body.description || !body.category || !body.imageUrl) {
+    const parsed = projectCreateSchema.safeParse(req.body || {});
+    if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        error: 'title, description, category, and imageUrl are required',
+        error: 'Project is invalid',
+        code: 'VALIDATION_ERROR',
+        fieldErrors: fieldErrors(parsed.error),
       });
     }
-    return withConn(async (conn) => {
-      const created = await createProject(conn, {
-        slug: typeof body.slug === 'string' ? body.slug : undefined,
-        title: String(body.title),
-        summary: typeof body.summary === 'string' ? body.summary : null,
-        description: String(body.description),
-        category: String(body.category),
-        projectType: body.projectType === 'tool' ? 'tool' : 'project',
-        imageUrl: String(body.imageUrl),
-        link: typeof body.link === 'string' ? body.link : null,
-        featured: Boolean(body.featured),
-        technologies: Array.isArray(body.technologies)
-          ? (body.technologies as unknown[]).map((s) => String(s))
-          : [],
-        phases: Array.isArray(body.phases)
-          ? (body.phases as unknown[]).map((s) => String(s))
-          : [],
+    try {
+      return await withConn(async (conn) => {
+        const created = await createProject(conn, parsed.data);
+        return res.status(201).json({ success: true, data: created });
       });
-      return res.status(201).json({ success: true, data: created });
-    });
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        return res.status(409).json({ success: false, error: 'Project slug already exists', code: 'CONFLICT' });
+      }
+      throw error;
+    }
   }
   return methodNotAllowed(res);
 }
@@ -389,16 +376,25 @@ async function handleProjectItem(
   }
   if (req.method === 'PATCH' || req.method === 'PUT') {
     if (!requireAdmin(req, res)) return;
-    const body = (req.body || {}) as Record<string, unknown>;
-    return withConn(async (conn) => {
-      const updated = await updateProject(conn, id, normalizeProjectBody(body));
-      if (!updated) {
-        return res
-          .status(404)
-          .json({ success: false, error: 'Project not found' });
-      }
-      return res.status(200).json({ success: true, data: updated });
+    const parsed = projectUpdateSchema.safeParse(req.body || {});
+    if (!parsed.success) return res.status(400).json({
+      success: false,
+      error: 'Project is invalid',
+      code: 'VALIDATION_ERROR',
+      fieldErrors: fieldErrors(parsed.error),
     });
+    try {
+      return await withConn(async (conn) => {
+        const updated = await updateProject(conn, id, parsed.data);
+        if (!updated) return res.status(404).json({ success: false, error: 'Project not found' });
+        return res.status(200).json({ success: true, data: updated });
+      });
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        return res.status(409).json({ success: false, error: 'Project slug already exists', code: 'CONFLICT' });
+      }
+      throw error;
+    }
   }
   if (req.method === 'DELETE') {
     if (!requireAdmin(req, res)) return;
@@ -617,7 +613,7 @@ async function handleAwardItem(
     const body = (req.body || {}) as Record<string, unknown>;
     return withConn(async (conn) => {
       const [existingRows] = await conn.execute(
-        'SELECT * FROM awards WHERE id = ?',
+        'SELECT id, year, organization, project_title, award_title, project_id FROM awards WHERE id = ?',
         [id],
       );
       const list = existingRows as AwardRow[];
@@ -661,7 +657,7 @@ async function handleAwardItem(
         [year, organization, projectTitle, awardTitle, projectId, id],
       );
       const [rows] = await conn.execute(
-        'SELECT * FROM awards WHERE id = ?',
+        'SELECT id, year, organization, project_title, award_title, project_id FROM awards WHERE id = ?',
         [id],
       );
       const updated = (rows as AwardRow[])[0];
@@ -759,7 +755,7 @@ async function handleExperimentItem(
     const body = (req.body || {}) as Record<string, unknown>;
     return withConn(async (conn) => {
       const [existingRows] = await conn.execute(
-        'SELECT * FROM experiments WHERE id = ?',
+        'SELECT id, code, name, description, project_id FROM experiments WHERE id = ?',
         [id],
       );
       const list = existingRows as ExperimentRow[];
@@ -795,7 +791,7 @@ async function handleExperimentItem(
         [code, name, description, projectId, id],
       );
       const [rows] = await conn.execute(
-        'SELECT * FROM experiments WHERE id = ?',
+        'SELECT id, code, name, description, project_id FROM experiments WHERE id = ?',
         [id],
       );
       const updated = (rows as ExperimentRow[])[0];
@@ -831,22 +827,50 @@ async function handleContactMessagesCollection(
 ) {
   if (req.method === 'GET') {
     if (!requireAdmin(req, res)) return;
+    const limit = parsePageLimit(getQueryParam(req, 'limit'), 20, 100);
+    const rawCursor = getQueryParam(req, 'cursor');
+    const cursor = decodeCursor(rawCursor);
+    if (rawCursor && !cursor) {
+      return res.status(400).json({ success: false, error: 'Invalid cursor', code: 'INVALID_CURSOR' });
+    }
     return withConn(async (conn) => {
+      const params: unknown[] = [];
+      const cursorClause = cursor
+        ? 'WHERE (created_at < ? OR (created_at = ? AND id < ?))'
+        : '';
+      if (cursor) params.push(cursor.createdAt, cursor.createdAt, cursor.id);
+      params.push(limit + 1);
       const [rows] = await conn.execute(
-        `SELECT id, name, email, topic, message, status, user_agent, created_at
+        `SELECT id, name, email, topic, message, status, delivery_status, user_agent, created_at
            FROM contact_messages
-          ORDER BY created_at DESC, id DESC`,
+           ${cursorClause}
+          ORDER BY created_at DESC, id DESC
+          LIMIT ?`,
+        params,
       );
-      const list = (rows as ContactRow[]).map(mapContactRow);
+      const page = rows as ContactRow[];
+      const hasMore = page.length > limit;
+      const visibleRows = page.slice(0, limit);
+      const list = visibleRows.map(mapContactRow);
       const newCount = list.filter((m) => m.status === 'new').length;
+      const tail = visibleRows.at(-1);
       return res.status(200).json({
         success: true,
-        data: list,
-        meta: { total: list.length, newCount },
+        data: {
+          items: list,
+          pageInfo: {
+            nextCursor: hasMore && tail
+              ? encodeCursor({ createdAt: new Date(tail.created_at).toISOString(), id: tail.id })
+              : null,
+          },
+        },
+        meta: { pageSize: list.length, newCount },
       });
     });
   }
   if (req.method === 'POST') {
+    return res.status(405).json({ success: false, error: 'Use /api/contact to submit a message', code: 'METHOD_NOT_ALLOWED' });
+    /* legacy implementation kept below for migration diff context only
     const body = (req.body || {}) as Record<string, unknown>;
     const name = typeof body.name === 'string' ? body.name.trim() : '';
     const email = typeof body.email === 'string' ? body.email.trim() : '';
@@ -872,6 +896,7 @@ async function handleContactMessagesCollection(
       });
       return res.status(201).json({ success: true, data: { id: newId } });
     });
+    */
   }
   return methodNotAllowed(res);
 }
@@ -904,7 +929,7 @@ async function handleContactMessageItem(
           .json({ success: false, error: 'Message not found' });
       }
       const [rows] = await conn.execute(
-        `SELECT id, name, email, topic, message, status, user_agent, created_at
+        `SELECT id, name, email, topic, message, status, delivery_status, user_agent, created_at
            FROM contact_messages WHERE id = ?`,
         [id],
       );
@@ -932,114 +957,43 @@ async function handleContactMessageItem(
   return methodNotAllowed(res);
 }
 
-// ─── Send Email ─────────────────────────────────────────────────
-async function handleSendEmail(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') return methodNotAllowed(res);
-  const config = getCurrentEmailConfig();
-  if (!config) {
-    return res
-      .status(500)
-      .json({ success: false, error: 'Email service not configured' });
-  }
-  const data = (req.body || {}) as Partial<ContactFormData>;
-  if (!data.name || !data.email || !data.message) {
-    return res
-      .status(400)
-      .json({ success: false, error: 'Missing required fields' });
-  }
-  if (isEmailBlocked(data.email)) {
-    return res.status(429).json({
-      success: false,
-      blocked: true,
-      error: 'This email has reached the maximum submission limit.',
-    });
-  }
-  const currentCount = getEmailCount(data.email);
-  const isFinalWarning = currentCount === MAX_AUTO_REPLY_COUNT - 1;
-  const timestamp = new Date().toLocaleString('vi-VN', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    dateStyle: 'full',
-    timeStyle: 'short',
-  });
-  const topic = data.topic || 'other';
-  const topicCapitalized = topic.charAt(0).toUpperCase() + topic.slice(1);
-  try {
-    const contactPayload: EmailPayload = {
-      service_id: config.serviceId,
-      template_id: config.contactTemplateId,
-      user_id: config.publicKey,
-      accessToken: config.privateKey,
-      template_params: {
-        from_name: data.name,
-        from_email: data.email,
-        topic: topicCapitalized,
-        message: data.message,
-        timestamp,
-      },
-    };
-    const contactResult = await sendEmailJS(contactPayload);
-    if (!contactResult.ok) {
-      console.error('Contact email failed:', contactResult.error);
-      return res.status(500).json({
-        success: false,
-        error: `Contact email failed: ${contactResult.error}`,
-      });
-    }
-
-    const autoReplyPayload: EmailPayload = {
-      service_id: config.serviceId,
-      template_id: config.autoReplyTemplateId,
-      user_id: config.publicKey,
-      accessToken: config.privateKey,
-      template_params: {
-        name: data.name,
-        email: data.email,
-        title: topicCapitalized,
-        extra_message: isFinalWarning ? FINAL_WARNING_MESSAGE : DEFAULT_MESSAGE,
-      },
-    };
-    const replyResult = await sendEmailJS(autoReplyPayload);
-    const autoReplySent = replyResult.ok;
-    if (!replyResult.ok) {
-      console.warn('Auto-reply failed:', replyResult.error);
-    }
-    incrementEmailCount(data.email);
-
-    try {
-      await withConn(async (conn) => {
-        await insertContactMessage(conn, {
-          name: data.name!,
-          email: data.email!,
-          topic,
-          message: data.message!,
-          userAgent:
-            typeof req.headers['user-agent'] === 'string'
-              ? req.headers['user-agent']
-              : null,
-        });
-      });
-    } catch (dbError) {
-      console.warn('contact_messages insert failed:', dbError);
-    }
-    return res.status(200).json({ success: true, autoReplySent });
-  } catch (error) {
-    console.error('Email send error:', error);
-    return res
-      .status(500)
-      .json({ success: false, error: 'Failed to send email' });
-  }
-}
-
 // ─── Ideas ──────────────────────────────────────────────────────
 async function handleIdeasCollection(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
+    const limit = parsePageLimit(getQueryParam(req, 'limit'), 20, 100);
+    const rawCursor = getQueryParam(req, 'cursor');
+    const cursor = decodeCursor(rawCursor);
+    if (rawCursor && !cursor) {
+      return res.status(400).json({ success: false, error: 'Invalid cursor', code: 'INVALID_CURSOR' });
+    }
     return withConn(async (conn) => {
+      const params: unknown[] = [];
+      const cursorClause = cursor
+        ? 'WHERE (created_at < ? OR (created_at = ? AND id < ?))'
+        : '';
+      if (cursor) params.push(cursor.createdAt, cursor.createdAt, cursor.id);
+      params.push(limit + 1);
       const [rows] = await conn.execute(
-        'SELECT * FROM ideas ORDER BY created_at DESC',
+        `SELECT id, title, description, tags, difficulty, upvotes, looking_for_team, author, created_at
+           FROM ideas ${cursorClause}
+          ORDER BY created_at DESC, id DESC LIMIT ?`,
+        params,
       );
-      return res
-        .status(200)
-        .json({ success: true, data: (rows as IdeaRow[]).map(mapIdea) });
+      const page = rows as IdeaRow[];
+      const hasMore = page.length > limit;
+      const visibleRows = page.slice(0, limit);
+      const tail = visibleRows.at(-1);
+      return res.status(200).json({
+        success: true,
+        data: {
+          items: visibleRows.map(mapIdea),
+          pageInfo: {
+            nextCursor: hasMore && tail
+              ? encodeCursor({ createdAt: new Date(tail.created_at).toISOString(), id: tail.id })
+              : null,
+          },
+        },
+      });
     });
   }
   if (req.method === 'POST') {
@@ -1082,7 +1036,9 @@ async function handleIdeaItem(
   if (req.method === 'GET') {
     return withConn(async (conn) => {
       const [rows] = await conn.execute(
-        'SELECT * FROM ideas WHERE id = ?',
+        `SELECT id, title, description, tags, difficulty, upvotes,
+                looking_for_team, author, created_at
+           FROM ideas WHERE id = ?`,
         [id],
       );
       const row = (rows as IdeaRow[])[0];
@@ -1125,7 +1081,9 @@ async function handleIdeaComments(
   if (req.method === 'GET') {
     return withConn(async (conn) => {
       const [rows] = await conn.execute(
-        'SELECT id, idea_id, author, content, created_at FROM idea_comments WHERE idea_id = ? ORDER BY created_at ASC',
+        `SELECT id, idea_id, author, content, created_at
+           FROM idea_comments WHERE idea_id = ?
+          ORDER BY created_at ASC, id ASC LIMIT 100`,
         [ideaId],
       );
       return res
@@ -1202,84 +1160,51 @@ async function handleIdeaCommentItem(
   return methodNotAllowed(res);
 }
 
-// ─── DB Test ────────────────────────────────────────────────────
-async function handleDbTest(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'GET') return methodNotAllowed(res);
-  const startTime = Date.now();
-  try {
-    return await withConn(async (conn) => {
-      const [test] = await conn.execute(
-        'SELECT 1 as test, NOW() as server_time',
-      );
-      const [tables] = await conn.execute(
-        `SELECT TABLE_NAME as table_name, TABLE_ROWS as row_count
-           FROM information_schema.TABLES
-          WHERE TABLE_SCHEMA = ? ORDER BY TABLE_NAME`,
-        [process.env.MYSQL_DATABASE],
-      );
-      const testRow = (test as Array<{ test: number; server_time: string }>)[0];
-      return res.status(200).json({
-        success: true,
-        message: 'Database connection successful.',
-        data: {
-          connection: {
-            host: process.env.MYSQL_HOST,
-            port: Number(process.env.MYSQL_PORT || 3306),
-            user: process.env.MYSQL_USER,
-            database: process.env.MYSQL_DATABASE,
-            password: process.env.MYSQL_PASSWORD ? '***hidden***' : 'NOT SET',
-          },
-          test: {
-            query: 'SELECT 1',
-            result: testRow?.test,
-            serverTime: testRow?.server_time,
-          },
-          tables,
-          performance: { connectionTimeMs: Date.now() - startTime },
-        },
-      });
-    });
-  } catch (error) {
-    const e = error as { code?: string; errno?: number; message?: string; sqlState?: string };
-    return res.status(500).json({
-      success: false,
-      message: 'Database connection failed.',
-      error: {
-        code: e.code,
-        errno: e.errno,
-        message: e.message,
-        sqlState: e.sqlState,
-      },
-      performance: { connectionTimeMs: Date.now() - startTime },
-    });
-  }
-}
-
 // ─── Router ─────────────────────────────────────────────────────
 export async function routeRequest(req: VercelRequest, res: VercelResponse) {
-  applyCors(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
+  const startedAt = Date.now();
+  const requestId = initializeRequestContext(req, res);
+  applySecurityHeaders(res);
+  if (!applyCors(req, res)) return;
+  if (req.method === 'OPTIONS') return res.status(204).end();
   let path = '(unknown)';
   try {
     path = getApiPath(req);
+    const contentLength = Number(req.headers['content-length'] || 0);
+    if (contentLength > 64 * 1024) {
+      return res.status(413).json({ success: false, error: 'Request body is too large', code: 'BODY_TOO_LARGE' });
+    }
+    await attachRequestSession(req);
     // Health
-    if (path === '/' || path === '') {
+    if (path === '/' || path === '' || path === '/health') {
       return res
         .status(200)
-        .json({ success: true, message: 'Portfolio API is running' });
+        .json({ success: true, data: { status: 'ok' } });
     }
 
     // Admin
-    if (path === '/admin/login') return handleAdminLogin(req, res);
-    if (path === '/admin/verify') return handleAdminVerify(req, res);
+    if (path === '/admin/login') return handleSessionLogin(req, res);
+    if (path === '/admin/session') return handleAdminSession(req, res);
+    if (path === '/admin/logout') return handleAdminLogout(req, res);
+    if (path === '/admin/revoke-all') return handleAdminRevokeAll(req, res);
+    if (path === '/admin/maintenance') return handleMaintenance(req, res);
+    if (path === '/admin/verify') {
+      res.setHeader('Deprecation', 'true');
+      res.setHeader('Sunset', process.env.ADMIN_VERIFY_SUNSET || 'Wed, 30 Sep 2026 00:00:00 GMT');
+      return handleAdminVerify(req, res);
+    }
     if (path === '/admin/stats') return handleAdminStats(req, res);
 
-    // Send email
-    if (path === '/send-email') return handleSendEmail(req, res);
+    if (path === '/ai/chat') return handleAiChat(req, res);
 
-    // DB test
-    if (path === '/db-test') return handleDbTest(req, res);
+    if (path === '/contact') return handleContact(req, res);
+    if (path === '/send-email') {
+      res.setHeader('Deprecation', 'true');
+      res.setHeader('Sunset', process.env.LEGACY_CONTACT_SUNSET || 'Wed, 30 Sep 2026 00:00:00 GMT');
+      return handleContact(req, res);
+    }
+
+    if (path === '/db-test') return notFound(res);
 
     // Projects
     if (path === '/projects') return handleProjectsCollection(req, res);
@@ -1337,6 +1262,12 @@ export async function routeRequest(req: VercelRequest, res: VercelResponse) {
     if (path === '/contact-messages') {
       return handleContactMessagesCollection(req, res);
     }
+    const contactResendMatch = path.match(/^\/contact-messages\/([^/]+)\/resend$/);
+    if (contactResendMatch) {
+      const id = parseNumericId(contactResendMatch[1]);
+      if (!id) return res.status(400).json({ success: false, error: 'Invalid message id', code: 'VALIDATION_ERROR' });
+      return handleContactResend(req, res, id);
+    }
     const contactItemMatch = path.match(/^\/contact-messages\/([^/]+)$/);
     if (contactItemMatch) {
       const id = parseNumericId(contactItemMatch[1]);
@@ -1348,7 +1279,13 @@ export async function routeRequest(req: VercelRequest, res: VercelResponse) {
       return handleContactMessageItem(req, res, id);
     }
 
-    // Ideas
+    if (path.startsWith('/ideas') && req.method !== 'GET') {
+      return res.status(410).json({ success: false, error: 'This feature has been retired', code: 'FEATURE_RETIRED' });
+    }
+    if (path.startsWith('/ideas')) {
+      res.setHeader('Deprecation', 'true');
+      res.setHeader('Sunset', process.env.IDEAS_SUNSET || 'Wed, 30 Sep 2026 00:00:00 GMT');
+    }
     if (path === '/ideas') return handleIdeasCollection(req, res);
     const ideaCommentCountMatch = path.match(
       /^\/ideas\/([^/]+)\/comments\/count$/,
@@ -1379,12 +1316,28 @@ export async function routeRequest(req: VercelRequest, res: VercelResponse) {
     return notFound(res);
   } catch (error) {
     const formatted = formatDbError(error);
-    console.error(`API error at ${path}:`, formatted);
+    console.error(JSON.stringify({ type: 'api-error', requestId: getRequestId(req), path, code: formatted.code }));
     return res.status(500).json({
       success: false,
       error: 'Internal server error',
       code: formatted.code,
       hint: formatted.hint,
     });
+  } finally {
+    logRequest({ requestId, method: req.method, path, status: res.statusCode, durationMs: Date.now() - startedAt, code: getResponseCode(req) });
+    const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes(req.method || 'GET');
+    if (unsafe && getAttachedSession(req)) {
+      try {
+        await withConn((conn) => writeAdminAudit(conn, {
+          requestId,
+          action: `${req.method || 'UNKNOWN'} ${path}`,
+          resourceType: path.split('/').filter(Boolean)[0] || null,
+          resourceId: path.split('/').filter(Boolean)[1] || null,
+          outcome: res.statusCode < 400 ? 'success' : 'failure',
+        }));
+      } catch {
+        console.error(JSON.stringify({ type: 'audit-log-failure', requestId }));
+      }
+    }
   }
 }

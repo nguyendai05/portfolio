@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { listProjects, type ProjectRow } from './projects';
+import { createProject, listProjects, type ProjectRow } from './projects';
 
-type QueryResult = [unknown[], unknown];
+type QueryResult = [unknown, unknown];
 
 class FakeConnection {
   calls: Array<{ query: string; params?: unknown[] }> = [];
@@ -13,6 +13,21 @@ class FakeConnection {
     const next = this.results.shift();
     if (!next) throw new Error(`Unexpected query: ${query}`);
     return next;
+  }
+}
+
+class TransactionConnection {
+  calls: Array<{ query: string; params?: unknown[] }> = [];
+  events: string[] = [];
+  async beginTransaction() { this.events.push('begin'); }
+  async commit() { this.events.push('commit'); }
+  async rollback() { this.events.push('rollback'); }
+  async execute(query: string, params?: unknown[]): Promise<QueryResult> {
+    this.calls.push({ query, params });
+    if (query.includes('INSERT INTO projects')) return [{ insertId: 10 }, []];
+    if (query.includes('INSERT INTO technologies')) return [{ affectedRows: 1 }, []];
+    if (query.includes('SELECT id FROM technologies')) throw new Error('pivot failed');
+    throw new Error(`Unexpected query: ${query}`);
   }
 }
 
@@ -113,5 +128,20 @@ describe('listProjects', () => {
 
     expect(conn.calls[0]).toMatchObject({ params: ['project'] });
     expect(conn.calls[0].query).toContain('WHERE project_type = ?');
+  });
+});
+
+describe('project aggregate writes', () => {
+  it('rolls back when a relation write fails', async () => {
+    const conn = new TransactionConnection();
+
+    await expect(createProject(conn as never, {
+      title: 'Transactional',
+      description: 'Description',
+      category: 'Web',
+      imageUrl: 'https://example.com/image.jpg',
+      technologies: ['React'],
+    })).rejects.toThrow('pivot failed');
+    expect(conn.events).toEqual(['begin', 'rollback']);
   });
 });

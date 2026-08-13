@@ -1,26 +1,42 @@
-import { api, ApiError, setAdminToken, getAdminToken } from './client';
+import { api, ApiError, setAdminCsrfToken, setAdminToken } from './client';
 import type { AdminStats } from './types';
 
-export async function adminLogin(password: string): Promise<string> {
-  const data = await api<{ token: string }>(`/admin/login`, {
-    method: 'POST',
-    body: { password },
-  });
-  setAdminToken(data.token);
-  return data.token;
+export interface AdminSession {
+  authenticated: true;
+  expiresAt: string;
+  csrfToken: string;
+}
+
+setAdminToken(null);
+
+export async function adminLogin(password: string): Promise<AdminSession> {
+  const data = await api<AdminSession>('/admin/login', { method: 'POST', body: { password } });
+  setAdminCsrfToken(data.csrfToken);
+  return data;
+}
+
+export async function fetchAdminSession(): Promise<AdminSession> {
+  const data = await api<AdminSession>('/admin/session', { auth: true, retry: 0 });
+  setAdminCsrfToken(data.csrfToken);
+  return data;
+}
+
+export async function adminLogout(): Promise<void> {
+  await api('/admin/logout', { auth: true, method: 'POST' });
+  setAdminCsrfToken(null);
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {
-  return api<AdminStats>(`/admin/stats`, { auth: true });
+  return api<AdminStats>('/admin/stats', { auth: true });
 }
 
 export async function verifyAdminToken(): Promise<boolean> {
   try {
-    await fetchAdminStats();
+    await fetchAdminSession();
     return true;
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 401) return false;
-    return Boolean(getAdminToken());
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) return false;
+    return false;
   }
 }
 

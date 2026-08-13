@@ -152,7 +152,9 @@ export async function loadProjectById(
   id: number,
 ): Promise<ProjectDTO | null> {
   const [rows] = await conn.execute(
-    'SELECT * FROM projects WHERE id = ?',
+    `SELECT id, slug, title, summary, description, category, project_type,
+            image_url, link, featured, created_at, updated_at
+       FROM projects WHERE id = ?`,
     [id],
   );
   const list = rows as ProjectRow[];
@@ -166,7 +168,9 @@ export async function loadProjectBySlug(
   slug: string,
 ): Promise<ProjectDTO | null> {
   const [rows] = await conn.execute(
-    'SELECT * FROM projects WHERE slug = ?',
+    `SELECT id, slug, title, summary, description, category, project_type,
+            image_url, link, featured, created_at, updated_at
+       FROM projects WHERE slug = ?`,
     [slug],
   );
   const list = rows as ProjectRow[];
@@ -179,13 +183,15 @@ export async function listProjects(
   conn: Connection,
   projectType?: ProjectType,
 ): Promise<ProjectDTO[]> {
-  let query = 'SELECT * FROM projects';
+  let query = `SELECT id, slug, title, summary, description, category, project_type,
+                      image_url, link, featured, created_at, updated_at
+                 FROM projects`;
   const params: string[] = [];
   if (projectType === 'project' || projectType === 'tool') {
     query += ' WHERE project_type = ?';
     params.push(projectType);
   }
-  query += ' ORDER BY featured DESC, created_at DESC, id DESC';
+  query += ' ORDER BY featured DESC, created_at DESC, id DESC LIMIT 100';
   const [rows] = await conn.execute(query, params);
   const list = rows as ProjectRow[];
   const { technologiesByProject, phasesByProject } = await loadProjectsExtras(
@@ -201,24 +207,43 @@ export async function listProjects(
   );
 }
 
-async function ensureUniqueSlug(
+export async function listProjectsPage(
   conn: Connection,
-  desired: string,
-  ignoreId?: number,
-): Promise<string> {
-  let candidate = desired || slugify('project');
-  let suffix = 1;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const [rows] = await conn.execute(
-      'SELECT id FROM projects WHERE slug = ? LIMIT 1',
-      [candidate],
-    );
-    const list = rows as Array<{ id: number }>;
-    if (list.length === 0 || list[0].id === ignoreId) return candidate;
-    suffix += 1;
-    candidate = `${desired}-${suffix}`;
+  input: { projectType?: ProjectType; limit: number; cursor?: { createdAt: string; id: number } | null },
+): Promise<{ items: ProjectDTO[]; nextCursorValue: { createdAt: string; id: number } | null }> {
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+  if (input.projectType) {
+    where.push('project_type = ?');
+    params.push(input.projectType);
   }
+  if (input.cursor) {
+    where.push('(created_at < ? OR (created_at = ? AND id < ?))');
+    params.push(input.cursor.createdAt, input.cursor.createdAt, input.cursor.id);
+  }
+  params.push(input.limit + 1);
+  const [rows] = await conn.execute(
+    `SELECT id, slug, title, summary, description, category, project_type,
+            image_url, link, featured, created_at, updated_at
+       FROM projects
+      ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      ORDER BY created_at DESC, id DESC
+      LIMIT ?`,
+    params,
+  );
+  const page = rows as ProjectRow[];
+  const hasMore = page.length > input.limit;
+  const visible = page.slice(0, input.limit);
+  const { technologiesByProject, phasesByProject } = await loadProjectsExtras(conn, visible.map((row) => row.id));
+  const tail = visible.at(-1);
+  return {
+    items: visible.map((row) => mapProjectRow(
+      row,
+      technologiesByProject.get(row.id) ?? [],
+      phasesByProject.get(row.id) ?? [],
+    )),
+    nextCursorValue: hasMore && tail ? { createdAt: new Date(tail.created_at).toISOString(), id: tail.id } : null,
+  };
 }
 
 async function upsertTechnologies(
@@ -309,8 +334,9 @@ export async function createProject(
   conn: Connection,
   input: ProjectInput,
 ): Promise<ProjectDTO> {
-  const slugBase = slugify(input.slug && input.slug.trim() ? input.slug : input.title);
-  const slug = await ensureUniqueSlug(conn, slugBase);
+  await conn.beginTransaction();
+  try {
+  const slug = slugify(input.slug && input.slug.trim() ? input.slug : input.title);
   const projectType: ProjectType = input.projectType === 'tool' ? 'tool' : 'project';
 
   const [result] = await conn.execute(
@@ -343,7 +369,12 @@ export async function createProject(
 
   const created = await loadProjectById(conn, insertId);
   if (!created) throw new Error('Created project not found');
-  return created;
+    await conn.commit();
+    return created;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  }
 }
 
 export async function updateProject(
@@ -351,19 +382,26 @@ export async function updateProject(
   id: number,
   input: Partial<ProjectInput>,
 ): Promise<ProjectDTO | null> {
+  await conn.beginTransaction();
+  try {
   const [existing] = await conn.execute(
-    'SELECT * FROM projects WHERE id = ?',
+    `SELECT id, slug, title, summary, description, category, project_type,
+            image_url, link, featured, created_at, updated_at
+       FROM projects WHERE id = ?`,
     [id],
   );
   const existingRows = existing as ProjectRow[];
-  if (existingRows.length === 0) return null;
+  if (existingRows.length === 0) {
+    await conn.rollback();
+    return null;
+  }
   const current = existingRows[0];
 
   let slug = current.slug;
   if (input.slug !== undefined && input.slug !== null) {
     const desired = slugify(input.slug || current.title);
     if (desired !== current.slug) {
-      slug = await ensureUniqueSlug(conn, desired, id);
+      slug = desired;
     }
   }
 
@@ -408,7 +446,13 @@ export async function updateProject(
     await syncProjectPhases(conn, id, phaseEntries);
   }
 
-  return loadProjectById(conn, id);
+    const updated = await loadProjectById(conn, id);
+    await conn.commit();
+    return updated;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  }
 }
 
 export async function deleteProject(

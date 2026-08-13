@@ -1,0 +1,6 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://grainy-gradients.vercel.app https://nguyendai05.github.io; media-src 'self' https://res.cloudinary.com; frame-src https://www.youtube.com https://drive.google.com https://www.facebook.com; connect-src 'self' https://vitals.vercel-insights.com https://*.vercel-insights.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'

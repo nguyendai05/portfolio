@@ -15,20 +15,35 @@ export interface ProjectFormPayload {
   phases?: string[];
 }
 
-export async function fetchProjects(): Promise<Project[]> {
-  return api<Project[]>(`/projects?type=project`);
+export async function fetchProjects(signal?: AbortSignal): Promise<Project[]> {
+  return api<Project[]>(`/projects?type=project`, { signal });
 }
 
-export async function fetchTools(): Promise<Project[]> {
-  return api<Project[]>(`/projects?type=tool`);
+export async function fetchTools(signal?: AbortSignal): Promise<Project[]> {
+  return api<Project[]>(`/projects?type=tool`, { signal });
 }
 
-export async function fetchAllProjects(): Promise<Project[]> {
-  return api<Project[]>(`/projects`);
+export async function fetchAllProjects(signal?: AbortSignal): Promise<Project[]> {
+  return api<Project[]>(`/projects`, { signal });
 }
 
-export async function fetchProjectBySlug(slug: string): Promise<Project> {
-  return api<Project>(`/projects?slug=${encodeURIComponent(slug)}`);
+export interface ProjectPage {
+  items: Project[];
+  pageInfo: { nextCursor: string | null };
+}
+
+export async function fetchAdminProjectsPage(
+  type: 'project' | 'tool',
+  cursor?: string,
+  signal?: AbortSignal,
+): Promise<ProjectPage> {
+  const params = new URLSearchParams({ admin: 'true', type, limit: '20' });
+  if (cursor) params.set('cursor', cursor);
+  return api<ProjectPage>(`/projects?${params}`, { auth: true, signal });
+}
+
+export async function fetchProjectBySlug(slug: string, signal?: AbortSignal): Promise<Project> {
+  return api<Project>(`/projects?slug=${encodeURIComponent(slug)}`, { signal });
 }
 
 export async function fetchProjectById(id: number): Promise<Project> {

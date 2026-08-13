@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Lock, LogIn, ShieldCheck } from 'lucide-react';
 import {
   adminLogin,
-  hasAdminToken,
+  verifyAdminToken,
 } from '../../services/portfolioService';
 import { Button, Field, Input, StatusBanner } from '../../components/admin/AdminUi';
 
@@ -15,9 +15,7 @@ export const AdminLogin: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
-    if (hasAdminToken()) {
-      navigate('/admin', { replace: true });
-    }
+    verifyAdminToken().then((ok) => ok && navigate('/admin', { replace: true }));
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,18 +94,16 @@ export const AdminLogin: React.FC = () => {
               <span className="uppercase tracking-[0.3em]">how this works</span>
             </div>
             <p>
-              Configure <code className="text-theme-accent">ADMIN_PASSWORD</code>{' '}
-              and <code className="text-theme-accent">ADMIN_TOKEN</code> on the
-              server (Vercel → Environment Variables, or your local{' '}
-              <code>.env.local</code>). The password unlocks the token, which is
-              stored in your browser and attached as a Bearer header to every
-              admin API call.
+              Configure <code className="text-theme-accent">ADMIN_PASSWORD_HASH</code>{' '}
+              and <code className="text-theme-accent">ADMIN_SESSION_SECRET</code>{' '}
+              on the server. A successful login creates an eight-hour HttpOnly
+              session; unsafe requests also require the session-bound CSRF token.
             </p>
           </div>
         </form>
 
         <div className="mt-6 text-center text-[11px] font-mono uppercase tracking-[0.3em] text-theme-text/40">
-          <a href="#/" className="hover:text-theme-text transition-colors">
+          <a href="/" className="hover:text-theme-text transition-colors">
             ← back to portfolio
           </a>
         </div>

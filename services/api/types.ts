@@ -29,6 +29,7 @@ export interface ContactMessage {
   topic: 'collaboration' | 'mentorship' | 'freelance' | 'other';
   message: string;
   status: 'new' | 'replied' | 'archived';
+  delivery: 'pending' | 'processing' | 'sent' | 'failed' | 'unknown';
   userAgent: string | null;
   createdAt: string;
 }
@@ -41,5 +42,4 @@ export interface AdminStats {
   experiments: number;
   messages: number;
   newMessages: number;
-  ideas: number;
 }

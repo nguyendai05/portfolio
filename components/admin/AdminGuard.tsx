@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import {
-  hasAdminToken,
-  verifyAdminToken,
-} from '../../services/portfolioService';
+import { verifyAdminToken } from '../../services/portfolioService';
 
 /**
  * Wraps an admin page. On mount we verify the stored bearer token against
@@ -13,16 +10,10 @@ import {
 export const AdminGuard: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [state, setState] = useState<'pending' | 'ok' | 'denied'>(
-    hasAdminToken() ? 'pending' : 'denied',
-  );
+  const [state, setState] = useState<'pending' | 'ok' | 'denied'>('pending');
 
   useEffect(() => {
     let active = true;
-    if (!hasAdminToken()) {
-      setState('denied');
-      return;
-    }
     verifyAdminToken().then((ok) => {
       if (!active) return;
       setState(ok ? 'ok' : 'denied');
