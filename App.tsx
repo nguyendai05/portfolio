@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
+const Analytics = lazy(() => import('@vercel/analytics/react').then(({ Analytics }) => ({ default: Analytics })).catch(() => ({ default: () => null })));
+const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then(({ SpeedInsights }) => ({ default: SpeedInsights })).catch(() => ({ default: () => null })));
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Navigation } from './components/Navigation';
